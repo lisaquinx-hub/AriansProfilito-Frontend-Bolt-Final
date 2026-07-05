@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
 const stats = [
-  { label: 'پروژه‌های فعال', value: '۴', icon: FolderKanban, color: 'from-blue-500 to-cyan-500' },
+  { label: 'پروژه‌های فعال', value: '۴', icon: FolderKanban, color: 'from-sky-500 to-blue-600 dark:from-blue-500 dark:to-cyan-500' },
   { label: 'مجموع پروژه‌ها', value: '۱۲', icon: TrendingUp, color: 'from-green-500 to-teal-500' },
   { label: 'صورت‌حساب پرداختی', value: '۴۵,۰۰۰,۰۰۰', icon: CreditCard, color: 'from-purple-500 to-pink-500' },
   { label: 'تاریخ عضویت', value: '۱۴۰۴/۰۱/۱۵', icon: Clock, color: 'from-orange-500 to-yellow-500' },
@@ -31,10 +31,10 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">داشبورد</h1>
-          <p className="text-foreground/50 mt-1">به آریان‌لب خوش آمدید</p>
+          <p className="text-muted-foreground mt-1">به آریان‌لب خوش آمدید</p>
         </div>
         <Link href="/dashboard/projects">
-          <Button className="rounded-full bg-gradient-to-l from-blue-600 to-cyan-600 shadow-glow">
+          <Button className="btn-primary shadow-glow">
             ایجاد پروژه جدید
           </Button>
         </Link>
@@ -58,7 +58,7 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="text-2xl font-bold">{stat.value}</div>
-              <div className="text-sm text-foreground/50 mt-1">{stat.label}</div>
+              <div className="text-sm text-muted-foreground mt-1">{stat.label}</div>
             </motion.div>
           );
         })}
@@ -75,27 +75,27 @@ export default function DashboardPage() {
           <h2 className="text-xl font-semibold mb-4">پروژه‌های اخیر</h2>
           <div className="space-y-4">
             {recentProjects.map((project, index) => (
-              <div key={index} className="p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+              <div key={index} className="p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
                 <div className="flex items-center justify-between mb-3">
                   <span className="font-medium">{project.name}</span>
                   <span className={`text-xs px-3 py-1 rounded-full ${
-                    project.status === 'تکمیل شده' ? 'bg-green-500/20 text-green-400' :
-                    project.status === 'در حال توسعه' ? 'bg-blue-500/20 text-blue-400' :
-                    'bg-yellow-500/20 text-yellow-400'
+                    project.status === 'تکمیل شده' ? 'bg-green-500/20 text-green-500' :
+                    project.status === 'در حال توسعه' ? 'bg-sky-500/20 text-sky-500 dark:bg-blue-500/20 dark:text-blue-400' :
+                    'bg-yellow-500/20 text-yellow-500'
                   }`}>
                     {project.status}
                   </span>
                 </div>
-                <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-l from-blue-500 to-cyan-500 rounded-full transition-all"
+                    className="h-full bg-gradient-to-l from-sky-500 to-blue-600 dark:from-blue-500 dark:to-cyan-500 rounded-full transition-all"
                     style={{ width: `${project.progress}%` }}
                   />
                 </div>
               </div>
             ))}
           </div>
-          <Link href="/dashboard/projects" className="block mt-4 text-sm text-cyan-400 hover:text-cyan-300">
+          <Link href="/dashboard/projects" className="block mt-4 text-sm text-sky-500 dark:text-cyan-400 hover:text-sky-600 dark:hover:text-cyan-300">
             مشاهده همه پروژه‌ها
           </Link>
         </motion.div>
@@ -112,12 +112,12 @@ export default function DashboardPage() {
             {activities.map((activity, index) => (
               <div key={index} className="flex gap-4 text-sm">
                 <div className={`w-2 h-2 rounded-full mt-2 ${
-                  activity.type === 'project' ? 'bg-blue-400' :
-                  activity.type === 'payment' ? 'bg-green-400' : 'bg-cyan-400'
+                  activity.type === 'project' ? 'bg-sky-500 dark:bg-blue-400' :
+                  activity.type === 'payment' ? 'bg-green-500' : 'bg-sky-500 dark:bg-cyan-400'
                 }`} />
                 <div className="flex-1">
                   <p className="text-foreground/80">{activity.text}</p>
-                  <p className="text-xs text-foreground/40 mt-1">{activity.time}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{activity.time}</p>
                 </div>
               </div>
             ))}

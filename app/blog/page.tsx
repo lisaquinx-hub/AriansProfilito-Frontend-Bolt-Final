@@ -4,7 +4,8 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowLeft, Clock, User } from 'lucide-react';
 import { blogPosts } from '@/lib/mock-data';
-import { cn } from '@/lib/utils';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -32,7 +33,7 @@ export default function BlogPage() {
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             <span className="text-gradient">وبلاگ</span>
           </h1>
-          <p className="text-foreground/60 max-w-xl mx-auto">
+          <p className="text-muted-foreground max-w-xl mx-auto">
             مقالات آموزشی، آخرین اخبار و روندهای دنیای تکنولوژی
           </p>
         </motion.div>
@@ -45,19 +46,19 @@ export default function BlogPage() {
           className="glass rounded-2xl overflow-hidden mb-12"
         >
           <div className="grid md:grid-cols-2">
-            <div className="aspect-video bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center">
-              <span className="text-6xl font-bold text-white/10">۱</span>
+            <div className="aspect-video bg-gradient-to-br from-sky-500/20 to-blue-500/20 dark:from-blue-500/20 dark:to-cyan-500/20 flex items-center justify-center">
+              <span className="text-6xl font-bold text-foreground/10">۱</span>
             </div>
             <div className="p-8 flex flex-col justify-center">
-              <span className="text-sm text-cyan-400 mb-3">مقاله ویژه</span>
+              <span className="text-sm text-sky-500 dark:text-cyan-400 mb-3">مقاله ویژه</span>
               <h2 className="text-2xl md:text-3xl font-bold mb-4">
                 آینده طراحی محصول: از ایده تا واقعیت
               </h2>
-              <p className="text-foreground/60 mb-6 leading-relaxed">
+              <p className="text-muted-foreground mb-6 leading-relaxed">
                 در این مقاله به بررسی روندهای جدید طراحی محصول در بازار ایران و جهان می‌پردازیم
                 و نحوه پیاده‌سازی آنها را بررسی خواهیم کرد.
               </p>
-              <div className="flex items-center gap-6 text-sm text-foreground/50 mb-6">
+              <div className="flex items-center gap-6 text-sm text-muted-foreground mb-6">
                 <div className="flex items-center gap-2">
                   <User className="w-4 h-4" />
                   <span>علی محمدی</span>
@@ -67,7 +68,7 @@ export default function BlogPage() {
                   <span>۱۵ دقیقه</span>
                 </div>
               </div>
-              <Link href="/blog/1" className="inline-flex items-center text-cyan-400 hover:text-cyan-300">
+              <Link href="/blog/1" className="inline-flex items-center text-sky-500 dark:text-cyan-400 hover:text-sky-600 dark:hover:text-cyan-300">
                 ادامه مطلب
                 <ArrowLeft className="mr-2 w-4 h-4" />
               </Link>
@@ -86,20 +87,20 @@ export default function BlogPage() {
             <motion.article
               key={post.id}
               variants={itemVariants}
-              className="group glass rounded-xl overflow-hidden hover:bg-white/10 transition-colors"
+              className="group glass rounded-xl overflow-hidden glass-hover transition-colors"
             >
-              <div className="aspect-video bg-gradient-to-br from-blue-500/10 to-cyan-500/10 flex items-center justify-center">
-                <span className="text-4xl font-bold text-white/10">{post.id}</span>
+              <div className="aspect-video bg-gradient-to-br from-sky-500/10 to-blue-500/10 dark:from-blue-500/10 dark:to-cyan-500/10 flex items-center justify-center">
+                <span className="text-4xl font-bold text-foreground/10">{post.id}</span>
               </div>
               <div className="p-6">
-                <span className="text-xs text-cyan-400">{post.category}</span>
+                <span className="text-xs text-sky-500 dark:text-cyan-400">{post.category}</span>
                 <h3 className="text-lg font-semibold mt-2 mb-3 group-hover:text-gradient transition-all">
                   {post.title}
                 </h3>
-                <p className="text-foreground/50 text-sm mb-4 line-clamp-2">
+                <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
                   {post.excerpt}
                 </p>
-                <div className="flex items-center justify-between text-xs text-foreground/40">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>{post.author}</span>
                   <span>{post.readTime}</span>
                 </div>

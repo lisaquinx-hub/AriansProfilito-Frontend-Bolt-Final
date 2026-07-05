@@ -10,7 +10,7 @@ export default function BlogPostPage({ params }: { params: { id: string } }) {
     <main className="min-h-screen pt-24 pb-16">
       <div className="container mx-auto px-6">
         {/* Back Link */}
-        <Link href="/blog" className="inline-flex items-center gap-2 text-foreground/50 hover:text-foreground mb-8">
+        <Link href="/blog" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8">
           <ArrowRight className="w-4 h-4" />
           بازگشت به وبلاگ
         </Link>
@@ -18,11 +18,11 @@ export default function BlogPostPage({ params }: { params: { id: string } }) {
         <article className="max-w-4xl mx-auto">
           {/* Header */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <span className="text-sm text-cyan-400 mb-4 block">طراحی</span>
+            <span className="text-sm text-sky-500 dark:text-cyan-400 mb-4 block">طراحی</span>
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
               اصول طراحی تجربه کاربری در سال ۲۰۲۶
             </h1>
-            <div className="flex flex-wrap items-center gap-6 text-foreground/50 mb-8">
+            <div className="flex flex-wrap items-center gap-6 text-muted-foreground mb-8">
               <div className="flex items-center gap-2">
                 <User2 className="w-4 h-4" />
                 <span>علی محمدی</span>
@@ -42,9 +42,9 @@ export default function BlogPostPage({ params }: { params: { id: string } }) {
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="aspect-video rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center mb-12"
+            className="aspect-video rounded-xl bg-gradient-to-br from-sky-500/20 to-blue-500/20 dark:from-blue-500/20 dark:to-cyan-500/20 flex items-center justify-center mb-12"
           >
-            <span className="text-8xl font-bold text-white/10">۱</span>
+            <span className="text-8xl font-bold text-foreground/10">۱</span>
           </motion.div>
 
           {/* Content */}
@@ -70,7 +70,7 @@ export default function BlogPostPage({ params }: { params: { id: string } }) {
 
             <p className="text-foreground/80 leading-relaxed mb-6">
               طراحی مینیمال به معنای حذف همه عناصر نیست، بلکه به معنای ساده‌سازی و تمرکز بر
-              عناصر ضروری است. این رویکرد به کاربران کمک می‌کند تا سریع‌تر به 목 خود برسند.
+              عناصر ضروری است. این رویکرد به کاربران کمک می‌کند تا سریع‌تر به هدف خود برسند.
             </p>
 
             <h3 className="text-xl font-semibold mt-8 mb-3">انیمیشن‌های ظریف</h3>
@@ -80,7 +80,7 @@ export default function BlogPostPage({ params }: { params: { id: string } }) {
               باید مراقب بود که انیمیشن‌ها بیش از حد نگذاریم و کاربر را خسته نکنیم.
             </p>
 
-            <div className="my-12 p-6 rounded-xl glass border-r-4 border-r-cyan-500">
+            <div className="my-12 p-6 rounded-xl glass border-r-4 border-r-sky-500 dark:border-r-cyan-500">
               <p className="text-foreground/80 italic">
                 طراحی خوب زمانی رخ می‌دهد که کاربر اصلاً تلاشی برای درک طراحی نکند.
               </p>
@@ -100,10 +100,10 @@ export default function BlogPostPage({ params }: { params: { id: string } }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="mt-12 pt-8 border-t border-white/10"
+            className="mt-12 pt-8 border-t border-border"
           >
             <div className="flex items-center justify-between flex-wrap gap-4">
-              <span className="text-foreground/50">اشتراک‌گذاری:</span>
+              <span className="text-muted-foreground">اشتراک‌گذاری:</span>
               <div className="flex gap-3">
                 <Button variant="outline" size="sm" className="rounded-full">
                   تلگرام

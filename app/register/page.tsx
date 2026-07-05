@@ -7,6 +7,7 @@ import { ArrowRight, Lock, Mail, User, Eye, EyeOff, CheckCircle } from 'lucide-r
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -29,11 +30,16 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 py-12 relative">
+    <div className="min-h-screen flex items-center justify-center px-4 md:px-6 py-12 relative overflow-x-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-hero" />
-      <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
+      <div className="absolute inset-0 bg-gradient-hero overflow-hidden" />
+      <div className="absolute top-1/4 right-1/4 w-48 md:w-96 h-48 md:h-96 bg-sky-500/10 dark:bg-cyan-500/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-1/4 left-1/4 w-48 md:w-96 h-48 md:h-96 bg-blue-500/10 rounded-full blur-3xl" />
+
+      {/* Theme Toggle */}
+      <div className="absolute top-6 right-4 md:right-6 z-20">
+        <ThemeToggle />
+      </div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -56,7 +62,7 @@ export default function RegisterPage() {
               <div
                 key={s}
                 className={`w-10 h-1 rounded-full transition-colors ${
-                  s <= step ? 'bg-gradient-to-l from-blue-500 to-cyan-500' : 'bg-white/10'
+                  s <= step ? 'bg-gradient-to-l from-sky-500 to-blue-600 dark:from-blue-500 dark:to-cyan-500' : 'bg-muted'
                 }`}
               />
             ))}
@@ -65,7 +71,7 @@ export default function RegisterPage() {
           {step === 1 ? (
             <>
               <h1 className="text-2xl font-bold text-center mb-2">ایجاد حساب</h1>
-              <p className="text-foreground/50 text-center mb-8">
+              <p className="text-muted-foreground text-center mb-8">
                 برای شروع همکاری ثبت‌نام کنید
               </p>
 
@@ -74,14 +80,14 @@ export default function RegisterPage() {
                 <div className="space-y-2">
                   <Label htmlFor="name">نام و نام خانوادگی</Label>
                   <div className="relative">
-                    <User className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/30" />
+                    <User className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
                       id="name"
                       type="text"
                       placeholder="نام شما"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="pr-10 bg-white/5 border-white/10 focus:border-cyan-500"
+                      className="pr-10 bg-muted/50 border-border focus:border-sky-500"
                       required
                     />
                   </div>
@@ -91,14 +97,14 @@ export default function RegisterPage() {
                 <div className="space-y-2">
                   <Label htmlFor="email">ایمیل</Label>
                   <div className="relative">
-                    <Mail className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/30" />
+                    <Mail className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
                       id="email"
                       type="email"
                       placeholder="email@example.com"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="pr-10 bg-white/5 border-white/10 focus:border-cyan-500"
+                      className="pr-10 bg-muted/50 border-border focus:border-sky-500"
                       required
                     />
                   </div>
@@ -108,21 +114,21 @@ export default function RegisterPage() {
                 <div className="space-y-2">
                   <Label htmlFor="password">رمز عبور</Label>
                   <div className="relative">
-                    <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/30" />
+                    <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
                       id="password"
                       type={showPassword ? 'text' : 'password'}
                       placeholder="حداقل ۸ کاراکتر"
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      className="pr-10 pl-10 bg-white/5 border-white/10 focus:border-cyan-500"
+                      className="pr-10 pl-10 bg-muted/50 border-border focus:border-sky-500"
                       required
                       minLength={8}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/30 hover:text-foreground/50"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     >
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
@@ -133,14 +139,14 @@ export default function RegisterPage() {
                 <div className="space-y-2">
                   <Label htmlFor="confirmPassword">تکرار رمز عبور</Label>
                   <div className="relative">
-                    <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/30" />
+                    <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
                       id="confirmPassword"
                       type="password"
                       placeholder="تکرار رمز عبور"
                       value={formData.confirmPassword}
                       onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                      className="pr-10 bg-white/5 border-white/10 focus:border-cyan-500"
+                      className="pr-10 bg-muted/50 border-border focus:border-sky-500"
                       required
                     />
                   </div>
@@ -150,7 +156,7 @@ export default function RegisterPage() {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full rounded-full bg-gradient-to-l from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 shadow-glow"
+                  className="w-full btn-primary shadow-glow"
                 >
                   {isLoading ? (
                     <span className="animate-pulse">در حال ثبت‌نام...</span>
@@ -164,9 +170,9 @@ export default function RegisterPage() {
               </form>
 
               {/* Login Link */}
-              <p className="text-center text-foreground/60 mt-6">
+              <p className="text-center text-muted-foreground mt-6">
                 حساب دارید؟{' '}
-                <Link href="/login" className="text-cyan-400 hover:text-cyan-300 font-medium">
+                <Link href="/login" className="text-sky-500 dark:text-cyan-400 hover:text-sky-600 dark:hover:text-cyan-300 font-medium">
                   وارد شوید
                 </Link>
               </p>
@@ -178,16 +184,16 @@ export default function RegisterPage() {
               className="text-center py-8"
             >
               <div className="w-20 h-20 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-6">
-                <CheckCircle className="w-10 h-10 text-green-400" />
+                <CheckCircle className="w-10 h-10 text-green-500" />
               </div>
               <h2 className="text-2xl font-bold mb-4">ثبت‌نام موفق!</h2>
-              <p className="text-foreground/60 mb-8">
+              <p className="text-muted-foreground mb-8">
                 حساب شما با موفقیت ایجاد شد.
                 <br />
                 برای ورود به داشبورد کلیک کنید.
               </p>
               <Link href="/dashboard">
-                <Button className="rounded-full bg-gradient-to-l from-blue-600 to-cyan-600 shadow-glow">
+                <Button className="btn-primary shadow-glow">
                   ورود به داشبورد
                   <ArrowRight className="mr-2 h-4 w-4" />
                 </Button>

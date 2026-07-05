@@ -20,7 +20,7 @@ export default function FAQ() {
           transition={{ duration: 0.5 }}
           className="text-center mb-16"
         >
-          <h2 className="text-sm font-medium text-cyan-400 mb-4">سوالات متداول</h2>
+          <h2 className="text-sm font-medium text-sky-500 dark:text-cyan-400 mb-4">سوالات متداول</h2>
           <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold">
             شفاف، کوتاه، بدون پیچیدگی
           </h3>
@@ -39,7 +39,7 @@ export default function FAQ() {
               key={faq.id}
               className={cn(
                 'rounded-xl overflow-hidden transition-all duration-300',
-                openId === faq.id ? 'glass' : 'glass hover:bg-white/5'
+                openId === faq.id ? 'glass' : 'glass hover:bg-muted/50'
               )}
             >
               <button
@@ -53,7 +53,7 @@ export default function FAQ() {
                 >
                   <ChevronDown className={cn(
                     'w-5 h-5 transition-colors',
-                    openId === faq.id ? 'text-cyan-400' : 'text-foreground/50'
+                    openId === faq.id ? 'text-sky-500 dark:text-cyan-400' : 'text-muted-foreground'
                   )} />
                 </motion.div>
               </button>
@@ -67,7 +67,7 @@ export default function FAQ() {
                     transition={{ duration: 0.3 }}
                     className="overflow-hidden"
                   >
-                    <div className="px-6 pb-6 text-foreground/60 leading-relaxed">
+                    <div className="px-6 pb-6 text-muted-foreground leading-relaxed">
                       {faq.answer}
                     </div>
                   </motion.div>

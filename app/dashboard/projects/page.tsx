@@ -47,9 +47,9 @@ const statusLabels: { [key: string]: string } = {
 };
 
 const statusColors: { [key: string]: string } = {
-  active: 'bg-blue-500/20 text-blue-400',
-  pending: 'bg-yellow-500/20 text-yellow-400',
-  completed: 'bg-green-500/20 text-green-400',
+  active: 'bg-sky-500/20 text-sky-500 dark:bg-blue-500/20 dark:text-blue-400',
+  pending: 'bg-yellow-500/20 text-yellow-500',
+  completed: 'bg-green-500/20 text-green-500',
 };
 
 export default function ProjectsPage() {
@@ -59,9 +59,9 @@ export default function ProjectsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">پروژه‌ها</h1>
-          <p className="text-foreground/50 mt-1">مدیریت و مشاهده پروژه‌های شما</p>
+          <p className="text-muted-foreground mt-1">مدیریت و مشاهده پروژه‌های شما</p>
         </div>
-        <Button className="rounded-full bg-gradient-to-l from-blue-600 to-cyan-600 shadow-glow">
+        <Button className="btn-primary shadow-glow">
           <Plus className="w-4 h-4 ml-2" />
           ایجاد پروژه جدید
         </Button>
@@ -75,13 +75,13 @@ export default function ProjectsPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className="glass rounded-xl p-6 hover:bg-white/10 transition-colors"
+            className="glass rounded-xl p-6 glass-hover transition-colors"
           >
             {/* Header */}
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center">
-                  <FolderKanban className="w-6 h-6 text-cyan-400" />
+                <div className="w-12 h-12 rounded-xl bg-sky-500/10 dark:bg-sky-500/20 flex items-center justify-center">
+                  <FolderKanban className="w-6 h-6 text-sky-500 dark:text-cyan-400" />
                 </div>
                 <div>
                   <h3 className="font-semibold">{project.name}</h3>
@@ -95,20 +95,20 @@ export default function ProjectsPage() {
             {/* Progress */}
             <div className="mb-4">
               <div className="flex items-center justify-between text-sm mb-2">
-                <span className="text-foreground/50">پیشرفت</span>
+                <span className="text-muted-foreground">پیشرفت</span>
                 <span className="font-medium">{project.progress}٪</span>
               </div>
-              <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+              <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-l from-blue-500 to-cyan-500 rounded-full transition-all"
+                  className="h-full bg-gradient-to-l from-sky-500 to-blue-600 dark:from-blue-500 dark:to-cyan-500 rounded-full transition-all"
                   style={{ width: `${project.progress}%` }}
                 />
               </div>
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between pt-4 border-t border-white/5">
-              <div className="flex items-center gap-4 text-sm text-foreground/50">
+            <div className="flex items-center justify-between pt-4 border-t border-border">
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
                   <span>{project.deadline}</span>
@@ -119,7 +119,7 @@ export default function ProjectsPage() {
                     {project.team.map((member, i) => (
                       <div
                         key={i}
-                        className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-xs text-white ring-2 ring-background"
+                        className="w-6 h-6 rounded-full bg-gradient-to-br from-sky-500 to-blue-600 dark:from-blue-500 dark:to-cyan-500 flex items-center justify-center text-xs text-white ring-2 ring-background"
                       >
                         {member}
                       </div>
@@ -129,7 +129,7 @@ export default function ProjectsPage() {
               </div>
               <Link
                 href={`/dashboard/projects/${project.id}`}
-                className="text-sm text-cyan-400 hover:text-cyan-300"
+                className="text-sm text-sky-500 dark:text-cyan-400 hover:text-sky-600 dark:hover:text-cyan-300"
               >
                 مشاهده جزئیات
               </Link>

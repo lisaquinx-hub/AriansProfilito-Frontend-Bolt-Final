@@ -9,9 +9,9 @@ export default function NotFound() {
   return (
     <main className="min-h-screen flex items-center justify-center relative overflow-hidden">
       {/* Background Effects */}
-      <div className="absolute inset-0 bg-gradient-hero" />
-      <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
+      <div className="absolute inset-0 bg-gradient-hero overflow-hidden" />
+      <div className="absolute top-1/4 right-1/4 w-48 md:w-96 h-48 md:h-96 bg-sky-500/10 dark:bg-cyan-500/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-1/4 left-1/4 w-48 md:w-96 h-48 md:h-96 bg-blue-500/10 rounded-full blur-3xl" />
 
       <div className="container mx-auto px-6 relative z-10">
         <motion.div
@@ -24,7 +24,7 @@ export default function NotFound() {
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: 'spring', stiffness: 200 }}
-            className="text-[200px] font-bold text-gradient leading-none mb-6"
+            className="text-8xl md:text-[200px] font-bold text-gradient leading-none mb-6"
           >
             ۴۰۴
           </motion.div>
@@ -35,7 +35,7 @@ export default function NotFound() {
           </h1>
 
           {/* Description */}
-          <p className="text-foreground/60 mb-8 max-w-md mx-auto">
+          <p className="text-muted-foreground mb-8 max-w-md mx-auto">
             متأسفانه صفحه‌ای که به دنبال آن هستید وجود ندارد یا منتقل شده است.
             لطفاً آدرس را بررسی کنید یا به صفحه اصلی برگردید.
           </p>
@@ -43,7 +43,7 @@ export default function NotFound() {
           {/* Actions */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/">
-              <Button className="rounded-full bg-gradient-to-l from-blue-600 to-cyan-600 shadow-glow">
+              <Button className="btn-primary shadow-glow">
                 <Home className="ml-2 w-4 h-4" />
                 صفحه اصلی
               </Button>
@@ -61,9 +61,9 @@ export default function NotFound() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="mt-12 pt-8 border-t border-white/10"
+            className="mt-12 pt-8 border-t border-border"
           >
-            <p className="text-foreground/50 mb-4">شاید به دنبال این موارد باشید:</p>
+            <p className="text-muted-foreground mb-4">شاید به دنبال این موارد باشید:</p>
             <div className="flex flex-wrap items-center justify-center gap-4">
               {[
                 { href: '/#services', label: 'خدمات' },
@@ -74,7 +74,7 @@ export default function NotFound() {
                 <a
                   key={link.href}
                   href={link.href}
-                  className="text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1"
+                  className="text-sky-500 dark:text-cyan-400 hover:text-sky-600 dark:hover:text-cyan-300 transition-colors flex items-center gap-1"
                 >
                   {link.label}
                   <ArrowRight className="w-3 h-3" />

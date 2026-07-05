@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { cn } from '@/lib/utils';
 
 const navLinks = [
@@ -33,8 +34,10 @@ export default function Navbar() {
       className={cn(
         'fixed top-0 right-0 left-0 z-50 transition-all duration-300',
         isScrolled
-          ? 'bg-background/80 backdrop-blur-xl border-b border-white/5 shadow-lg'
-          : 'bg-transparent'
+          ? 'bg-background/80 backdrop-blur-xl border-b shadow-lg'
+          : 'bg-transparent',
+        'dark:border-white/5 dark:shadow-black/20',
+        'border-border shadow-black/5'
       )}
     >
       <nav className="container mx-auto px-6 py-4">
@@ -57,30 +60,34 @@ export default function Navbar() {
                 className="text-foreground/70 hover:text-foreground transition-colors relative group"
               >
                 {link.label}
-                <span className="absolute -bottom-1 right-0 w-0 h-0.5 bg-gradient-to-l from-cyan-400 to-blue-500 transition-all duration-300 group-hover:w-full" />
+                <span className="absolute -bottom-1 right-0 w-0 h-0.5 bg-gradient-to-l from-sky-400 to-blue-500 dark:from-cyan-400 dark:to-blue-500 transition-all duration-300 group-hover:w-full" />
               </motion.a>
             ))}
           </div>
 
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-3">
+            <ThemeToggle />
             <Link href="/login">
               <Button variant="ghost" className="rounded-full px-6">
                 ورود
               </Button>
             </Link>
             <Link href="/register">
-              <Button className="rounded-full px-6 bg-gradient-to-l from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 shadow-glow">
+              <Button className="btn-primary px-6 shadow-glow">
                 شروع همکاری
               </Button>
             </Link>
           </div>
 
-          <button
-            className="md:hidden p-2"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? <X /> : <Menu />}
-          </button>
+          <div className="md:hidden flex items-center gap-2">
+            <ThemeToggle />
+            <button
+              className="p-2"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X /> : <Menu />}
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -90,7 +97,7 @@ export default function Navbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-background/95 backdrop-blur-xl border-b border-white/5"
+            className="md:hidden bg-background/95 backdrop-blur-xl border-b"
           >
             <div className="container mx-auto px-6 py-6 flex flex-col gap-4">
               {navLinks.map((link) => (
@@ -103,14 +110,14 @@ export default function Navbar() {
                   {link.label}
                 </a>
               ))}
-              <div className="flex flex-col gap-3 pt-4 border-t border-white/5">
+              <div className="flex flex-col gap-3 pt-4 border-t border-border">
                 <Link href="/login">
                   <Button variant="ghost" className="w-full rounded-full">
                     ورود
                   </Button>
                 </Link>
                 <Link href="/register">
-                  <Button className="w-full rounded-full bg-gradient-to-l from-blue-600 to-cyan-600">
+                  <Button className="w-full btn-primary shadow-glow">
                     شروع همکاری
                   </Button>
                 </Link>

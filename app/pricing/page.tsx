@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import { Check, Sparkles } from 'lucide-react';
 import { pricingPlans } from '@/lib/mock-data';
 import { Button } from '@/components/ui/button';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
@@ -23,7 +25,7 @@ export default function PricingPage() {
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             <span className="text-gradient">تعرفه‌ها</span>
           </h1>
-          <p className="text-foreground/60 max-w-xl mx-auto">
+          <p className="text-muted-foreground max-w-xl mx-auto">
             بسته‌های متناسب با نیازهای کسب‌وکار شما
           </p>
         </motion.div>
@@ -44,14 +46,14 @@ export default function PricingPage() {
               className={cn(
                 'rounded-2xl p-8 relative',
                 plan.isPopular
-                  ? 'glass border-2 border-cyan-500/50 scale-105 shadow-glow'
+                  ? 'glass border-2 border-sky-500/50 dark:border-cyan-500/50 scale-105 shadow-glow'
                   : 'glass'
               )}
             >
               {/* Popular Badge */}
               {plan.isPopular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <div className="px-4 py-1 rounded-full bg-gradient-to-l from-blue-600 to-cyan-600 text-sm font-medium flex items-center gap-1">
+                  <div className="px-4 py-1 rounded-full bg-gradient-to-l from-sky-500 to-blue-600 dark:from-blue-600 dark:to-cyan-600 text-sm font-medium flex items-center gap-1 text-white">
                     <Sparkles className="w-3 h-3" />
                     محبوب‌ترین
                   </div>
@@ -60,20 +62,20 @@ export default function PricingPage() {
 
               {/* Plan Name */}
               <h3 className="text-xl font-semibold mb-2">{plan.name}</h3>
-              <p className="text-foreground/50 text-sm mb-6">{plan.description}</p>
+              <p className="text-muted-foreground text-sm mb-6">{plan.description}</p>
 
               {/* Price */}
               <div className="mb-8">
                 <span className="text-4xl font-bold">{plan.price}</span>
-                <span className="text-foreground/50 text-sm mr-2">تومان</span>
+                <span className="text-muted-foreground text-sm mr-2">تومان</span>
               </div>
 
               {/* Features */}
               <ul className="space-y-3 mb-8">
                 {plan.features.map((feature, i) => (
                   <li key={i} className="flex items-center gap-3 text-sm">
-                    <div className="w-5 h-5 rounded-full bg-cyan-500/20 flex items-center justify-center">
-                      <Check className="w-3 h-3 text-cyan-400" />
+                    <div className="w-5 h-5 rounded-full bg-sky-500/20 dark:bg-cyan-500/20 flex items-center justify-center">
+                      <Check className="w-3 h-3 text-sky-500 dark:text-cyan-400" />
                     </div>
                     <span>{feature}</span>
                   </li>
@@ -86,7 +88,7 @@ export default function PricingPage() {
                   className={cn(
                     'w-full rounded-full',
                     plan.isPopular
-                      ? 'bg-gradient-to-l from-blue-600 to-cyan-600 shadow-glow'
+                      ? 'btn-primary shadow-glow'
                       : ''
                   )}
                   variant={plan.isPopular ? 'default' : 'outline'}
@@ -107,7 +109,7 @@ export default function PricingPage() {
         >
           <div className="glass rounded-2xl p-8 max-w-xl mx-auto">
             <h3 className="text-xl font-semibold mb-4">نیاز به پروژه سفارشی دارید؟</h3>
-            <p className="text-foreground/60 mb-6">
+            <p className="text-muted-foreground mb-6">
               برای پروژه‌های خاص، درخواست خود را ثبت کنید تا کارشناسان ما با شما تماس بگیرند.
             </p>
             <Link href="/contact">

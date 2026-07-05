@@ -18,7 +18,7 @@ const socialLinks = [
 
 export default function Footer() {
   return (
-    <footer className="relative pt-24 pb-8 border-t border-white/5">
+    <footer className="relative pt-24 pb-8 border-t border-border">
       <div className="container mx-auto px-6">
         {/* Main Footer Content */}
         <div className="grid md:grid-cols-3 gap-12 mb-12">
@@ -27,7 +27,7 @@ export default function Footer() {
             <Link href="/" className="inline-block mb-4">
               <span className="text-2xl font-bold text-gradient">آریان‌لب</span>
             </Link>
-            <p className="text-foreground/50 text-sm leading-relaxed">
+            <p className="text-muted-foreground text-sm leading-relaxed">
               استودیوی محصول دیجیتال ممتاز
               <br />
               طراحی مدرن، سرعت بالا و تجربه‌ای متفاوت
@@ -42,7 +42,7 @@ export default function Footer() {
                 <li key={link.href}>
                   <a
                     href={link.href}
-                    className="text-foreground/50 hover:text-foreground transition-colors"
+                    className="text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {link.label}
                   </a>
@@ -62,9 +62,9 @@ export default function Footer() {
                     key={index}
                     href={social.href}
                     whileHover={{ y: -3 }}
-                    className="w-10 h-10 rounded-full glass flex items-center justify-center hover:bg-white/10 transition-colors"
+                    className="w-10 h-10 rounded-full glass flex items-center justify-center glass-hover transition-colors"
                   >
-                    <Icon className="w-5 h-5 text-foreground/70" />
+                    <Icon className="w-5 h-5 text-muted-foreground" />
                   </motion.a>
                 );
               })}
@@ -73,10 +73,10 @@ export default function Footer() {
         </div>
 
         {/* Divider */}
-        <div className="border-t border-white/5 pt-8">
+        <div className="border-t border-border pt-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             {/* Copyright */}
-            <p className="text-foreground/40 text-sm">
+            <p className="text-muted-foreground text-sm">
               آریان‌لب © ۲۰۲۶
             </p>
 
@@ -84,7 +84,7 @@ export default function Footer() {
             <motion.button
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               whileHover={{ y: -3 }}
-              className="flex items-center gap-2 text-sm text-foreground/50 hover:text-foreground transition-colors"
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               <ArrowUp className="w-4 h-4" />
               بازگشت به معرفی

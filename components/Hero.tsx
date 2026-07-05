@@ -10,17 +10,17 @@ export default function Hero() {
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
       {/* Background Effects */}
       <div className="absolute inset-0 bg-gradient-hero" />
-      <div className="absolute inset-0">
-        <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse-slow" />
-        <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse-slow delay-1000" />
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-1/4 right-1/4 w-64 md:w-96 h-64 md:h-96 bg-sky-500/10 dark:bg-cyan-500/10 rounded-full blur-3xl animate-pulse-slow" />
+        <div className="absolute bottom-1/4 left-1/4 w-64 md:w-96 h-64 md:h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse-slow delay-1000" />
       </div>
 
       {/* Grid Pattern */}
       <div
-        className="absolute inset-0 opacity-10"
+        className="absolute inset-0 opacity-5 dark:opacity-10"
         style={{
           backgroundImage:
-            'linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px)',
+            'linear-gradient(rgba(14, 165, 233, 0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(14, 165, 233, 0.2) 1px, transparent 1px)',
           backgroundSize: '50px 50px',
         }}
       />
@@ -34,7 +34,7 @@ export default function Hero() {
             transition={{ duration: 0.5 }}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-8"
           >
-            <Sparkles className="w-4 h-4 text-cyan-400" />
+            <Sparkles className="w-4 h-4 text-sky-500 dark:text-cyan-400" />
             <span className="text-sm text-foreground/80">استودیوی محصول دیجیتال ممتاز</span>
           </motion.div>
 
@@ -55,7 +55,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-lg md:text-xl text-foreground/60 mb-10 max-w-2xl mx-auto"
+            className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto"
           >
             طراحی مدرن، سرعت بالا و تجربه‌ای متفاوت
           </motion.p>
@@ -70,7 +70,7 @@ export default function Hero() {
             <Link href="/register">
               <Button
                 size="lg"
-                className="rounded-full px-8 py-6 bg-gradient-to-l from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 shadow-glow text-lg group"
+                className="btn-primary px-8 py-6 shadow-glow text-lg group"
               >
                 شروع پروژه
                 <ArrowLeft className="mr-2 h-5 w-5 transition-transform group-hover:-translate-x-1" />
@@ -80,7 +80,7 @@ export default function Hero() {
               <Button
                 size="lg"
                 variant="outline"
-                className="rounded-full px-8 py-6 border-white/10 hover:bg-white/5 text-lg"
+                className="rounded-full px-8 py-6 text-lg"
               >
                 دیدن نمونه‌ها
               </Button>
@@ -101,7 +101,7 @@ export default function Hero() {
             ].map((stat, index) => (
               <div key={index} className="text-center">
                 <div className="text-2xl md:text-3xl font-bold text-gradient">{stat.value}</div>
-                <div className="text-sm text-foreground/50 mt-1">{stat.label}</div>
+                <div className="text-sm text-muted-foreground mt-1">{stat.label}</div>
               </div>
             ))}
           </motion.div>

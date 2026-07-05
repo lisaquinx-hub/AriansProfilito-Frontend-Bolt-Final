@@ -24,7 +24,7 @@ export default function ProfilePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">پروفایل</h1>
-          <p className="text-foreground/50 mt-1">مدیریت اطلاعات شخصی</p>
+          <p className="text-muted-foreground mt-1">مدیریت اطلاعات شخصی</p>
         </div>
         <Button
           onClick={() => setIsEditing(!isEditing)}
@@ -52,9 +52,9 @@ export default function ProfilePage() {
         className="glass rounded-2xl p-8"
       >
         {/* Avatar Section */}
-        <div className="flex items-center gap-6 mb-8 pb-8 border-b border-white/5">
+        <div className="flex items-center gap-6 mb-8 pb-8 border-b border-border">
           <div className="relative">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-4xl font-bold text-white">
+            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-sky-500 to-blue-600 dark:from-blue-500 dark:to-cyan-500 flex items-center justify-center text-4xl font-bold text-white">
               {profile.name[0]}
             </div>
             {isEditing && (
@@ -65,7 +65,7 @@ export default function ProfilePage() {
           </div>
           <div>
             <h2 className="text-2xl font-bold">{profile.name}</h2>
-            <p className="text-foreground/50">{profile.email}</p>
+            <p className="text-muted-foreground">{profile.email}</p>
           </div>
         </div>
 
@@ -79,7 +79,7 @@ export default function ProfilePage() {
                 value={profile.name}
                 onChange={(e) => setProfile({ ...profile, name: e.target.value })}
                 disabled={!isEditing}
-                className="bg-white/5 border-white/10"
+                className="bg-muted/50 border-border"
               />
             </div>
           </div>
@@ -87,14 +87,14 @@ export default function ProfilePage() {
           <div className="space-y-2">
             <Label htmlFor="email">ایمیل</Label>
             <div className="relative">
-              <Mail className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/30" />
+              <Mail className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 id="email"
                 type="email"
                 value={profile.email}
                 onChange={(e) => setProfile({ ...profile, email: e.target.value })}
                 disabled={!isEditing}
-                className="pr-10 bg-white/5 border-white/10"
+                className="pr-10 bg-muted/50 border-border"
               />
             </div>
           </div>
@@ -102,13 +102,13 @@ export default function ProfilePage() {
           <div className="space-y-2">
             <Label htmlFor="phone">شماره تماس</Label>
             <div className="relative">
-              <Phone className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/30" />
+              <Phone className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 id="phone"
                 value={profile.phone}
                 onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
                 disabled={!isEditing}
-                className="pr-10 bg-white/5 border-white/10"
+                className="pr-10 bg-muted/50 border-border"
               />
             </div>
           </div>
@@ -116,13 +116,13 @@ export default function ProfilePage() {
           <div className="space-y-2">
             <Label htmlFor="company">شرکت</Label>
             <div className="relative">
-              <Building className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/30" />
+              <Building className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 id="company"
                 value={profile.company}
                 onChange={(e) => setProfile({ ...profile, company: e.target.value })}
                 disabled={!isEditing}
-                className="pr-10 bg-white/5 border-white/10"
+                className="pr-10 bg-muted/50 border-border"
               />
             </div>
           </div>
@@ -134,7 +134,7 @@ export default function ProfilePage() {
               value={profile.bio}
               onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
               disabled={!isEditing}
-              className="bg-white/5 border-white/10 resize-none"
+              className="bg-muted/50 border-border resize-none"
               rows={3}
             />
           </div>
@@ -149,10 +149,10 @@ export default function ProfilePage() {
         className="glass rounded-2xl p-8"
       >
         <h2 className="text-xl font-semibold mb-6">امنیت</h2>
-        <div className="flex items-center justify-between p-4 rounded-lg bg-white/5">
+        <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
           <div>
             <h3 className="font-medium">تغییر رمز عبور</h3>
-            <p className="text-sm text-foreground/50">رمز عبور خود را به‌روز کنید</p>
+            <p className="text-sm text-muted-foreground">رمز عبور خود را به‌روز کنید</p>
           </div>
           <Button variant="outline" size="sm" className="rounded-full">
             تغییر رمز

@@ -14,9 +14,9 @@ const tickets = [
 ];
 
 const statusConfig: { [key: string]: { label: string; color: string; icon: React.ElementType } } = {
-  open: { label: 'باز', color: 'text-yellow-400 bg-yellow-500/20', icon: Clock },
-  pending: { label: 'در انتظار', color: 'text-blue-400 bg-blue-500/20', icon: AlertCircle },
-  resolved: { label: 'حل شده', color: 'text-green-400 bg-green-500/20', icon: CheckCircle },
+  open: { label: 'باز', color: 'text-yellow-500 bg-yellow-500/20', icon: Clock },
+  pending: { label: 'در انتظار', color: 'text-sky-500 dark:text-blue-400 bg-sky-500/20 dark:bg-blue-500/20', icon: AlertCircle },
+  resolved: { label: 'حل شده', color: 'text-green-500 bg-green-500/20', icon: CheckCircle },
 };
 
 export default function SupportPage() {
@@ -30,11 +30,11 @@ export default function SupportPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">پشتیبانی</h1>
-          <p className="text-foreground/50 mt-1">تیکت‌های پشتیبانی و پیام‌های شما</p>
+          <p className="text-muted-foreground mt-1">تیکت‌های پشتیبانی و پیام‌های شما</p>
         </div>
         <Button
           onClick={() => setIsCreating(!isCreating)}
-          className="rounded-full bg-gradient-to-l from-blue-600 to-cyan-600 shadow-glow"
+          className="btn-primary shadow-glow"
         >
           <Plus className="w-4 h-4 ml-2" />
           تیکت جدید
@@ -54,18 +54,18 @@ export default function SupportPage() {
             <div className="grid gap-5">
               <div>
                 <label className="block text-sm text-foreground/70 mb-2">موضوع</label>
-                <Input placeholder="موضوع تیکت" className="bg-white/5 border-white/10" />
+                <Input placeholder="موضوع تیکت" className="bg-muted/50 border-border" />
               </div>
               <div>
                 <label className="block text-sm text-foreground/70 mb-2">پیام</label>
                 <Textarea
                   rows={5}
                   placeholder="پیام خود را بنویسید..."
-                  className="bg-white/5 border-white/10 resize-none"
+                  className="bg-muted/50 border-border resize-none"
                 />
               </div>
               <div className="flex gap-4">
-                <Button className="rounded-full">ارسال تیکت</Button>
+                <Button className="btn-primary rounded-full">ارسال تیکت</Button>
                 <Button variant="outline" onClick={() => setIsCreating(false)} className="rounded-full">
                   انصراف
                 </Button>
@@ -90,7 +90,7 @@ export default function SupportPage() {
                 onClick={() => setSelectedTicket(ticket.id)}
                 className={cn(
                   'p-4 rounded-xl cursor-pointer transition-all',
-                  selectedTicket === ticket.id ? 'glass' : 'bg-white/5 hover:bg-white/10'
+                  selectedTicket === ticket.id ? 'glass' : 'bg-muted/50 hover:bg-muted'
                 )}
               >
                 <div className="flex items-start justify-between mb-2">
@@ -102,8 +102,8 @@ export default function SupportPage() {
                     {statusConfig[ticket.status]?.label}
                   </span>
                 </div>
-                <p className="text-xs text-foreground/50 truncate">{ticket.latestMessage}</p>
-                <div className="flex items-center gap-2 text-xs text-foreground/40 mt-2">
+                <p className="text-xs text-muted-foreground truncate">{ticket.latestMessage}</p>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
                   <StatusIcon className="w-3 h-3" />
                   <span>{ticket.date}</span>
                 </div>
@@ -126,16 +126,16 @@ export default function SupportPage() {
                 ].map((msg, i) => (
                   <div key={i} className={cn(
                     'p-4 rounded-lg',
-                    msg.sender === 'user' ? 'bg-blue-500/10' : 'bg-cyan-500/10'
+                    msg.sender === 'user' ? 'bg-sky-500/10 dark:bg-blue-500/10' : 'bg-sky-500/5 dark:bg-cyan-500/10'
                   )}>
                     <div className="flex items-center gap-2 mb-2">
                       <div className={cn(
                         'w-6 h-6 rounded-full flex items-center justify-center text-xs',
-                        msg.sender === 'user' ? 'bg-blue-500' : 'bg-cyan-500'
+                        msg.sender === 'user' ? 'bg-sky-500 dark:bg-blue-500' : 'bg-sky-500 dark:bg-cyan-500'
                       )}>
                         <MessageCircle className="w-3 h-3 text-white" />
                       </div>
-                      <span className="text-sm text-foreground/50">{msg.time}</span>
+                      <span className="text-sm text-muted-foreground">{msg.time}</span>
                     </div>
                     <p className="text-sm">{msg.text}</p>
                   </div>
@@ -148,18 +148,18 @@ export default function SupportPage() {
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   placeholder="پیام جدید..."
-                  className="bg-white/5 border-white/10 resize-none flex-1"
+                  className="bg-muted/50 border-border resize-none flex-1"
                   rows={2}
                 />
-                <Button className="rounded-xl self-end bg-gradient-to-l from-blue-600 to-cyan-600">
+                <Button className="btn-primary rounded-xl self-end">
                   <Send className="w-4 h-4" />
                 </Button>
               </div>
             </div>
           ) : (
             <div className="text-center py-12">
-              <MessageCircle className="w-12 h-12 text-foreground/20 mx-auto mb-4" />
-              <p className="text-foreground/40">یک تیکت را برای مشاهده پیام‌ها انتخاب کنید</p>
+              <MessageCircle className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+              <p className="text-muted-foreground">یک تیکت را برای مشاهده پیام‌ها انتخاب کنید</p>
             </div>
           )}
         </div>
