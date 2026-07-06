@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { GlobalSearch } from '@/components/shared';
 import { cn } from '@/lib/utils';
 
 const navLinks = [
@@ -18,6 +19,7 @@ const navLinks = [
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -66,6 +68,13 @@ export default function Navbar() {
           </div>
 
           <div className="hidden md:flex items-center gap-3">
+            <button
+              onClick={() => setIsSearchOpen(true)}
+              className="p-2 rounded-full hover:bg-muted/50 transition-colors"
+              aria-label="جستجو"
+            >
+              <Search className="w-5 h-5" />
+            </button>
             <ThemeToggle />
             <Link href="/login">
               <Button variant="ghost" className="rounded-full px-6">
@@ -80,6 +89,13 @@ export default function Navbar() {
           </div>
 
           <div className="md:hidden flex items-center gap-2">
+            <button
+              onClick={() => setIsSearchOpen(true)}
+              className="p-2"
+              aria-label="جستجو"
+            >
+              <Search className="w-5 h-5" />
+            </button>
             <ThemeToggle />
             <button
               className="p-2"
@@ -126,6 +142,8 @@ export default function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <GlobalSearch isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </motion.header>
   );
 }
