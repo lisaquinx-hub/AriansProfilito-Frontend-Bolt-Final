@@ -2,12 +2,17 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown } from 'lucide-react';
+import Link from 'next/link';
+import { ChevronDown, ArrowLeft } from 'lucide-react';
 import { faqs } from '@/lib/mock-data';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 export default function FAQ() {
   const [openId, setOpenId] = useState<string | null>(null);
+
+  // Show first 4 FAQs on homepage
+  const displayedFaqs = faqs.slice(0, 4);
 
   return (
     <section id="faq" className="py-24 relative">
@@ -34,7 +39,7 @@ export default function FAQ() {
           transition={{ duration: 0.5 }}
           className="max-w-2xl mx-auto space-y-4"
         >
-          {faqs.map((faq) => (
+          {displayedFaqs.map((faq) => (
             <div
               key={faq.id}
               className={cn(
@@ -75,6 +80,24 @@ export default function FAQ() {
               </AnimatePresence>
             </div>
           ))}
+        </motion.div>
+
+        {/* View All Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="flex justify-center mt-12"
+        >
+          <Link href="/faq">
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button variant="outline" className="rounded-full gap-2 group">
+                همه سوالات
+                <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+              </Button>
+            </motion.div>
+          </Link>
         </motion.div>
       </div>
     </section>

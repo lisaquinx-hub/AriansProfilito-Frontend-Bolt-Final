@@ -67,24 +67,34 @@ export default function Hero() {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            <Link href="/register">
-              <Button
-                size="lg"
-                className="btn-primary px-8 py-6 shadow-glow text-lg group"
+            <Link href="/contact">
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                شروع پروژه
-                <ArrowLeft className="mr-2 h-5 w-5 transition-transform group-hover:-translate-x-1" />
-              </Button>
+                <Button
+                  size="lg"
+                  className="btn-primary px-8 py-6 shadow-glow text-lg group"
+                >
+                  شروع همکاری
+                  <ArrowLeft className="mr-2 h-5 w-5 transition-transform group-hover:-translate-x-1" />
+                </Button>
+              </motion.div>
             </Link>
-            <a href="#projects">
-              <Button
-                size="lg"
-                variant="outline"
-                className="rounded-full px-8 py-6 text-lg"
+            <Link href="/portfolio">
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                دیدن نمونه‌ها
-              </Button>
-            </a>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="rounded-full px-8 py-6 text-lg"
+                >
+                  نمونه کارها
+                </Button>
+              </motion.div>
+            </Link>
           </motion.div>
 
           {/* Stats Row */}

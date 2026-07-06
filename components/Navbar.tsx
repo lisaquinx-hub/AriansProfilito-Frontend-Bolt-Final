@@ -10,10 +10,12 @@ import { GlobalSearch } from '@/components/shared';
 import { cn } from '@/lib/utils';
 
 const navLinks = [
-  { href: '#services', label: 'خدمات' },
-  { href: '#projects', label: 'پروژه‌ها' },
-  { href: '#about', label: 'درباره ما' },
-  { href: '#faq', label: 'سوالات' },
+  { href: '/#services', label: 'خدمات' },
+  { href: '/portfolio', label: 'نمونه‌کارها' },
+  { href: '/#about', label: 'درباره ما' },
+  { href: '/pricing', label: 'تعرفه‌ها' },
+  { href: '/blog', label: 'وبلاگ' },
+  { href: '/#contact', label: 'تماس' },
 ];
 
 export default function Navbar() {
@@ -28,6 +30,17 @@ export default function Navbar() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const handleNavClick = (href: string) => {
+    setIsMobileMenuOpen(false);
+    if (href.startsWith('/#')) {
+      const id = href.replace('/#', '');
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
 
   return (
     <motion.header
@@ -47,62 +60,86 @@ export default function Navbar() {
           <Link href="/" className="flex items-center gap-2">
             <motion.div
               whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               className="text-2xl font-bold text-gradient"
             >
               آریان‌لب
             </motion.div>
           </Link>
 
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-6">
             {navLinks.map((link) => (
-              <motion.a
-                key={link.href}
-                href={link.href}
-                whileHover={{ y: -2 }}
-                className="text-foreground/70 hover:text-foreground transition-colors relative group"
-              >
-                {link.label}
-                <span className="absolute -bottom-1 right-0 w-0 h-0.5 bg-gradient-to-l from-sky-400 to-blue-500 dark:from-cyan-400 dark:to-blue-500 transition-all duration-300 group-hover:w-full" />
-              </motion.a>
+              link.href.startsWith('/#') ? (
+                <motion.a
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => handleNavClick(link.href)}
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="text-foreground/70 hover:text-foreground transition-colors relative group"
+                >
+                  {link.label}
+                  <span className="absolute -bottom-1 right-0 w-0 h-0.5 bg-gradient-to-l from-sky-400 to-blue-500 dark:from-cyan-400 dark:to-blue-500 transition-all duration-300 group-hover:w-full" />
+                </motion.a>
+              ) : (
+                <Link key={link.href} href={link.href}>
+                  <motion.span
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="text-foreground/70 hover:text-foreground transition-colors relative group inline-block"
+                  >
+                    {link.label}
+                    <span className="absolute -bottom-1 right-0 w-0 h-0.5 bg-gradient-to-l from-sky-400 to-blue-500 dark:from-cyan-400 dark:to-blue-500 transition-all duration-300 group-hover:w-full" />
+                  </motion.span>
+                </Link>
+              )
             ))}
           </div>
 
           <div className="hidden md:flex items-center gap-3">
-            <button
+            <motion.button
               onClick={() => setIsSearchOpen(true)}
-              className="p-2 rounded-full hover:bg-muted/50 transition-colors"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="p-2 rounded-full hover:bg-muted/50 transition-colors focus:outline-none focus:ring-2 focus:ring-sky-500"
               aria-label="جستجو"
             >
               <Search className="w-5 h-5" />
-            </button>
+            </motion.button>
             <ThemeToggle />
             <Link href="/login">
-              <Button variant="ghost" className="rounded-full px-6">
-                ورود
-              </Button>
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button variant="ghost" className="rounded-full px-6">
+                  ورود
+                </Button>
+              </motion.div>
             </Link>
-            <Link href="/register">
-              <Button className="btn-primary px-6 shadow-glow">
-                شروع همکاری
-              </Button>
+            <Link href="/dashboard">
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button className="btn-primary px-6 shadow-glow">
+                  پنل کاربری
+                </Button>
+              </motion.div>
             </Link>
           </div>
 
           <div className="md:hidden flex items-center gap-2">
-            <button
+            <motion.button
               onClick={() => setIsSearchOpen(true)}
+              whileTap={{ scale: 0.95 }}
               className="p-2"
               aria-label="جستجو"
             >
               <Search className="w-5 h-5" />
-            </button>
+            </motion.button>
             <ThemeToggle />
-            <button
+            <motion.button
               className="p-2"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              whileTap={{ scale: 0.95 }}
             >
               {isMobileMenuOpen ? <X /> : <Menu />}
-            </button>
+            </motion.button>
           </div>
         </div>
       </nav>
@@ -117,24 +154,35 @@ export default function Navbar() {
           >
             <div className="container mx-auto px-6 py-6 flex flex-col gap-4">
               {navLinks.map((link) => (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="text-foreground/70 hover:text-foreground transition-colors py-2"
-                >
-                  {link.label}
-                </a>
+                link.href.startsWith('/#') ? (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => handleNavClick(link.href)}
+                    className="text-foreground/70 hover:text-foreground transition-colors py-2"
+                  >
+                    {link.label}
+                  </a>
+                ) : (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="text-foreground/70 hover:text-foreground transition-colors py-2"
+                  >
+                    {link.label}
+                  </Link>
+                )
               ))}
               <div className="flex flex-col gap-3 pt-4 border-t border-border">
-                <Link href="/login">
+                <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
                   <Button variant="ghost" className="w-full rounded-full">
                     ورود
                   </Button>
                 </Link>
-                <Link href="/register">
+                <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
                   <Button className="w-full btn-primary shadow-glow">
-                    شروع همکاری
+                    پنل کاربری
                   </Button>
                 </Link>
               </div>

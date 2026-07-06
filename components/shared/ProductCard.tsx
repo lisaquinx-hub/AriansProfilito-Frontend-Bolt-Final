@@ -55,6 +55,17 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
             ))}
           </div>
 
+          {/* CTA Button */}
+          <Link href={`/products/${product.slug}`}>
+            <motion.span
+              whileHover={{ x: -4 }}
+              className="inline-flex items-center text-sm text-sky-500 dark:text-cyan-400 group-hover:text-gradient transition-all mb-4"
+            >
+              مشاهده
+              <ArrowLeft className="mr-1 h-4 w-4" />
+            </motion.span>
+          </Link>
+
           {/* Footer */}
           <div className="flex items-center justify-between pt-4 border-t border-border">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -63,15 +74,6 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
             </div>
             <span className="text-lg font-bold text-gradient">{product.startingPrice} تومان</span>
           </div>
-
-          {/* Link */}
-          <Link
-            href={`/products/${product.slug}`}
-            className="absolute inset-0"
-            aria-label={product.title}
-          >
-            <span className="sr-only">بیشتر بدانید</span>
-          </Link>
         </div>
       </div>
     </motion.div>

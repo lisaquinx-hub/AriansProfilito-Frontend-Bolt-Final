@@ -47,20 +47,22 @@ export function PortfolioCard({ project, index = 0 }: PortfolioCardProps) {
             {project.description}
           </p>
 
+          {/* CTA Button */}
+          <Link href={`/portfolio/${project.slug}`}>
+            <motion.span
+              whileHover={{ x: -4 }}
+              className="inline-flex items-center text-sm text-sky-500 dark:text-cyan-400 group-hover:text-gradient transition-all mb-4"
+            >
+              مشاهده
+              <ArrowLeft className="mr-1 h-4 w-4" />
+            </motion.span>
+          </Link>
+
           {/* Metric */}
           <div className="flex items-center justify-between pt-4 border-t border-border">
             <span className="text-sm text-muted-foreground">{project.metric}</span>
             <span className="text-lg font-bold text-gradient">{project.metricValue}</span>
           </div>
-
-          {/* Link */}
-          <Link
-            href={`/portfolio/${project.slug}`}
-            className="absolute inset-0"
-            aria-label={project.title}
-          >
-            <span className="sr-only">مشاهده پروژه</span>
-          </Link>
         </div>
       </div>
     </motion.div>

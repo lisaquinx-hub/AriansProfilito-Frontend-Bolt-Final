@@ -1,8 +1,10 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import { Palette, Rocket, Zap, ArrowLeft } from 'lucide-react';
-import { services } from '@/lib/mock-data';
+import { services, products } from '@/lib/mock-data';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 const iconMap: { [key: string]: React.ElementType } = {
@@ -27,6 +29,9 @@ const itemVariants = {
 };
 
 export default function Services() {
+  // Show first 3 products as services on homepage
+  const displayedProducts = products.slice(0, 3);
+
   return (
     <section id="services" className="py-24 relative overflow-hidden">
       <div className="container mx-auto px-6">
@@ -53,51 +58,69 @@ export default function Services() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          className="grid md:grid-cols-3 gap-6"
+          className="grid md:grid-cols-3 gap-6 mb-12"
         >
-          {services.map((service, index) => {
-            const Icon = iconMap[service.icon] || Palette;
+          {displayedProducts.map((product, index) => {
             return (
               <motion.div
-                key={service.id}
+                key={product.id}
                 variants={itemVariants}
                 className={cn(
                   'group relative p-8 rounded-2xl transition-all duration-300',
-                  'glass hover:glass-hover',
-                  'cursor-pointer'
+                  'glass hover:glass-hover'
                 )}
               >
                 {/* Icon */}
                 <div className="mb-6">
                   <div className="w-14 h-14 rounded-xl bg-sky-500/10 dark:bg-sky-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Icon className="w-7 h-7 text-sky-500 dark:text-cyan-400" />
+                    <span className="text-2xl font-bold text-sky-500 dark:text-cyan-400">
+                      {product.title[0]}
+                    </span>
                   </div>
                 </div>
 
                 {/* Title */}
                 <h4 className="text-xl font-semibold mb-4 group-hover:text-gradient transition-all">
-                  {service.title}
+                  {product.title}
                 </h4>
 
                 {/* Description */}
-                <p className="text-muted-foreground mb-6 leading-relaxed">
-                  {service.description}
+                <p className="text-muted-foreground mb-6 leading-relaxed line-clamp-2">
+                  {product.shortDescription}
                 </p>
 
                 {/* Learn More */}
-                <motion.a
-                  href="#"
-                  className="inline-flex items-center text-sm text-sky-500 dark:text-cyan-400 hover:text-sky-600 dark:hover:text-cyan-300 transition-colors"
+                <Link
+                  href={`/products/${product.slug}`}
+                  className="inline-flex items-center text-sm text-sky-500 dark:text-cyan-400 hover:text-sky-600 dark:hover:text-cyan-300 transition-colors group/link"
                 >
                   بیشتر بدانید
-                  <ArrowLeft className="mr-1 h-4 w-4" />
-                </motion.a>
+                  <ArrowLeft className="mr-1 h-4 w-4 transition-transform group-hover/link:-translate-x-1" />
+                </Link>
 
                 {/* Hover Glow Effect */}
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-sky-500/5 to-blue-500/5 dark:from-sky-500/5 dark:to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity -z-10" />
               </motion.div>
             );
           })}
+        </motion.div>
+
+        {/* View All Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="flex justify-center"
+        >
+          <Link href="/products">
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button className="btn-primary gap-2 group">
+                مشاهده همه خدمات
+                <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+              </Button>
+            </motion.div>
+          </Link>
         </motion.div>
       </div>
     </section>

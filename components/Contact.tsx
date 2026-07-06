@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +14,13 @@ export default function Contact() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
+  };
+
+  const scrollToForm = () => {
+    const formElement = document.getElementById('contact-form');
+    if (formElement) {
+      formElement.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   return (
@@ -32,13 +40,35 @@ export default function Contact() {
             <h3 className="text-3xl md:text-4xl font-bold mb-4">
               برای ساخت محصولی آرام، سریع و ممتاز آماده‌اید؟
             </h3>
-            <p className="text-muted-foreground max-w-xl mx-auto">
+            <p className="text-muted-foreground max-w-xl mx-auto mb-8">
               یک پیام کوتاه کافی است. درباره ایده، محصول یا چالشی که می‌خواهید حل کنید بنویسید
-              تا مسیر پیشنهادی را با شما بررسی کنیم.
+              تا مسیر پیشنهاتی را با شما بررسی کنیم.
             </p>
+
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link href="/contact">
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button className="btn-primary gap-2 group">
+                    ثبت درخواست پروژه
+                    <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+                  </Button>
+                </motion.div>
+              </Link>
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button
+                  variant="outline"
+                  onClick={scrollToForm}
+                  className="rounded-full gap-2"
+                >
+                  تماس با ما
+                </Button>
+              </motion.div>
+            </div>
           </motion.div>
 
           <motion.div
+            id="contact-form"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -72,13 +102,15 @@ export default function Contact() {
                     className="bg-muted/50 border-border focus:border-sky-500 resize-none"
                   />
                 </div>
-                <Button
-                  type="submit"
-                  className="w-full btn-primary shadow-glow"
-                >
-                  ارسال پیام
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                </Button>
+                <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                  <Button
+                    type="submit"
+                    className="w-full btn-primary shadow-glow"
+                  >
+                    ارسال پیام
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                  </Button>
+                </motion.div>
               </form>
             ) : (
               <motion.div
@@ -106,13 +138,14 @@ export default function Contact() {
             className="text-center mt-12"
           >
             <p className="text-muted-foreground mb-4">یا مستقیماً ایمیل بزنید</p>
-            <a
+            <motion.a
               href="mailto:contact@aryanlab.com"
+              whileHover={{ scale: 1.02 }}
               className="inline-flex items-center gap-2 px-6 py-3 rounded-full glass glass-hover transition-colors"
             >
               <Mail className="w-5 h-5 text-sky-500 dark:text-cyan-400" />
               <span>contact@aryanlab.com</span>
-            </a>
+            </motion.a>
           </motion.div>
         </div>
       </div>

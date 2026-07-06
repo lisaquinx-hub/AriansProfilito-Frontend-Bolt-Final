@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Clock, User, Eye, Heart } from 'lucide-react';
+import { Clock, User, Eye, Heart, ArrowLeft } from 'lucide-react';
 import { BlogPost } from '@/lib/mock-data';
 import { cn } from '@/lib/utils';
 
@@ -100,6 +100,17 @@ export function BlogCard({ post, index = 0, variant = 'default' }: BlogCardProps
             {post.excerpt}
           </p>
 
+          {/* CTA Button */}
+          <Link href={`/blog/${post.slug}`}>
+            <motion.span
+              whileHover={{ x: -4 }}
+              className="inline-flex items-center text-sm text-sky-500 dark:text-cyan-400 group-hover:text-gradient transition-all mb-4"
+            >
+              بیشتر بدانید
+              <ArrowLeft className="mr-1 h-4 w-4" />
+            </motion.span>
+          </Link>
+
           {/* Meta */}
           <div className="flex items-center justify-between pt-4 border-t border-border text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
@@ -111,8 +122,6 @@ export function BlogCard({ post, index = 0, variant = 'default' }: BlogCardProps
               <span>{post.readTime}</span>
             </div>
           </div>
-
-          <Link href={`/blog/${post.slug}`} className="absolute inset-0" />
         </div>
       </div>
     </motion.div>

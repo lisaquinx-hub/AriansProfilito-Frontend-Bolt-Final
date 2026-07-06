@@ -1,8 +1,10 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import Link from 'next/link';
+import { Quote, ArrowLeft } from 'lucide-react';
 import { testimonials } from '@/lib/mock-data';
-import { Quote } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -20,6 +22,9 @@ const itemVariants = {
 };
 
 export default function Testimonials() {
+  // Show first 3 testimonials on homepage
+  const displayedTestimonials = testimonials.slice(0, 3);
+
   return (
     <section className="py-24 relative overflow-hidden">
       {/* Background */}
@@ -46,9 +51,9 @@ export default function Testimonials() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          className="grid md:grid-cols-3 gap-6"
+          className="grid md:grid-cols-3 gap-6 mb-12"
         >
-          {testimonials.map((testimonial) => (
+          {displayedTestimonials.map((testimonial) => (
             <motion.div
               key={testimonial.id}
               variants={itemVariants}
@@ -76,6 +81,24 @@ export default function Testimonials() {
               </div>
             </motion.div>
           ))}
+        </motion.div>
+
+        {/* View All Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="flex justify-center"
+        >
+          <Link href="/testimonials">
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button variant="outline" className="rounded-full gap-2 group">
+                مشاهده همه نظرات
+                <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+              </Button>
+            </motion.div>
+          </Link>
         </motion.div>
       </div>
     </section>
