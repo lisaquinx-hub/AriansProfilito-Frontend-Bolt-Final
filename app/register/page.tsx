@@ -2,18 +2,22 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ArrowRight, Lock, Mail, User, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { authService, RegisterRequest } from '@/services/AuthService';
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<RegisterRequest>({
     name: '',
     email: '',
     password: '',
@@ -22,11 +26,31 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsLoading(false);
-    if (step === 1) setStep(2);
+    setError(null);
+
+    if (step === 1) {
+      if (formData.password !== formData.confirmPassword) {
+        setError('رمز عبور و تکرار آن مطابقت ندارند');
+        return;
+      }
+      if (formData.password.length < 8) {
+        setError('رمز عبور باید حداقل ۸ کاراکتر باشد');
+        return;
+      }
+      setIsLoading(true);
+      try {
+        await authService.register(formData);
+        setStep(2);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Registration failed');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  const handleGoToLogin = () => {
+    router.push('/login');
   };
 
   return (
@@ -152,6 +176,13 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
+                {/* Error Message */}
+                {error && (
+                  <div className="bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
+                    {error}
+                  </div>
+                )}
+
                 {/* Submit */}
                 <Button
                   type="submit"
@@ -190,14 +221,12 @@ export default function RegisterPage() {
               <p className="text-muted-foreground mb-8">
                 حساب شما با موفقیت ایجاد شد.
                 <br />
-                برای ورود به داشبورد کلیک کنید.
+                برای ورود به حساب کلیک کنید.
               </p>
-              <Link href="/dashboard">
-                <Button className="btn-primary shadow-glow">
-                  ورود به داشبورد
-                  <ArrowRight className="mr-2 h-4 w-4" />
-                </Button>
-              </Link>
+              <Button onClick={handleGoToLogin} className="btn-primary shadow-glow">
+                ورود به حساب
+                <ArrowRight className="mr-2 h-4 w-4" />
+              </Button>
             </motion.div>
           )}
         </div>

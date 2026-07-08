@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard,
@@ -18,6 +19,9 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { AuthGuard } from '@/components/auth/AuthGuard';
+import { authService } from '@/services/AuthService';
+import { getStoredUser } from '@/lib/auth';
 import { cn } from '@/lib/utils';
 
 const sidebarLinks = [
@@ -29,13 +33,23 @@ const sidebarLinks = [
   { href: '/dashboard/settings', icon: Settings, label: 'تنظیمات' },
 ];
 
-export default function DashboardLayout({
-  children,
-}: {
+interface DashboardLayoutProps {
   children: React.ReactNode;
-}) {
+}
+
+function DashboardContent({ children }: DashboardLayoutProps) {
+  const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const user = getStoredUser<{ name: string; email: string; avatar?: string }>();
+  const displayName = user?.name || 'کاربر';
+  const displayEmail = user?.email || 'user@email.com';
+
+  const handleLogout = async () => {
+    await authService.logout();
+    router.push('/login');
+  };
 
   return (
     <div className="min-h-screen flex bg-background overflow-x-hidden">
@@ -97,15 +111,18 @@ export default function DashboardLayout({
               <User className="w-5 h-5 text-white" />
             </div>
             <div className={cn('transition-opacity', isSidebarOpen ? 'opacity-100' : 'opacity-0')}>
-              <div className="text-sm font-medium">کاربر</div>
-              <div className="text-xs text-muted-foreground">user@email.com</div>
+              <div className="text-sm font-medium">{displayName}</div>
+              <div className="text-xs text-muted-foreground">{displayEmail}</div>
             </div>
           </div>
           {isSidebarOpen && (
-            <Link href="/login" className="mt-3 flex items-center gap-2 text-sm text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300">
+            <button
+              onClick={handleLogout}
+              className="mt-3 flex items-center gap-2 text-sm text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
+            >
               <LogOut className="w-4 h-4" />
               خروج
-            </Link>
+            </button>
           )}
         </div>
       </motion.aside>
@@ -158,14 +175,13 @@ export default function DashboardLayout({
                 })}
               </nav>
               <div className="p-4 border-t border-border">
-                <Link
-                  href="/login"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                <button
+                  onClick={handleLogout}
                   className="flex items-center gap-2 text-sm text-red-500"
                 >
                   <LogOut className="w-4 h-4" />
                   خروج
-                </Link>
+                </button>
               </div>
             </motion.aside>
           </>
@@ -198,12 +214,15 @@ export default function DashboardLayout({
                 <Bell className="w-5 h-5 text-muted-foreground" />
                 <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-sky-500 dark:bg-cyan-500" />
               </button>
-              <Link href="/logout" className="hidden sm:block">
+              <button
+                onClick={handleLogout}
+                className="hidden sm:block"
+              >
                 <Button variant="ghost" size="sm">
                   <LogOut className="w-4 h-4 ml-2" />
                   خروج
                 </Button>
-              </Link>
+              </button>
             </div>
           </div>
         </header>
@@ -214,5 +233,13 @@ export default function DashboardLayout({
         </main>
       </div>
     </div>
+  );
+}
+
+export default function DashboardLayout({ children }: DashboardLayoutProps) {
+  return (
+    <AuthGuard>
+      <DashboardContent>{children}</DashboardContent>
+    </AuthGuard>
   );
 }

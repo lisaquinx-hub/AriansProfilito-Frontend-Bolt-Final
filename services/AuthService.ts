@@ -1,7 +1,8 @@
-import { api } from './api';
+import { api, ApiResponse, getApiErrorMessage } from './api';
+import { setAccessToken, removeAccessToken, setStoredUser, getStoredUser, isAuthenticated } from '@/lib/auth';
 
 export interface LoginRequest {
-  email: string;
+  emailOrUserName: string;
   password: string;
 }
 
@@ -12,74 +13,114 @@ export interface RegisterRequest {
   confirmPassword: string;
 }
 
-export interface AuthResponse {
-  success: boolean;
-  token: string;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    avatar?: string;
-  };
-}
-
-export interface User {
+export interface AuthUser {
   id: string;
   name: string;
   email: string;
+  userName?: string;
   avatar?: string;
-  created_at: string;
+  createdAt?: string;
+}
+
+export interface LoginResponseData {
+  token: string;
+  user?: AuthUser;
+  accessToken?: string;
+}
+
+export interface RegisterResponseData {
+  userId?: string;
+  message?: string;
+}
+
+export interface CurrentUserData {
+  id: string;
+  name: string;
+  email: string;
+  userName?: string;
+  avatar?: string;
 }
 
 class AuthService {
-  private endpoint = '/auth';
+  private endpoint = '/Auth';
 
-  async login(data: LoginRequest): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>(`${this.endpoint}/login`, data);
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
+  async login(data: LoginRequest): Promise<LoginResponseData> {
+    try {
+      const response = await api.post<ApiResponse<LoginResponseData>>(`${this.endpoint}/login`, data);
+
+      const responseData = response.data.data;
+
+      if (!responseData) {
+        throw new Error('Invalid response from server');
+      }
+
+      if (responseData.token) {
+        setAccessToken(responseData.token);
+      } else if (responseData.accessToken) {
+        setAccessToken(responseData.accessToken);
+      }
+
+      if (responseData.user) {
+        setStoredUser(responseData.user);
+      }
+
+      return responseData;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
     }
-    return response.data;
   }
 
-  async register(data: RegisterRequest): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>(`${this.endpoint}/register`, data);
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
+  async register(data: RegisterRequest): Promise<RegisterResponseData> {
+    try {
+      const response = await api.post<ApiResponse<RegisterResponseData>>(`${this.endpoint}/register`, data);
+      return response.data.data || {};
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
     }
-    return response.data;
   }
 
   async logout(): Promise<void> {
-    await api.post(`${this.endpoint}/logout`);
-    localStorage.removeItem('token');
+    try {
+      await api.post(`${this.endpoint}/logout`);
+    } catch {
+      // Ignore logout API errors
+    } finally {
+      removeAccessToken();
+    }
   }
 
-  async getCurrentUser(): Promise<User> {
-    const response = await api.get<User>(`${this.endpoint}/me`);
-    return response.data;
+  async getCurrentUser(): Promise<CurrentUserData> {
+    try {
+      const response = await api.get<ApiResponse<CurrentUserData>>(`${this.endpoint}/me`);
+      return response.data.data!;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
   }
 
-  async updateProfile(data: Partial<User>): Promise<User> {
-    const response = await api.put<User>(`${this.endpoint}/profile`, data);
-    return response.data;
+  async updateProfile(data: Partial<CurrentUserData>): Promise<CurrentUserData> {
+    try {
+      const response = await api.put<ApiResponse<CurrentUserData>>(`${this.endpoint}/profile`, data);
+      return response.data.data!;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
   }
 
   async changePassword(oldPassword: string, newPassword: string): Promise<void> {
-    await api.put(`${this.endpoint}/password`, { oldPassword, newPassword });
+    try {
+      await api.put(`${this.endpoint}/password`, { oldPassword, newPassword });
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
   }
 
-  async requestPasswordReset(email: string): Promise<void> {
-    await api.post(`${this.endpoint}/forgot-password`, { email });
+  checkAuth(): boolean {
+    return isAuthenticated();
   }
 
-  async resetPassword(token: string, password: string): Promise<void> {
-    await api.post(`${this.endpoint}/reset-password`, { token, password });
-  }
-
-  isAuthenticated(): boolean {
-    if (typeof window === 'undefined') return false;
-    return !!localStorage.getItem('token');
+  getCurrentUserFromStorage<T>(): T | null {
+    return getStoredUser<T>();
   }
 }
 
