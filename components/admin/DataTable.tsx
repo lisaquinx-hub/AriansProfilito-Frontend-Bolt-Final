@@ -1,0 +1,210 @@
+'use client';
+
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { ChevronLeft, ChevronRight, MoreHorizontal, Pencil, Trash2, Eye } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
+
+interface Column<T> {
+  key: keyof T | string;
+  label: string;
+  render?: (item: T) => React.ReactNode;
+  className?: string;
+}
+
+interface DataTableProps<T> {
+  data: T[];
+  columns: Column<T>[];
+  loading?: boolean;
+  onView?: (item: T) => void;
+  onEdit?: (item: T) => void;
+  onDelete?: (item: T) => void;
+  emptyMessage?: string;
+  pageSize?: number;
+}
+
+export function DataTable<T extends { id: string }>({
+  data,
+  columns,
+  loading = false,
+  onView,
+  onEdit,
+  onDelete,
+  emptyMessage = 'داده‌ای یافت نشد',
+  pageSize = 10,
+}: DataTableProps<T>) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.ceil(data.length / pageSize);
+  const paginatedData = data.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="h-12 bg-muted animate-pulse rounded-lg" />
+        ))}
+      </div>
+    );
+  }
+
+  if (data.length === 0) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        {emptyMessage}
+      </div>
+    );
+  }
+
+  const hasActions = onView || onEdit || onDelete;
+
+  return (
+    <div className="space-y-4">
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-border">
+              {columns.map((col) => (
+                <th
+                  key={String(col.key)}
+                  className={cn(
+                    'px-4 py-3 text-right text-sm font-medium text-muted-foreground',
+                    col.className
+                  )}
+                >
+                  {col.label}
+                </th>
+              ))}
+              {hasActions && (
+                <th className="px-4 py-3 text-right text-sm font-medium text-muted-foreground w-20">
+                  عملیات
+                </th>
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {paginatedData.map((item, index) => (
+              <motion.tr
+                key={item.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.02 }}
+                className="border-b border-border hover:bg-muted/30 transition-colors"
+              >
+                {columns.map((col) => (
+                  <td
+                    key={String(col.key)}
+                    className={cn('px-4 py-3 text-sm', col.className)}
+                  >
+                    {col.render
+                      ? col.render(item)
+                      : String((item as Record<string, unknown>)[col.key as string] ?? '')}
+                  </td>
+                ))}
+                {hasActions && (
+                  <td className="px-4 py-3">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {onView && (
+                          <DropdownMenuItem onClick={() => onView(item)}>
+                            <Eye className="h-4 w-4 ml-2" />
+                            مشاهده
+                          </DropdownMenuItem>
+                        )}
+                        {onEdit && (
+                          <DropdownMenuItem onClick={() => onEdit(item)}>
+                            <Pencil className="h-4 w-4 ml-2" />
+                            ویرایش
+                          </DropdownMenuItem>
+                        )}
+                        {onDelete && (
+                          <DropdownMenuItem
+                            onClick={() => onDelete(item)}
+                            className="text-red-500 focus:text-red-500"
+                          >
+                            <Trash2 className="h-4 w-4 ml-2" />
+                            حذف
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </td>
+                )}
+              </motion.tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            {currentPage} از {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface ConfirmDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  description: string;
+  onConfirm: () => void;
+  loading?: boolean;
+}
+
+export function ConfirmDialog({ open, onOpenChange, title, description, onConfirm, loading }: ConfirmDialogProps) {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="fixed inset-0 bg-black/50" onClick={() => onOpenChange(false)} />
+      <div className="relative glass rounded-2xl p-6 max-w-md w-full mx-4">
+        <h3 className="text-lg font-semibold mb-2">{title}</h3>
+        <p className="text-muted-foreground mb-6">{description}</p>
+        <div className="flex gap-3 justify-end">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            انصراف
+          </Button>
+          <Button
+            className="bg-red-500 hover:bg-red-600 text-white"
+            onClick={onConfirm}
+            disabled={loading}
+          >
+            {loading ? 'در حال حذف...' : 'حذف'}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}

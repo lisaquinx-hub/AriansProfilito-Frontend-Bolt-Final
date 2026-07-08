@@ -3,31 +3,82 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { blogPosts, blogCategories, getPopularBlogPosts } from '@/lib/mock-data';
+import { blogPosts as mockBlogPosts, blogCategories as mockBlogCategories, getPopularBlogPosts } from '@/lib/mock-data';
 import { PageHeader, CategoryFilter, SearchBox, Pagination, EmptyState } from '@/components/shared';
 import { BlogCardSkeleton } from '@/components/shared/SkeletonLoaders';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { ArrowLeft, TrendingUp, Eye, Heart } from 'lucide-react';
+import { blogPostService } from '@/services/BlogPostService';
+import { blogCategoryService } from '@/services/BlogCategoryService';
+import { BlogPost, BlogCategory } from '@/types/api';
 
 export default function BlogPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [categories, setCategories] = useState<BlogCategory[]>([]);
   const itemsPerPage = 6;
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoaded(true), 500);
-    return () => clearTimeout(timer);
+    const fetchData = async () => {
+      setIsLoading(true);
+      const [postsData, categoriesData] = await Promise.all([
+        blogPostService.getAll(),
+        blogCategoryService.getAll(),
+      ]);
+
+      if (postsData && postsData.length > 0) {
+        setPosts(postsData);
+      } else {
+        setPosts(mockBlogPosts.map(p => ({
+          id: p.id,
+          title: p.title,
+          slug: p.slug,
+          excerpt: p.excerpt,
+          content: p.content,
+          coverImage: p.image,
+          readTime: parseInt(p.readTime) || 5,
+          isPublished: true,
+          publishedAt: p.date,
+          author: p.author,
+          authorAvatar: p.authorAvatar,
+          views: p.views,
+          likes: p.likes,
+          tags: p.tags,
+          categoryId: p.category,
+          categoryName: p.category,
+          createdAt: p.date,
+          updatedAt: p.date,
+        })));
+      }
+
+      if (categoriesData && categoriesData.length > 0) {
+        setCategories(categoriesData);
+      } else {
+        setCategories(mockBlogCategories.map(c => ({
+          id: c.id,
+          name: c.name,
+          slug: c.id,
+          publishedPostCount: c.count,
+          createdAt: '',
+          updatedAt: '',
+        })));
+      }
+
+      setIsLoading(false);
+    };
+    fetchData();
   }, []);
 
   const filteredPosts = useMemo(() => {
-    let result = [...blogPosts];
+    let result = [...posts];
 
     // Filter by category
     if (selectedCategory !== 'all') {
-      result = result.filter((p) => p.category === selectedCategory);
+      result = result.filter((p) => p.categoryId === selectedCategory || p.categoryName === selectedCategory);
     }
 
     // Filter by search
@@ -36,13 +87,13 @@ export default function BlogPage() {
       result = result.filter(
         (p) =>
           p.title.toLowerCase().includes(q) ||
-          p.excerpt.toLowerCase().includes(q) ||
-          p.tags?.some((t) => t.toLowerCase().includes(q))
+          (p.excerpt || '').toLowerCase().includes(q) ||
+          (p.tags || []).some((t) => t.toLowerCase().includes(q))
       );
     }
 
     return result;
-  }, [selectedCategory, searchQuery]);
+  }, [posts, selectedCategory, searchQuery]);
 
   const paginatedPosts = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
@@ -50,12 +101,18 @@ export default function BlogPage() {
   }, [filteredPosts, currentPage]);
 
   const totalPages = Math.ceil(filteredPosts.length / itemsPerPage);
-  const popularPosts = getPopularBlogPosts();
+  const popularPosts = useMemo(() => {
+    return [...posts].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 4);
+  }, [posts]);
 
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedCategory, searchQuery]);
+
+  const displayCategories = categories.length > 0
+    ? [{ id: 'all', name: 'همه', slug: 'all', publishedPostCount: posts.length, createdAt: '', updatedAt: '' }, ...categories]
+    : mockBlogCategories.map(c => ({ id: c.id, name: c.name, slug: c.id, publishedPostCount: c.count, createdAt: '', updatedAt: '' }));
 
   return (
     <main className="min-h-screen pt-24 pb-16 relative overflow-x-hidden">
@@ -83,7 +140,7 @@ export default function BlogPage() {
               className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8"
             >
               <CategoryFilter
-                categories={blogCategories}
+                categories={displayCategories.map(c => ({ id: c.id, name: c.name, count: c.publishedPostCount || 0 }))}
                 selected={selectedCategory}
                 onSelect={setSelectedCategory}
               />
@@ -104,7 +161,7 @@ export default function BlogPage() {
             </motion.p>
 
             {/* Posts Grid */}
-            {!isLoaded ? (
+            {isLoading ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
                   <BlogCardSkeleton key={i} />
@@ -134,22 +191,24 @@ export default function BlogPage() {
                               {post.title[0]}
                             </span>
                             {/* Category Badge */}
-                            <div className="absolute top-4 right-4">
-                              <span className="px-3 py-1 rounded-full text-xs font-medium bg-sky-500/20 dark:bg-cyan-500/20 text-sky-500 dark:text-cyan-400">
-                                {post.category}
-                              </span>
-                            </div>
+                            {post.categoryName && (
+                              <div className="absolute top-4 right-4">
+                                <span className="px-3 py-1 rounded-full text-xs font-medium bg-sky-500/20 dark:bg-cyan-500/20 text-sky-500 dark:text-cyan-400">
+                                  {post.categoryName}
+                                </span>
+                              </div>
+                            )}
                           </div>
                           <div className="p-6">
                             <h2 className="text-lg font-semibold mb-3 group-hover:text-gradient transition-all line-clamp-2">
                               {post.title}
                             </h2>
                             <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-                              {post.excerpt}
+                              {post.excerpt || ''}
                             </p>
                             <div className="flex items-center justify-between text-sm text-muted-foreground pt-4 border-t border-border">
                               <div className="flex items-center gap-4">
-                                <span>{post.author}</span>
+                                <span>{post.author || 'نویسنده'}</span>
                               </div>
                               <div className="flex items-center gap-1">
                                 <Eye className="w-4 h-4" />
@@ -157,8 +216,8 @@ export default function BlogPage() {
                               </div>
                             </div>
                             <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
-                              <span>{post.date}</span>
-                              <span>{post.readTime}</span>
+                              <span>{post.publishedAt || post.createdAt}</span>
+                              <span>{post.readTime || 5} دقیقه</span>
                             </div>
                           </div>
                         </Link>
@@ -201,7 +260,7 @@ export default function BlogPage() {
                 <h3 className="text-lg font-semibold">محبوب‌ترین‌ها</h3>
               </div>
               <div className="space-y-4">
-                {popularPosts.slice(0, 4).map((post, index) => (
+                {popularPosts.map((post, index) => (
                   <Link
                     key={post.id}
                     href={`/blog/${post.slug}`}

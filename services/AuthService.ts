@@ -1,4 +1,5 @@
-import { api, ApiResponse, getApiErrorMessage } from './api';
+import { api, getApiErrorMessage } from './api';
+import { ApiResponse } from '@/lib/api-utils';
 import { setAccessToken, removeAccessToken, setStoredUser, getStoredUser, isAuthenticated } from '@/lib/auth';
 
 export interface LoginRequest {

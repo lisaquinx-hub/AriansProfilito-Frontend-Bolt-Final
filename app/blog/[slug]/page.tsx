@@ -1,15 +1,23 @@
 'use client';
 
-import { use } from 'react';
+import { use, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { blogPosts, getBlogPostBySlug, getRelatedBlogPosts, getPopularBlogPosts } from '@/lib/mock-data';
-import { PageHeader, TechBadge } from '@/components/shared';
+import { blogPosts as mockBlogPosts, getRelatedBlogPosts, getPopularBlogPosts } from '@/lib/mock-data';
+import { PageHeader } from '@/components/shared';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { ArrowRight, ArrowLeft, Clock, User, Eye, Heart, Tag, TrendingUp } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Clock, User, Eye, Heart, Tag, TrendingUp, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { blogPostService } from '@/services/BlogPostService';
+import { commentsService } from '@/services/CommentsService';
+import { BlogPost, Comment as CommentType } from '@/types/api';
+import { resolveAssetUrl } from '@/lib/api-utils';
+import { cn } from '@/lib/utils';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -17,7 +25,96 @@ interface Props {
 
 export default function BlogPostPage({ params }: Props) {
   const { slug } = use(params);
-  const post = getBlogPostBySlug(slug);
+  const [post, setPost] = useState<BlogPost | null>(null);
+  const [comments, setComments] = useState<CommentType[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [commentSuccess, setCommentSuccess] = useState(false);
+  const [commentError, setCommentError] = useState<string | null>(null);
+
+  const [commentForm, setCommentForm] = useState({
+    fullName: '',
+    email: '',
+    message: '',
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      const postData = await blogPostService.getBySlug(slug);
+
+      if (postData) {
+        setPost(postData);
+        const commentsData = await commentsService.getApprovedByBlogPostId(postData.id);
+        setComments(commentsData);
+      } else {
+        // Fallback to mock data
+        const mockPost = mockBlogPosts.find(p => p.slug === slug);
+        if (mockPost) {
+          setPost({
+            id: mockPost.id,
+            title: mockPost.title,
+            slug: mockPost.slug,
+            excerpt: mockPost.excerpt,
+            content: mockPost.content,
+            coverImage: mockPost.image,
+            readTime: parseInt(mockPost.readTime) || 5,
+            isPublished: true,
+            publishedAt: mockPost.date,
+            author: mockPost.author,
+            authorAvatar: mockPost.authorAvatar,
+            views: mockPost.views,
+            likes: mockPost.likes,
+            tags: mockPost.tags,
+            categoryName: mockPost.category,
+            createdAt: mockPost.date,
+            updatedAt: mockPost.date,
+          });
+        }
+      }
+      setIsLoading(false);
+    };
+    fetchData();
+  }, [slug]);
+
+  const handleCommentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!post) return;
+
+    setIsSubmitting(true);
+    setCommentError(null);
+    setCommentSuccess(false);
+
+    try {
+      await commentsService.create({
+        blogPostId: post.id,
+        fullName: commentForm.fullName,
+        email: commentForm.email,
+        message: commentForm.message,
+      });
+
+      setCommentForm({ fullName: '', email: '', message: '' });
+      setCommentSuccess(true);
+    } catch (err) {
+      setCommentError(err instanceof Error ? err.message : 'خطا در ثبت نظر');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <main className="min-h-screen pt-24 pb-16 relative overflow-x-hidden">
+        <div className="container mx-auto px-6 relative">
+          <div className="animate-pulse">
+            <div className="h-8 bg-muted rounded w-1/2 mb-4" />
+            <div className="h-4 bg-muted rounded w-1/3 mb-8" />
+            <div className="aspect-video bg-muted rounded-2xl" />
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   if (!post) {
     notFound();
@@ -35,7 +132,7 @@ export default function BlogPostPage({ params }: Props) {
       <div className="container mx-auto px-6 relative">
         <PageHeader
           title={post.title}
-          subtitle={post.excerpt}
+          subtitle={post.excerpt || ''}
           breadcrumbs={[
             { label: 'خانه', href: '/' },
             { label: 'وبلاگ', href: '/blog' },
@@ -54,13 +151,13 @@ export default function BlogPostPage({ params }: Props) {
             >
               <div className="flex items-center gap-2">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sky-500/20 to-blue-500/20 dark:from-blue-500/20 dark:to-cyan-500/20 flex items-center justify-center font-bold">
-                  {post.authorAvatar || post.author[0]}
+                  {post.authorAvatar || post.author?.[0] || 'ن'}
                 </div>
-                <span className="font-medium text-foreground">{post.author}</span>
+                <span className="font-medium text-foreground">{post.author || 'نویسنده'}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4" />
-                <span>{post.readTime}</span>
+                <span>{post.readTime || 5} دقیقه</span>
               </div>
               <div className="flex items-center gap-2">
                 <Eye className="w-4 h-4" />
@@ -83,11 +180,13 @@ export default function BlogPostPage({ params }: Props) {
                   {post.title[0]}
                 </span>
               </div>
-              <div className="absolute top-6 right-6">
-                <span className="px-4 py-2 rounded-full text-sm font-medium glass">
-                  {post.category}
-                </span>
-              </div>
+              {post.categoryName && (
+                <div className="absolute top-6 right-6">
+                  <span className="px-4 py-2 rounded-full text-sm font-medium glass">
+                    {post.categoryName}
+                  </span>
+                </div>
+              )}
             </motion.div>
 
             {/* Content */}
@@ -99,7 +198,7 @@ export default function BlogPostPage({ params }: Props) {
             >
               <div className="prose prose-lg dark:prose-invert max-w-none">
                 <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-                  {post.content || post.excerpt}
+                  {post.content || post.excerpt || ''}
                 </p>
 
                 <h2 className="text-2xl font-bold mt-10 mb-4">نکات کلیدی</h2>
@@ -165,12 +264,99 @@ export default function BlogPostPage({ params }: Props) {
               </div>
             </motion.div>
 
+            {/* Comments Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="glass rounded-2xl p-8 mb-8"
+            >
+              <h2 className="text-xl font-bold mb-6">نظرات ({comments.length})</h2>
+
+              {/* Comment Form */}
+              <form onSubmit={handleCommentSubmit} className="space-y-4 mb-8">
+                {commentSuccess && (
+                  <div className="bg-green-500/10 border border-green-500/30 text-green-600 dark:text-green-400 px-4 py-3 rounded-lg text-sm">
+                    نظر شما با موفقیت ثبت شد و در انتظار تأیید است.
+                  </div>
+                )}
+                {commentError && (
+                  <div className="bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
+                    {commentError}
+                  </div>
+                )}
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName">نام و نام خانوادگی</Label>
+                    <Input
+                      id="fullName"
+                      value={commentForm.fullName}
+                      onChange={(e) => setCommentForm({ ...commentForm, fullName: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">ایمیل</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={commentForm.email}
+                      onChange={(e) => setCommentForm({ ...commentForm, email: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="message">پیام</Label>
+                  <Textarea
+                    id="message"
+                    rows={4}
+                    value={commentForm.message}
+                    onChange={(e) => setCommentForm({ ...commentForm, message: e.target.value })}
+                    required
+                  />
+                </div>
+                <Button type="submit" disabled={isSubmitting} className="btn-primary">
+                  {isSubmitting ? (
+                    <span className="animate-pulse">در حال ثبت...</span>
+                  ) : (
+                    <>
+                      ثبت نظر
+                      <Send className="mr-2 h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </form>
+
+              {/* Comments List */}
+              {comments.length > 0 ? (
+                <div className="space-y-4">
+                  {comments.map((comment) => (
+                    <div key={comment.id} className="p-4 rounded-xl bg-muted/30">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sky-500/20 to-blue-500/20 flex items-center justify-center text-sm font-bold">
+                          {comment.fullName[0]}
+                        </div>
+                        <div>
+                          <div className="font-medium text-sm">{comment.fullName}</div>
+                          <div className="text-xs text-muted-foreground">{comment.createdAt}</div>
+                        </div>
+                      </div>
+                      <p className="text-muted-foreground text-sm pr-11">{comment.message}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-sm">هنوز نظری ثبت نشده است.</p>
+              )}
+            </motion.div>
+
             {/* Related Posts */}
             {relatedPosts.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
+                transition={{ delay: 0.6 }}
               >
                 <h2 className="text-xl font-bold mb-6">مقالات مرتبط</h2>
                 <div className="grid md:grid-cols-3 gap-6">

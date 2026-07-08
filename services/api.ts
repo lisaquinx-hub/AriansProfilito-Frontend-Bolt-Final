@@ -1,13 +1,7 @@
 import axios, { AxiosError, AxiosResponse } from 'axios';
+import { ApiResponse } from '@/lib/api-utils';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://localhost:7297/api';
-
-export interface ApiResponse<T = unknown> {
-  success: boolean;
-  message: string;
-  data?: T;
-  errors?: Record<string, string[]>;
-}
 
 export interface ApiError {
   success: false;
@@ -29,7 +23,7 @@ api.interceptors.request.use(
   (config) => {
     if (isBrowser()) {
       const token = localStorage.getItem('accessToken');
-      if (token) {
+      if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`;
       }
     }
@@ -39,9 +33,7 @@ api.interceptors.request.use(
 );
 
 api.interceptors.response.use(
-  (response: AxiosResponse<ApiResponse>) => {
-    return response;
-  },
+  (response: AxiosResponse<ApiResponse>) => response,
   (error: AxiosError<ApiError>) => {
     if (error.response?.status === 401) {
       if (isBrowser()) {
@@ -76,7 +68,7 @@ export function getApiErrorMessage(error: unknown): string {
     if (error.response?.status === 500) {
       return 'Server error - Please try again later';
     }
-    if (error.code === 'NETWORK_ERROR' || error.message === 'Network Error') {
+    if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
       return 'Network error - Please check your connection';
     }
     return error.message || 'An unexpected error occurred';

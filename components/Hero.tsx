@@ -1,11 +1,36 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { heroService } from '@/services/HeroService';
+import { HeroSection } from '@/types/api';
+import { resolveAssetUrl } from '@/lib/api-utils';
 
 export default function Hero() {
+  const [heroData, setHeroData] = useState<HeroSection | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchHero = async () => {
+      setIsLoading(true);
+      const data = await heroService.getActive();
+      setHeroData(data);
+      setIsLoading(false);
+    };
+    fetchHero();
+  }, []);
+
+  const title = heroData?.title || 'نسل جدید';
+  const subtitle = heroData?.subtitle || 'توسعه نرم‌افزار';
+  const description = heroData?.description || 'طراحی مدرن، سرعت بالا و تجربه‌ای متفاوت';
+  const primaryButtonText = heroData?.primaryButtonText || 'شروع همکاری';
+  const primaryButtonUrl = heroData?.primaryButtonUrl || '/contact';
+  const secondaryButtonText = heroData?.secondaryButtonText || 'نمونه کارها';
+  const secondaryButtonUrl = heroData?.secondaryButtonUrl || '/portfolio';
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
       {/* Background Effects */}
@@ -45,9 +70,9 @@ export default function Hero() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6"
           >
-            <span className="text-gradient">نسل جدید</span>
+            <span className="text-gradient">{title}</span>
             <br />
-            <span className="text-foreground">توسعه نرم‌افزار</span>
+            <span className="text-foreground">{subtitle}</span>
           </motion.h1>
 
           {/* Subtitle */}
@@ -57,7 +82,7 @@ export default function Hero() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto"
           >
-            طراحی مدرن، سرعت بالا و تجربه‌ای متفاوت
+            {description}
           </motion.p>
 
           {/* CTA Buttons */}
@@ -67,7 +92,7 @@ export default function Hero() {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            <Link href="/contact">
+            <Link href={primaryButtonUrl}>
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -76,12 +101,12 @@ export default function Hero() {
                   size="lg"
                   className="btn-primary px-8 py-6 shadow-glow text-lg group"
                 >
-                  شروع همکاری
+                  {primaryButtonText}
                   <ArrowLeft className="mr-2 h-5 w-5 transition-transform group-hover:-translate-x-1" />
                 </Button>
               </motion.div>
             </Link>
-            <Link href="/portfolio">
+            <Link href={secondaryButtonUrl}>
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -91,7 +116,7 @@ export default function Hero() {
                   variant="outline"
                   className="rounded-full px-8 py-6 text-lg"
                 >
-                  نمونه کارها
+                  {secondaryButtonText}
                 </Button>
               </motion.div>
             </Link>

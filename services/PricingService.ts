@@ -1,44 +1,28 @@
-import { api } from './api';
-import { PricingPlan } from '@/lib/mock-data';
-
-export interface PricingRequest {
-  name: string;
-  email: string;
-  company: string;
-  planId: string;
-  message?: string;
-}
-
-export interface PricingQuote {
-  id: string;
-  planName: string;
-  basePrice: string;
-  discount: number;
-  finalPrice: string;
-  validUntil: string;
-}
+import { api, getApiErrorMessage } from './api';
+import { ApiResponse } from '@/lib/api-utils';
+import { PricingPlan } from '@/types/api';
 
 class PricingService {
-  private endpoint = '/pricing';
+  private endpoint = '/pricing-plans';
 
-  async getPlans(): Promise<PricingPlan[]> {
-    const response = await api.get<PricingPlan[]>(this.endpoint);
-    return response.data;
+  async getAll(): Promise<PricingPlan[]> {
+    try {
+      const response = await api.get<ApiResponse<PricingPlan[]>>(this.endpoint);
+      return response.data.data || [];
+    } catch (error) {
+      console.error('Failed to fetch pricing plans:', getApiErrorMessage(error));
+      return [];
+    }
   }
 
-  async requestQuote(data: PricingRequest): Promise<PricingQuote> {
-    const response = await api.post<PricingQuote>(`${this.endpoint}/quote`, data);
-    return response.data;
-  }
-
-  async getCustomQuote(projectDetails: {
-    features: string[];
-    timeline: string;
-    budget: string;
-    description: string;
-  }): Promise<PricingQuote> {
-    const response = await api.post<PricingQuote>(`${this.endpoint}/custom`, projectDetails);
-    return response.data;
+  async getById(id: string): Promise<PricingPlan | null> {
+    try {
+      const response = await api.get<ApiResponse<PricingPlan>>(`${this.endpoint}/${id}`);
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to fetch pricing plan:', getApiErrorMessage(error));
+      return null;
+    }
   }
 }
 
