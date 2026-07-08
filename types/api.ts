@@ -49,7 +49,7 @@ export interface FAQ {
 }
 
 export interface Settings {
-  id?: string;
+  id: string;
   siteName?: string;
   logo?: string;
   darkLogo?: string;
@@ -70,7 +70,27 @@ export interface Settings {
   updatedAt?: string;
 }
 
-export interface SiteSettings extends Settings {}
+export interface SiteSettings {
+  id: string;
+  siteName?: string;
+  logo?: string;
+  darkLogo?: string;
+  favicon?: string;
+  email?: string;
+  phone?: string;
+  phoneNumber?: string;
+  address?: string;
+  footerText?: string;
+  footerDescription?: string;
+  copyright?: string;
+  googleMap?: string;
+  googleAnalytics?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  metaKeywords?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 export interface SocialMedia {
   id: string;
