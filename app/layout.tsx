@@ -1,6 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { Toaster } from '@/components/ui/sonner';
 
 export const metadata: Metadata = {
   title: 'آریان‌لب | استودیوی محصول دیجیتال',
@@ -35,6 +36,7 @@ export default function RootLayout({
           disableTransitionOnChange={false}
         >
           {children}
+          <Toaster position="top-center" dir="rtl" />
         </ThemeProvider>
       </body>
     </html>

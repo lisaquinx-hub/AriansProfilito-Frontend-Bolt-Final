@@ -3,7 +3,7 @@ import { ApiResponse } from '@/lib/api-utils';
 import { PricingPlan } from '@/types/api';
 
 class AdminPricingService {
-  private endpoint = '/admin/pricing-plans';
+  private endpoint = '/admin/pricing/plans';
 
   async getAll(): Promise<PricingPlan[]> {
     try {

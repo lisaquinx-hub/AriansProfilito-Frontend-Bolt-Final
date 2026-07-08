@@ -1,18 +1,23 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Share2, RefreshCw } from 'lucide-react';
+import { Share2, RefreshCw, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
 import { adminSocialMediaService } from '@/services/admin/SocialMediaService';
 import { SocialMedia } from '@/types/api';
+import { EntityFormModal, FormField } from '@/components/admin/EntityFormModal';
+import { toast } from 'sonner';
+import { getApiErrorMessage } from '@/services/api';
 
 export default function AdminSocialMediaPage() {
   const [items, setItems] = useState<SocialMedia[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<SocialMedia | null>(null);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -46,6 +51,44 @@ export default function AdminSocialMediaPage() {
       console.error('Failed to toggle:', error);
     }
   };
+
+  const handleEdit = (item: SocialMedia) => {
+    setEditingItem(item);
+    setIsFormOpen(true);
+  };
+
+  const handleCreate = () => {
+    setEditingItem(null);
+    setIsFormOpen(true);
+  };
+
+  const handleSubmit = async (data: Record<string, unknown>) => {
+    const submitData = {
+      ...data,
+      displayOrder: data.displayOrder ? Number(data.displayOrder) : undefined,
+    };
+    try {
+      if (editingItem) {
+        await adminSocialMediaService.update(editingItem.id, submitData as Partial<SocialMedia>);
+        toast.success('شبکه اجتماعی با موفقیت ویرایش شد');
+      } else {
+        await adminSocialMediaService.create(submitData as Partial<SocialMedia>);
+        toast.success('شبکه اجتماعی با موفقیت ایجاد شد');
+      }
+      fetchData();
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
+      throw error;
+    }
+  };
+
+  const fields: FormField[] = [
+    { key: 'platform', label: 'پلتفرم', required: true },
+    { key: 'url', label: 'لینک', type: 'url', required: true },
+    { key: 'icon', label: 'آیکون' },
+    { key: 'displayOrder', label: 'ترتیب نمایش', type: 'number' },
+    { key: 'isActive', label: 'فعال', type: 'switch' },
+  ];
 
   const columns = [
     { key: 'platform', label: 'پلتفرم' },
@@ -81,10 +124,16 @@ export default function AdminSocialMediaPage() {
           </h1>
           <p className="text-muted-foreground text-sm mt-1">{items.length} رکورد</p>
         </div>
-        <Button variant="outline" size="sm" onClick={fetchData}>
-          <RefreshCw className="w-4 h-4 ml-1" />
-          بروزرسانی
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={fetchData}>
+            <RefreshCw className="w-4 h-4 ml-1" />
+            بروزرسانی
+          </Button>
+          <Button size="sm" className="btn-primary" onClick={handleCreate}>
+            <Plus className="w-4 h-4 ml-1" />
+            ایجاد
+          </Button>
+        </div>
       </div>
 
       <Card className="glass">
@@ -93,7 +142,7 @@ export default function AdminSocialMediaPage() {
             data={items}
             columns={columns}
             loading={isLoading}
-            onEdit={() => {}}
+            onEdit={handleEdit}
             onDelete={(item) => setDeleteId(item.id)}
             emptyMessage="رکوردی یافت نشد"
           />
@@ -107,6 +156,16 @@ export default function AdminSocialMediaPage() {
         description="آیا از حذف این رکورد اطمینان دارید؟"
         onConfirm={handleDelete}
         loading={isDeleting}
+      />
+
+      <EntityFormModal
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        title={editingItem ? 'ویرایش شبکه اجتماعی' : 'ایجاد شبکه اجتماعی جدید'}
+        fields={fields}
+        initialValues={editingItem ? { ...editingItem } as Record<string, unknown> : undefined}
+        onSubmit={handleSubmit}
+        submitLabel={editingItem ? 'ذخیره تغییرات' : 'ایجاد'}
       />
     </div>
   );

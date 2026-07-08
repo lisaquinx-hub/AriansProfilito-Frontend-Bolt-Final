@@ -39,3 +39,31 @@ export function setStoredUser<T>(user: T): void {
   if (!isBrowser()) return;
   localStorage.setItem(USER_KEY, JSON.stringify(user));
 }
+
+export interface StoredUser {
+  id?: string;
+  name?: string;
+  email?: string;
+  userName?: string;
+  avatar?: string;
+  role?: string;
+  roles?: string[];
+}
+
+export function isAdmin(): boolean {
+  const user = getStoredUser<StoredUser>();
+  if (!user) return false;
+  const role = (user.role || '').toLowerCase();
+  if (role === 'admin' || role === 'administrator') return true;
+  if (user.roles && Array.isArray(user.roles)) {
+    return user.roles.some(r => {
+      const rl = (r || '').toLowerCase();
+      return rl === 'admin' || rl === 'administrator';
+    });
+  }
+  return false;
+}
+
+export function logout(): void {
+  removeAccessToken();
+}

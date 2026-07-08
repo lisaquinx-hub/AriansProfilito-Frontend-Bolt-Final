@@ -1,18 +1,23 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { HelpCircle, RefreshCw } from 'lucide-react';
+import { HelpCircle, RefreshCw, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
 import { adminFaqService } from '@/services/admin/FaqService';
 import { FAQ } from '@/types/api';
+import { EntityFormModal, FormField } from '@/components/admin/EntityFormModal';
+import { toast } from 'sonner';
+import { getApiErrorMessage } from '@/services/api';
 
 export default function AdminFaqsPage() {
   const [items, setItems] = useState<FAQ[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<FAQ | null>(null);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -38,6 +43,43 @@ export default function AdminFaqsPage() {
     setIsDeleting(false);
   };
 
+  const handleEdit = (item: FAQ) => {
+    setEditingItem(item);
+    setIsFormOpen(true);
+  };
+
+  const handleCreate = () => {
+    setEditingItem(null);
+    setIsFormOpen(true);
+  };
+
+  const handleSubmit = async (data: Record<string, unknown>) => {
+    const submitData = {
+      ...data,
+      displayOrder: data.displayOrder ? Number(data.displayOrder) : undefined,
+    };
+    try {
+      if (editingItem) {
+        await adminFaqService.update(editingItem.id, submitData as Partial<FAQ>);
+        toast.success('سوال با موفقیت ویرایش شد');
+      } else {
+        await adminFaqService.create(submitData as Partial<FAQ>);
+        toast.success('سوال با موفقیت ایجاد شد');
+      }
+      fetchData();
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
+      throw error;
+    }
+  };
+
+  const fields: FormField[] = [
+    { key: 'question', label: 'سوال', required: true },
+    { key: 'answer', label: 'پاسخ', type: 'textarea', required: true, fullWidth: true },
+    { key: 'displayOrder', label: 'ترتیب نمایش', type: 'number' },
+    { key: 'isActive', label: 'فعال', type: 'switch' },
+  ];
+
   const columns = [
     { key: 'question', label: 'سوال', render: (item: FAQ) => (
       <div className="max-w-xs truncate font-medium">{item.question}</div>
@@ -62,10 +104,16 @@ export default function AdminFaqsPage() {
           </h1>
           <p className="text-muted-foreground text-sm mt-1">{items.length} سوال</p>
         </div>
-        <Button variant="outline" size="sm" onClick={fetchData}>
-          <RefreshCw className="w-4 h-4 ml-1" />
-          بروزرسانی
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={fetchData}>
+            <RefreshCw className="w-4 h-4 ml-1" />
+            بروزرسانی
+          </Button>
+          <Button size="sm" className="btn-primary" onClick={handleCreate}>
+            <Plus className="w-4 h-4 ml-1" />
+            ایجاد
+          </Button>
+        </div>
       </div>
 
       <Card className="glass">
@@ -74,7 +122,7 @@ export default function AdminFaqsPage() {
             data={items}
             columns={columns}
             loading={isLoading}
-            onEdit={() => {}}
+            onEdit={handleEdit}
             onDelete={(item) => setDeleteId(item.id)}
             emptyMessage="سوالی یافت نشد"
           />
@@ -88,6 +136,16 @@ export default function AdminFaqsPage() {
         description="آیا از حذف این سوال اطمینان دارید؟"
         onConfirm={handleDelete}
         loading={isDeleting}
+      />
+
+      <EntityFormModal
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        title={editingItem ? 'ویرایش سوال' : 'ایجاد سوال جدید'}
+        fields={fields}
+        initialValues={editingItem ? { ...editingItem } as Record<string, unknown> : undefined}
+        onSubmit={handleSubmit}
+        submitLabel={editingItem ? 'ذخیره تغییرات' : 'ایجاد'}
       />
     </div>
   );

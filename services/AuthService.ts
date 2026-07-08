@@ -20,6 +20,8 @@ export interface AuthUser {
   email: string;
   userName?: string;
   avatar?: string;
+  role?: string;
+  roles?: string[];
   createdAt?: string;
 }
 
@@ -40,6 +42,11 @@ export interface CurrentUserData {
   email: string;
   userName?: string;
   avatar?: string;
+  role?: string;
+  roles?: string[];
+  phone?: string;
+  company?: string;
+  bio?: string;
 }
 
 class AuthService {
@@ -93,7 +100,9 @@ class AuthService {
   async getCurrentUser(): Promise<CurrentUserData> {
     try {
       const response = await api.get<ApiResponse<CurrentUserData>>(`${this.endpoint}/me`);
-      return response.data.data!;
+      const data = response.data.data;
+      if (!data) throw new Error('User data not found');
+      return data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error));
     }

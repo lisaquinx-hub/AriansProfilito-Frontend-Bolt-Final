@@ -1,18 +1,23 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Mail, RefreshCw } from 'lucide-react';
+import { Mail, RefreshCw, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
 import { adminEmailTemplatesService } from '@/services/admin/EmailTemplatesService';
 import { EmailTemplate } from '@/types/api';
+import { EntityFormModal, FormField } from '@/components/admin/EntityFormModal';
+import { toast } from 'sonner';
+import { getApiErrorMessage } from '@/services/api';
 
 export default function AdminEmailTemplatesPage() {
   const [items, setItems] = useState<EmailTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<EmailTemplate | null>(null);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -46,6 +51,39 @@ export default function AdminEmailTemplatesPage() {
       console.error('Failed to toggle:', error);
     }
   };
+
+  const handleEdit = (item: EmailTemplate) => {
+    setEditingItem(item);
+    setIsFormOpen(true);
+  };
+
+  const handleCreate = () => {
+    setEditingItem(null);
+    setIsFormOpen(true);
+  };
+
+  const handleSubmit = async (data: Record<string, unknown>) => {
+    try {
+      if (editingItem) {
+        await adminEmailTemplatesService.update(editingItem.id, data as Partial<EmailTemplate>);
+        toast.success('قالب با موفقیت ویرایش شد');
+      } else {
+        await adminEmailTemplatesService.create(data as Partial<EmailTemplate>);
+        toast.success('قالب با موفقیت ایجاد شد');
+      }
+      fetchData();
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
+      throw error;
+    }
+  };
+
+  const fields: FormField[] = [
+    { key: 'name', label: 'نام', required: true },
+    { key: 'subject', label: 'موضوع', required: true },
+    { key: 'body', label: 'متن ایمیل', type: 'textarea', required: true, fullWidth: true },
+    { key: 'isActive', label: 'فعال', type: 'switch' },
+  ];
 
   const columns = [
     { key: 'name', label: 'نام' },
@@ -81,10 +119,16 @@ export default function AdminEmailTemplatesPage() {
           </h1>
           <p className="text-muted-foreground text-sm mt-1">{items.length} قالب</p>
         </div>
-        <Button variant="outline" size="sm" onClick={fetchData}>
-          <RefreshCw className="w-4 h-4 ml-1" />
-          بروزرسانی
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={fetchData}>
+            <RefreshCw className="w-4 h-4 ml-1" />
+            بروزرسانی
+          </Button>
+          <Button size="sm" className="btn-primary" onClick={handleCreate}>
+            <Plus className="w-4 h-4 ml-1" />
+            ایجاد
+          </Button>
+        </div>
       </div>
 
       <Card className="glass">
@@ -93,7 +137,7 @@ export default function AdminEmailTemplatesPage() {
             data={items}
             columns={columns}
             loading={isLoading}
-            onEdit={() => {}}
+            onEdit={handleEdit}
             onDelete={(item) => setDeleteId(item.id)}
             emptyMessage="قالبی یافت نشد"
           />
@@ -107,6 +151,16 @@ export default function AdminEmailTemplatesPage() {
         description="آیا از حذف این قالب اطمینان دارید؟"
         onConfirm={handleDelete}
         loading={isDeleting}
+      />
+
+      <EntityFormModal
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        title={editingItem ? 'ویرایش قالب' : 'ایجاد قالب جدید'}
+        fields={fields}
+        initialValues={editingItem ? { ...editingItem } as Record<string, unknown> : undefined}
+        onSubmit={handleSubmit}
+        submitLabel={editingItem ? 'ذخیره تغییرات' : 'ایجاد'}
       />
     </div>
   );

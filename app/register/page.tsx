@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { authService, RegisterRequest } from '@/services/AuthService';
+import { emitAuthChanged } from '@/hooks/useAuth';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -40,6 +41,13 @@ export default function RegisterPage() {
       setIsLoading(true);
       try {
         await authService.register(formData);
+        try {
+          await authService.login({ emailOrUserName: formData.email, password: formData.password });
+          emitAuthChanged();
+          router.push('/dashboard');
+          return;
+        } catch {
+        }
         setStep(2);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Registration failed');

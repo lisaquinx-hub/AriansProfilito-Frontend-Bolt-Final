@@ -1,4 +1,6 @@
-import { api } from './api';
+import { api, getApiErrorMessage } from './api';
+import { ApiResponse } from '@/lib/api-utils';
+import { removeAccessToken } from '@/lib/auth';
 
 export interface UserProfile {
   id: string;
@@ -8,8 +10,10 @@ export interface UserProfile {
   company?: string;
   avatar?: string;
   bio?: string;
-  created_at: string;
-  updated_at: string;
+  role?: string;
+  roles?: string[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface UpdateProfileRequest {
@@ -39,43 +43,59 @@ class UserService {
   private endpoint = '/users';
 
   async getProfile(): Promise<UserProfile> {
-    const response = await api.get<UserProfile>(`${this.endpoint}/profile`);
-    return response.data;
+    try {
+      const response = await api.get<ApiResponse<UserProfile>>(`${this.endpoint}/profile`);
+      return response.data.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
   }
 
   async updateProfile(data: UpdateProfileRequest): Promise<UserProfile> {
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        if (value instanceof File) {
-          formData.append(key, value);
-        } else {
-          formData.append(key, value.toString());
+    try {
+      const formData = new FormData();
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          if (value instanceof File) {
+            formData.append(key, value);
+          } else {
+            formData.append(key, value.toString());
+          }
         }
-      }
-    });
-    const response = await api.put<UserProfile>(`${this.endpoint}/profile`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-    return response.data;
+      });
+      const response = await api.put<ApiResponse<UserProfile>>(`${this.endpoint}/profile`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return response.data.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
   }
 
   async deleteAccount(): Promise<void> {
     await api.delete(`${this.endpoint}/account`);
-    localStorage.removeItem('token');
+    removeAccessToken();
   }
 
   async getDashboard(): Promise<DashboardData> {
-    const response = await api.get<DashboardData>(`${this.endpoint}/dashboard`);
-    return response.data;
+    try {
+      const response = await api.get<ApiResponse<DashboardData>>(`${this.endpoint}/dashboard`);
+      return response.data.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
   }
 
   async getActivity(page: number = 1, limit: number = 10): Promise<{ activities: UserActivity[]; total: number }> {
-    const response = await api.get<{ activities: UserActivity[]; total: number }>(
-      `${this.endpoint}/activity`,
-      { params: { page, limit } }
-    );
-    return response.data;
+    try {
+      const response = await api.get<ApiResponse<{ activities: UserActivity[]; total: number }>>(
+        `${this.endpoint}/activity`,
+        { params: { page, limit } }
+      );
+      return response.data.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
   }
 }
 

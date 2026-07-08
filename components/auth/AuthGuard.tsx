@@ -2,31 +2,48 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { isAuthenticated } from '@/lib/auth';
+import { isAuthenticated, isAdmin, getStoredUser, type StoredUser } from '@/lib/auth';
+import { motion } from 'framer-motion';
+import { ShieldAlert, Lock, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 interface AuthGuardProps {
   children: React.ReactNode;
+  requireAdmin?: boolean;
 }
 
-export function AuthGuard({ children }: AuthGuardProps) {
+export function AuthGuard({ children, requireAdmin = false }: AuthGuardProps) {
   const router = useRouter();
   const [isChecking, setIsChecking] = useState(true);
-  const [isAuth, setIsAuth] = useState(false);
+  const [authState, setAuthState] = useState<'authenticated' | 'denied' | 'unauthenticated'>('unauthenticated');
 
   useEffect(() => {
     const checkAuth = () => {
-      const authenticated = isAuthenticated();
-      setIsAuth(authenticated);
-
-      if (!authenticated) {
-        router.push('/login');
+      if (!isAuthenticated()) {
+        setAuthState('unauthenticated');
+        setIsChecking(false);
+        const currentPath = window.location.pathname;
+        router.push(`/login?redirect=${encodeURIComponent(currentPath)}`);
+        return;
       }
 
+      if (requireAdmin) {
+        const user = getStoredUser<StoredUser>();
+        const admin = isAdmin();
+        if (!admin) {
+          setAuthState('denied');
+          setIsChecking(false);
+          return;
+        }
+      }
+
+      setAuthState('authenticated');
       setIsChecking(false);
     };
 
     checkAuth();
-  }, [router]);
+  }, [router, requireAdmin]);
 
   if (isChecking) {
     return (
@@ -39,7 +56,44 @@ export function AuthGuard({ children }: AuthGuardProps) {
     );
   }
 
-  if (!isAuth) {
+  if (authState === 'denied') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass rounded-2xl p-8 max-w-md w-full text-center"
+        >
+          <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-6">
+            <ShieldAlert className="w-8 h-8 text-red-500" />
+          </div>
+          <h1 className="text-2xl font-bold mb-3">دسترسی غیرمجاز</h1>
+          <p className="text-muted-foreground mb-2">
+            شما به این بخش دسترسی ندارید.
+          </p>
+          <p className="text-muted-foreground text-sm mb-8">
+            برای ورود به پنل مدیریت نیاز به نقش مدیر دارید.
+          </p>
+          <div className="flex flex-col gap-3">
+            <Link href="/dashboard">
+              <Button className="btn-primary w-full shadow-glow">
+                <ArrowRight className="w-4 h-4 ml-2" />
+                بازگشت به داشبورد
+              </Button>
+            </Link>
+            <Link href="/">
+              <Button variant="outline" className="w-full rounded-full">
+                <Lock className="w-4 h-4 ml-2" />
+                بازگشت به صفحه اصلی
+              </Button>
+            </Link>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (authState === 'unauthenticated') {
     return null;
   }
 

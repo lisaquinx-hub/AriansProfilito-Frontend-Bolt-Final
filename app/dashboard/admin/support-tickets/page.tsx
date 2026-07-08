@@ -5,12 +5,17 @@ import { HeadphonesIcon, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
+import { EntityFormModal, FormField } from '@/components/admin/EntityFormModal';
 import { adminSupportTicketsService } from '@/services/admin/SupportTicketsService';
 import { SupportTicket } from '@/types/api';
+import { toast } from 'sonner';
+import { getApiErrorMessage } from '@/services/api';
 
 export default function AdminSupportTicketsPage() {
   const [items, setItems] = useState<SupportTicket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<SupportTicket | null>(null);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -22,6 +27,46 @@ export default function AdminSupportTicketsPage() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const handleEdit = (item: SupportTicket) => {
+    setEditingItem(item);
+    setIsFormOpen(true);
+  };
+
+  const handleSubmit = async (data: Record<string, unknown>) => {
+    if (!editingItem) return;
+    await adminSupportTicketsService.update(editingItem.id, data as Partial<SupportTicket>);
+    toast.success('تیکت با موفقیت ویرایش شد');
+    fetchData();
+  };
+
+  const fields: FormField[] = [
+    { key: 'subject', label: 'موضوع', required: true },
+    { key: 'description', label: 'توضیحات', type: 'textarea', required: true },
+    {
+      key: 'status',
+      label: 'وضعیت',
+      type: 'select',
+      options: [
+        { value: 'open', label: 'باز' },
+        { value: 'in_progress', label: 'در حال بررسی' },
+        { value: 'resolved', label: 'حل شده' },
+        { value: 'closed', label: 'بسته' },
+      ],
+    },
+    {
+      key: 'priority',
+      label: 'اولویت',
+      type: 'select',
+      options: [
+        { value: 'low', label: 'کم' },
+        { value: 'normal', label: 'عادی' },
+        { value: 'high', label: 'زیاد' },
+        { value: 'urgent', label: 'فوری' },
+      ],
+    },
+    { key: 'assignedTo', label: 'محول شده به', type: 'text' },
+  ];
 
   const columns = [
     { key: 'subject', label: 'موضوع' },
@@ -73,11 +118,22 @@ export default function AdminSupportTicketsPage() {
             data={items}
             columns={columns}
             loading={isLoading}
+            onEdit={handleEdit}
             onView={() => {}}
             emptyMessage="تیکتی یافت نشد"
           />
         </CardContent>
       </Card>
+
+      <EntityFormModal
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        title={editingItem ? 'ویرایش تیکت' : 'ایجاد تیکت جدید'}
+        fields={fields}
+        initialValues={editingItem ? { ...editingItem } as Record<string, unknown> : undefined}
+        onSubmit={handleSubmit}
+        submitLabel={editingItem ? 'ذخیره تغییرات' : 'ایجاد تیکت'}
+      />
     </div>
   );
 }

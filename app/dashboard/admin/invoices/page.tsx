@@ -1,18 +1,23 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Receipt, RefreshCw } from 'lucide-react';
+import { Receipt, RefreshCw, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
+import { EntityFormModal, FormField } from '@/components/admin/EntityFormModal';
 import { adminInvoicesService } from '@/services/admin/InvoicesService';
 import { Invoice } from '@/types/api';
+import { toast } from 'sonner';
+import { getApiErrorMessage } from '@/services/api';
 
 export default function AdminInvoicesPage() {
   const [items, setItems] = useState<Invoice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<Invoice | null>(null);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -32,11 +37,62 @@ export default function AdminInvoicesPage() {
       await adminInvoicesService.delete(deleteId);
       setItems(items.filter(i => i.id !== deleteId));
       setDeleteId(null);
+      toast.success('فاکتور با موفقیت حذف شد');
     } catch (error) {
-      console.error('Failed to delete:', error);
+      toast.error(getApiErrorMessage(error));
     }
     setIsDeleting(false);
   };
+
+  const handleEdit = (item: Invoice) => {
+    setEditingItem(item);
+    setIsFormOpen(true);
+  };
+
+  const handleCreate = () => {
+    setEditingItem(null);
+    setIsFormOpen(true);
+  };
+
+  const handleSubmit = async (data: Record<string, unknown>) => {
+    const submitData = {
+      ...data,
+      amount: data.amount ? Number(data.amount) : undefined,
+      tax: data.tax ? Number(data.tax) : undefined,
+      totalAmount: data.totalAmount ? Number(data.totalAmount) : undefined,
+    };
+    if (editingItem) {
+      await adminInvoicesService.update(editingItem.id, submitData as Partial<Invoice>);
+      toast.success('فاکتور با موفقیت ویرایش شد');
+    } else {
+      await adminInvoicesService.create(submitData as Partial<Invoice>);
+      toast.success('فاکتور با موفقیت ایجاد شد');
+    }
+    fetchData();
+  };
+
+  const fields: FormField[] = [
+    { key: 'invoiceNumber', label: 'شماره فاکتور', required: true },
+    { key: 'userId', label: 'شناسه کاربر', type: 'text' },
+    { key: 'projectId', label: 'شناسه پروژه', type: 'text' },
+    { key: 'amount', label: 'مبلغ', type: 'number', required: true },
+    { key: 'tax', label: 'مالیات', type: 'number' },
+    { key: 'totalAmount', label: 'مبلغ کل', type: 'number' },
+    {
+      key: 'status',
+      label: 'وضعیت',
+      type: 'select',
+      required: true,
+      options: [
+        { value: 'pending', label: 'در انتظار' },
+        { value: 'paid', label: 'پرداخت شده' },
+        { value: 'cancelled', label: 'لغو شده' },
+        { value: 'overdue', label: 'سررسید گذشته' },
+      ],
+    },
+    { key: 'dueDate', label: 'تاریخ سررسید', type: 'date' },
+    { key: 'notes', label: 'یادداشت', type: 'textarea', fullWidth: true },
+  ];
 
   const columns = [
     { key: 'invoiceNumber', label: 'شماره فاکتور' },
@@ -76,10 +132,16 @@ export default function AdminInvoicesPage() {
           </h1>
           <p className="text-muted-foreground text-sm mt-1">{items.length} فاکتور</p>
         </div>
-        <Button variant="outline" size="sm" onClick={fetchData}>
-          <RefreshCw className="w-4 h-4 ml-1" />
-          بروزرسانی
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={fetchData}>
+            <RefreshCw className="w-4 h-4 ml-1" />
+            بروزرسانی
+          </Button>
+          <Button size="sm" className="btn-primary" onClick={handleCreate}>
+            <Plus className="w-4 h-4 ml-1" />
+            ایجاد فاکتور
+          </Button>
+        </div>
       </div>
 
       <Card className="glass">
@@ -88,7 +150,7 @@ export default function AdminInvoicesPage() {
             data={items}
             columns={columns}
             loading={isLoading}
-            onEdit={() => {}}
+            onEdit={handleEdit}
             onDelete={(item) => setDeleteId(item.id)}
             emptyMessage="فاکتوری یافت نشد"
           />
@@ -102,6 +164,16 @@ export default function AdminInvoicesPage() {
         description="آیا از حذف این فاکتور اطمینان دارید؟"
         onConfirm={handleDelete}
         loading={isDeleting}
+      />
+
+      <EntityFormModal
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        title={editingItem ? 'ویرایش فاکتور' : 'ایجاد فاکتور جدید'}
+        fields={fields}
+        initialValues={editingItem ? { ...editingItem } as Record<string, unknown> : undefined}
+        onSubmit={handleSubmit}
+        submitLabel={editingItem ? 'ذخیره تغییرات' : 'ایجاد فاکتور'}
       />
     </div>
   );

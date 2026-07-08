@@ -2,12 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Search } from 'lucide-react';
+import { Menu, X, Search, LayoutDashboard, LogOut, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { GlobalSearch } from '@/components/shared';
 import { cn } from '@/lib/utils';
+import { useAuth, emitAuthChanged } from '@/hooks/useAuth';
+import { authService } from '@/services/AuthService';
 
 const navLinks = [
   { href: '/#services', label: 'خدمات' },
@@ -19,6 +22,8 @@ const navLinks = [
 ];
 
 export default function Navbar() {
+  const router = useRouter();
+  const { isAuthenticated, isAdmin } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -40,6 +45,12 @@ export default function Navbar() {
         element.scrollIntoView({ behavior: 'smooth' });
       }
     }
+  };
+
+  const handleLogout = async () => {
+    await authService.logout();
+    emitAuthChanged();
+    router.push('/');
   };
 
   return (
@@ -107,20 +118,53 @@ export default function Navbar() {
               <Search className="w-5 h-5" />
             </motion.button>
             <ThemeToggle />
-            <Link href="/login">
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Button variant="ghost" className="rounded-full px-6">
-                  ورود
+            {isAuthenticated ? (
+              <>
+                {isAdmin && (
+                  <Link href="/dashboard/admin">
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      <Button variant="outline" className="rounded-full px-4">
+                        <Shield className="w-4 h-4 ml-1" />
+                        پنل مدیریت
+                      </Button>
+                    </motion.div>
+                  </Link>
+                )}
+                <Link href="/dashboard">
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Button className="btn-primary px-6 shadow-glow">
+                      <LayoutDashboard className="w-4 h-4 ml-1" />
+                      داشبورد
+                    </Button>
+                  </motion.div>
+                </Link>
+                <Button
+                  variant="ghost"
+                  className="rounded-full px-4"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="w-4 h-4 ml-1" />
+                  خروج
                 </Button>
-              </motion.div>
-            </Link>
-            <Link href="/dashboard">
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Button className="btn-primary px-6 shadow-glow">
-                  پنل کاربری
-                </Button>
-              </motion.div>
-            </Link>
+              </>
+            ) : (
+              <>
+                <Link href="/login">
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Button variant="ghost" className="rounded-full px-6">
+                      ورود
+                    </Button>
+                  </motion.div>
+                </Link>
+                <Link href="/register">
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Button className="btn-primary px-6 shadow-glow">
+                      ثبت‌نام
+                    </Button>
+                  </motion.div>
+                </Link>
+              </>
+            )}
           </div>
 
           <div className="md:hidden flex items-center gap-2">
@@ -175,16 +219,48 @@ export default function Navbar() {
                 )
               ))}
               <div className="flex flex-col gap-3 pt-4 border-t border-border">
-                <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                  <Button variant="ghost" className="w-full rounded-full">
-                    ورود
-                  </Button>
-                </Link>
-                <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
-                  <Button className="w-full btn-primary shadow-glow">
-                    پنل کاربری
-                  </Button>
-                </Link>
+                {isAuthenticated ? (
+                  <>
+                    {isAdmin && (
+                      <Link href="/dashboard/admin" onClick={() => setIsMobileMenuOpen(false)}>
+                        <Button variant="outline" className="w-full rounded-full">
+                          <Shield className="w-4 h-4 ml-2" />
+                          پنل مدیریت
+                        </Button>
+                      </Link>
+                    )}
+                    <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Button className="w-full btn-primary shadow-glow">
+                        <LayoutDashboard className="w-4 h-4 ml-2" />
+                        داشبورد
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      className="w-full rounded-full"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        handleLogout();
+                      }}
+                    >
+                      <LogOut className="w-4 h-4 ml-2" />
+                      خروج
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Button variant="ghost" className="w-full rounded-full">
+                        ورود
+                      </Button>
+                    </Link>
+                    <Link href="/register" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Button className="w-full btn-primary shadow-glow">
+                        ثبت‌نام
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>

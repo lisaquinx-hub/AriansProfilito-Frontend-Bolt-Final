@@ -1,18 +1,23 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { CreditCard, RefreshCw } from 'lucide-react';
+import { CreditCard, RefreshCw, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
+import { EntityFormModal, FormField } from '@/components/admin/EntityFormModal';
 import { adminPaymentsService } from '@/services/admin/PaymentsService';
 import { Payment } from '@/types/api';
+import { toast } from 'sonner';
+import { getApiErrorMessage } from '@/services/api';
 
 export default function AdminPaymentsPage() {
   const [items, setItems] = useState<Payment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<Payment | null>(null);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -32,11 +37,69 @@ export default function AdminPaymentsPage() {
       await adminPaymentsService.delete(deleteId);
       setItems(items.filter(i => i.id !== deleteId));
       setDeleteId(null);
+      toast.success('پرداخت با موفقیت حذف شد');
     } catch (error) {
-      console.error('Failed to delete:', error);
+      toast.error(getApiErrorMessage(error));
     }
     setIsDeleting(false);
   };
+
+  const handleEdit = (item: Payment) => {
+    setEditingItem(item);
+    setIsFormOpen(true);
+  };
+
+  const handleCreate = () => {
+    setEditingItem(null);
+    setIsFormOpen(true);
+  };
+
+  const handleSubmit = async (data: Record<string, unknown>) => {
+    const submitData = {
+      ...data,
+      amount: data.amount ? Number(data.amount) : undefined,
+    };
+    if (editingItem) {
+      await adminPaymentsService.update(editingItem.id, submitData as Partial<Payment>);
+      toast.success('پرداخت با موفقیت ویرایش شد');
+    } else {
+      await adminPaymentsService.create(submitData as Partial<Payment>);
+      toast.success('پرداخت با موفقیت ایجاد شد');
+    }
+    fetchData();
+  };
+
+  const fields: FormField[] = [
+    { key: 'invoiceId', label: 'شناسه فاکتور', type: 'text' },
+    { key: 'userId', label: 'شناسه کاربر', type: 'text' },
+    { key: 'amount', label: 'مبلغ', type: 'number', required: true },
+    {
+      key: 'method',
+      label: 'روش پرداخت',
+      type: 'select',
+      required: true,
+      options: [
+        { value: 'card', label: 'کارت' },
+        { value: 'bank_transfer', label: 'انتقال بانکی' },
+        { value: 'online', label: 'آنلاین' },
+        { value: 'cash', label: 'نقدی' },
+      ],
+    },
+    { key: 'transactionId', label: 'شناسه تراکنش', type: 'text' },
+    {
+      key: 'status',
+      label: 'وضعیت',
+      type: 'select',
+      required: true,
+      options: [
+        { value: 'pending', label: 'در انتظار' },
+        { value: 'completed', label: 'موفق' },
+        { value: 'failed', label: 'ناموفق' },
+        { value: 'refunded', label: 'بازگشت داده شده' },
+      ],
+    },
+    { key: 'notes', label: 'یادداشت', type: 'textarea', fullWidth: true },
+  ];
 
   const columns = [
     {
@@ -76,10 +139,16 @@ export default function AdminPaymentsPage() {
           </h1>
           <p className="text-muted-foreground text-sm mt-1">{items.length} پرداخت</p>
         </div>
-        <Button variant="outline" size="sm" onClick={fetchData}>
-          <RefreshCw className="w-4 h-4 ml-1" />
-          بروزرسانی
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={fetchData}>
+            <RefreshCw className="w-4 h-4 ml-1" />
+            بروزرسانی
+          </Button>
+          <Button size="sm" className="btn-primary" onClick={handleCreate}>
+            <Plus className="w-4 h-4 ml-1" />
+            ایجاد پرداخت
+          </Button>
+        </div>
       </div>
 
       <Card className="glass">
@@ -89,6 +158,7 @@ export default function AdminPaymentsPage() {
             columns={columns}
             loading={isLoading}
             onView={() => {}}
+            onEdit={handleEdit}
             onDelete={(item) => setDeleteId(item.id)}
             emptyMessage="پرداختی یافت نشد"
           />
@@ -102,6 +172,16 @@ export default function AdminPaymentsPage() {
         description="آیا از حذف این رکورد اطمینان دارید؟"
         onConfirm={handleDelete}
         loading={isDeleting}
+      />
+
+      <EntityFormModal
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        title={editingItem ? 'ویرایش پرداخت' : 'ایجاد پرداخت جدید'}
+        fields={fields}
+        initialValues={editingItem ? { ...editingItem } as Record<string, unknown> : undefined}
+        onSubmit={handleSubmit}
+        submitLabel={editingItem ? 'ذخیره تغییرات' : 'ایجاد پرداخت'}
       />
     </div>
   );

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard,
@@ -27,14 +27,14 @@ import {
   Menu,
   X,
   ChevronLeft,
+  LogOut,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { cn } from '@/lib/utils';
-import { LogOut } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { authService } from '@/services/AuthService';
-import { getStoredUser } from '@/lib/auth';
+import { useAuth } from '@/hooks/useAuth';
+import { NotificationDropdown } from '@/components/admin/NotificationDropdown';
 
 const adminLinks = [
   { href: '/dashboard/admin', icon: LayoutDashboard, label: 'داشبورد' },
@@ -67,12 +67,12 @@ interface AdminLayoutContentProps {
 function AdminLayoutContent({ children }: AdminLayoutContentProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const { user } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const user = getStoredUser<{ name: string; email: string; role?: string }>();
   const displayName = user?.name || 'مدیر';
-  const displayEmail = user?.email || 'admin@example.com';
+  const displayEmail = user?.email || '-';
 
   const handleLogout = async () => {
     await authService.logout();
@@ -252,7 +252,10 @@ function AdminLayoutContent({ children }: AdminLayoutContentProps) {
               </Link>
             </div>
             <div className="flex items-center gap-2 lg:gap-4">
-              <ThemeToggle />
+              <NotificationDropdown isAdmin />
+              <div className="flex items-center">
+                <ThemeToggle />
+              </div>
             </div>
           </div>
         </header>

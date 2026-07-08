@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { authService } from '@/services/AuthService';
+import { emitAuthChanged } from '@/hooks/useAuth';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -28,7 +29,10 @@ export default function LoginPage() {
 
     try {
       await authService.login(formData);
-      router.push('/dashboard');
+      emitAuthChanged();
+      const params = new URLSearchParams(window.location.search);
+      const redirect = params.get('redirect') || '/dashboard';
+      router.push(redirect);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {

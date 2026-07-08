@@ -1,18 +1,23 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Briefcase, RefreshCw } from 'lucide-react';
+import { Briefcase, RefreshCw, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
 import { adminServicesService } from '@/services/admin/ServicesService';
 import { Service } from '@/types/api';
+import { EntityFormModal, FormField } from '@/components/admin/EntityFormModal';
+import { toast } from 'sonner';
+import { getApiErrorMessage } from '@/services/api';
 
 export default function AdminServicesPage() {
   const [items, setItems] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<Service | null>(null);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -37,6 +42,44 @@ export default function AdminServicesPage() {
     }
     setIsDeleting(false);
   };
+
+  const handleEdit = (item: Service) => {
+    setEditingItem(item);
+    setIsFormOpen(true);
+  };
+
+  const handleCreate = () => {
+    setEditingItem(null);
+    setIsFormOpen(true);
+  };
+
+  const handleSubmit = async (data: Record<string, unknown>) => {
+    const submitData = {
+      ...data,
+      displayOrder: data.displayOrder ? Number(data.displayOrder) : undefined,
+    };
+    try {
+      if (editingItem) {
+        await adminServicesService.update(editingItem.id, submitData as Partial<Service>);
+        toast.success('سرویس با موفقیت ویرایش شد');
+      } else {
+        await adminServicesService.create(submitData as Partial<Service>);
+        toast.success('سرویس با موفقیت ایجاد شد');
+      }
+      fetchData();
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
+      throw error;
+    }
+  };
+
+  const fields: FormField[] = [
+    { key: 'title', label: 'عنوان', required: true },
+    { key: 'description', label: 'توضیحات', type: 'textarea', required: true, fullWidth: true },
+    { key: 'icon', label: 'آیکون' },
+    { key: 'isActive', label: 'فعال', type: 'switch' },
+    { key: 'displayOrder', label: 'ترتیب نمایش', type: 'number' },
+  ];
 
   const columns = [
     { key: 'title', label: 'عنوان' },
@@ -66,10 +109,16 @@ export default function AdminServicesPage() {
           </h1>
           <p className="text-muted-foreground text-sm mt-1">{items.length} رکورد</p>
         </div>
-        <Button variant="outline" size="sm" onClick={fetchData}>
-          <RefreshCw className="w-4 h-4 ml-1" />
-          بروزرسانی
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={fetchData}>
+            <RefreshCw className="w-4 h-4 ml-1" />
+            بروزرسانی
+          </Button>
+          <Button size="sm" className="btn-primary" onClick={handleCreate}>
+            <Plus className="w-4 h-4 ml-1" />
+            ایجاد
+          </Button>
+        </div>
       </div>
 
       <Card className="glass">
@@ -78,7 +127,7 @@ export default function AdminServicesPage() {
             data={items}
             columns={columns}
             loading={isLoading}
-            onEdit={() => {}}
+            onEdit={handleEdit}
             onDelete={(item) => setDeleteId(item.id)}
             emptyMessage="رکوردی یافت نشد"
           />
@@ -92,6 +141,16 @@ export default function AdminServicesPage() {
         description="آیا از حذف این سرویس اطمینان دارید؟"
         onConfirm={handleDelete}
         loading={isDeleting}
+      />
+
+      <EntityFormModal
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        title={editingItem ? 'ویرایش سرویس' : 'ایجاد سرویس جدید'}
+        fields={fields}
+        initialValues={editingItem ? { ...editingItem } as Record<string, unknown> : undefined}
+        onSubmit={handleSubmit}
+        submitLabel={editingItem ? 'ذخیره تغییرات' : 'ایجاد'}
       />
     </div>
   );

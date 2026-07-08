@@ -1,28 +1,87 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Send, MessageCircle, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { LifeBuoy, Plus, AlertCircle, X, Send, Loader2, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
+import { supportService, SupportTicket, CreateTicketRequest } from '@/services/SupportService';
+import { getApiErrorMessage } from '@/services/api';
 
-const tickets = [
-  { id: '1', subject: 'مشکل در ورود به سیستم', status: 'open', date: '۱۴۰۵/۰۲/۱۰', latestMessage: 'سلام، مشکل برطرف شد؟' },
-  { id: '2', subject: 'سؤال درباره قیمت‌گذاری', status: 'resolved', date: '۱۴۰۵/۰۱/۲۵', latestMessage: 'مشخص شد، ممنون.' },
-];
-
-const statusConfig: { [key: string]: { label: string; color: string; icon: React.ElementType } } = {
-  open: { label: 'باز', color: 'text-yellow-500 bg-yellow-500/20', icon: Clock },
-  pending: { label: 'در انتظار', color: 'text-sky-500 dark:text-blue-400 bg-sky-500/20 dark:bg-blue-500/20', icon: AlertCircle },
-  resolved: { label: 'حل شده', color: 'text-green-500 bg-green-500/20', icon: CheckCircle },
+const statusLabels: { [key: string]: string } = {
+  open: 'باز',
+  in_progress: 'در حال بررسی',
+  resolved: 'حل شده',
+  closed: 'بسته شده',
 };
 
+const statusColors: { [key: string]: string } = {
+  open: 'bg-sky-500/20 text-sky-500 dark:bg-blue-500/20 dark:text-blue-400',
+  in_progress: 'bg-yellow-500/20 text-yellow-500',
+  resolved: 'bg-green-500/20 text-green-500',
+  closed: 'bg-gray-500/20 text-gray-500',
+};
+
+function getStatusInfo(status: string) {
+  const key = status.toLowerCase();
+  return {
+    label: statusLabels[key] || status,
+    color: statusColors[key] || 'bg-muted text-muted-foreground',
+  };
+}
+
 export default function SupportPage() {
-  const [isCreating, setIsCreating] = useState(false);
-  const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
-  const [newMessage, setNewMessage] = useState('');
+  const [tickets, setTickets] = useState<SupportTicket[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [formData, setFormData] = useState<CreateTicketRequest>({
+    subject: '',
+    message: '',
+    priority: 'normal',
+  });
+
+  const fetchTickets = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await supportService.getTickets();
+      setTickets(data);
+    } catch (err) {
+      setError(getApiErrorMessage(err));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTickets();
+  }, []);
+
+  const handleCreate = async () => {
+    if (!formData.subject || !formData.message) {
+      setSubmitError('موضوع و پیام الزامی است');
+      return;
+    }
+    setIsSubmitting(true);
+    setSubmitError(null);
+    try {
+      await supportService.createTicket(formData);
+      setSuccessMsg('تیکت با موفقیت ایجاد شد');
+      setIsModalOpen(false);
+      setFormData({ subject: '', message: '', priority: 'normal' });
+      fetchTickets();
+    } catch (err) {
+      setSubmitError(getApiErrorMessage(err));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -30,140 +89,195 @@ export default function SupportPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">پشتیبانی</h1>
-          <p className="text-muted-foreground mt-1">تیکت‌های پشتیبانی و پیام‌های شما</p>
+          <p className="text-muted-foreground mt-1">تیکت‌های پشتیبانی شما</p>
         </div>
-        <Button
-          onClick={() => setIsCreating(!isCreating)}
-          className="btn-primary shadow-glow"
-        >
+        <Button className="btn-primary shadow-glow" onClick={() => setIsModalOpen(true)}>
           <Plus className="w-4 h-4 ml-2" />
           تیکت جدید
         </Button>
       </div>
 
-      {/* Create Ticket Form */}
-      <AnimatePresence>
-        {isCreating && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="glass rounded-xl p-6"
-          >
-            <h2 className="text-xl font-semibold mb-6">ارسال تیکت جدید</h2>
-            <div className="grid gap-5">
-              <div>
-                <label className="block text-sm text-foreground/70 mb-2">موضوع</label>
-                <Input placeholder="موضوع تیکت" className="bg-muted/50 border-border" />
+      {/* Success Message */}
+      {successMsg && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass rounded-xl p-4 text-green-500 text-sm"
+        >
+          {successMsg}
+        </motion.div>
+      )}
+
+      {/* Error State */}
+      {error && !isLoading && (
+        <div className="glass rounded-xl p-6 text-center">
+          <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-3" />
+          <p className="text-muted-foreground">{error}</p>
+          <Button variant="outline" className="mt-4 rounded-full" onClick={fetchTickets}>
+            تلاش مجدد
+          </Button>
+        </div>
+      )}
+
+      {/* Loading State */}
+      {isLoading && (
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="glass rounded-xl p-6 animate-pulse">
+              <div className="flex gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-muted" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-muted rounded w-40" />
+                  <div className="h-3 bg-muted rounded w-24" />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm text-foreground/70 mb-2">پیام</label>
-                <Textarea
-                  rows={5}
-                  placeholder="پیام خود را بنویسید..."
-                  className="bg-muted/50 border-border resize-none"
-                />
-              </div>
-              <div className="flex gap-4">
-                <Button className="btn-primary rounded-full">ارسال تیکت</Button>
-                <Button variant="outline" onClick={() => setIsCreating(false)} className="rounded-full">
-                  انصراف
-                </Button>
-              </div>
+              <div className="h-3 bg-muted rounded w-full" />
+              <div className="h-3 bg-muted rounded w-1/2 mt-2" />
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          ))}
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!isLoading && !error && tickets.length === 0 && (
+        <div className="glass rounded-2xl p-12 text-center">
+          <LifeBuoy className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+          <h3 className="text-lg font-semibold mb-2">تیکتی وجود ندارد</h3>
+          <p className="text-muted-foreground text-sm mb-6">
+            هنوز تیکت پشتیبانی ثبت نکرده‌اید.
+          </p>
+          <Button className="btn-primary shadow-glow" onClick={() => setIsModalOpen(true)}>
+            <Plus className="w-4 h-4 ml-2" />
+            تیکت جدید
+          </Button>
+        </div>
+      )}
 
       {/* Tickets List */}
-      <div className="grid md:grid-cols-3 gap-6">
-        {/* Tickets Sidebar */}
+      {!isLoading && !error && tickets.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold mb-4">تیکت‌ها</h2>
-          {tickets.map((ticket) => {
-            const StatusIcon = statusConfig[ticket.status]?.icon || Clock;
+          {tickets.map((ticket, index) => {
+            const statusInfo = getStatusInfo(ticket.status);
             return (
               <motion.div
                 key={ticket.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                onClick={() => setSelectedTicket(ticket.id)}
-                className={cn(
-                  'p-4 rounded-xl cursor-pointer transition-all',
-                  selectedTicket === ticket.id ? 'glass' : 'bg-muted/50 hover:bg-muted'
-                )}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="glass rounded-xl p-6 hover:bg-muted/30 transition-colors"
               >
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-medium">{ticket.subject}</h3>
-                  <span className={cn(
-                    'text-xs px-2 py-1 rounded-full',
-                    statusConfig[ticket.status]?.color
-                  )}>
-                    {statusConfig[ticket.status]?.label}
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground truncate">{ticket.latestMessage}</p>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
-                  <StatusIcon className="w-3 h-3" />
-                  <span>{ticket.date}</span>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start gap-4 flex-1 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-sky-500/10 dark:bg-sky-500/20 flex items-center justify-center flex-shrink-0">
+                      <MessageSquare className="w-5 h-5 text-sky-500 dark:text-cyan-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold truncate">{ticket.subject}</h3>
+                      {ticket.description && (
+                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                          {ticket.description}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-3 mt-3">
+                        <span className={`text-xs px-2 py-1 rounded-full ${statusInfo.color}`}>
+                          {statusInfo.label}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('fa-IR') : '-'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             );
           })}
         </div>
+      )}
 
-        {/* Messages */}
-        <div className="md:col-span-2 glass rounded-xl p-6">
-          {selectedTicket ? (
-            <div>
-              <h2 className="text-xl font-semibold mb-4">مشکل در ورود به سیستم</h2>
-              <div className="space-y-4 mb-6">
-                {/* Messages */}
-                {[
-                  { sender: 'user', text: 'سلام، نمی‌توانم وارد سیستم شوم.', time: '۱۴۰۵/۰۲/۱۰ - ۱۰:۳۰' },
-                  { sender: 'support', text: 'سلام، لطفاً ایمیل و رمز عبور‌تان را بررسی کنید.', time: '۱۴۰۵/۰۲/۱۰ - ۱۱:۴۵' },
-                  { sender: 'user', text: 'مشخص شد، ممنون.', time: '۱۴۰۵/۰۲/۱۰ - ۱۲:۰۰' },
-                ].map((msg, i) => (
-                  <div key={i} className={cn(
-                    'p-4 rounded-lg',
-                    msg.sender === 'user' ? 'bg-sky-500/10 dark:bg-blue-500/10' : 'bg-sky-500/5 dark:bg-cyan-500/10'
-                  )}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className={cn(
-                        'w-6 h-6 rounded-full flex items-center justify-center text-xs',
-                        msg.sender === 'user' ? 'bg-sky-500 dark:bg-blue-500' : 'bg-sky-500 dark:bg-cyan-500'
-                      )}>
-                        <MessageCircle className="w-3 h-3 text-white" />
-                      </div>
-                      <span className="text-sm text-muted-foreground">{msg.time}</span>
-                    </div>
-                    <p className="text-sm">{msg.text}</p>
-                  </div>
-                ))}
+      {/* Create Ticket Modal */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50"
+              onClick={() => setIsModalOpen(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative glass rounded-2xl p-6 max-w-md w-full"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold">تیکت پشتیبانی جدید</h3>
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="p-2 rounded-lg hover:bg-muted transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
 
-              {/* Reply Input */}
-              <div className="flex gap-4">
-                <Textarea
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="پیام جدید..."
-                  className="bg-muted/50 border-border resize-none flex-1"
-                  rows={2}
-                />
-                <Button className="btn-primary rounded-xl self-end">
-                  <Send className="w-4 h-4" />
+              {submitError && (
+                <div className="mb-4 p-3 rounded-lg bg-red-500/10 text-red-500 text-sm">
+                  {submitError}
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="subject">موضوع *</Label>
+                  <Input
+                    id="subject"
+                    value={formData.subject}
+                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                    className="bg-muted/50 border-border"
+                    placeholder="موضوع تیکت را وارد کنید"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="message">پیام *</Label>
+                  <Textarea
+                    id="message"
+                    value={formData.message}
+                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                    className="bg-muted/50 border-border resize-none"
+                    rows={4}
+                    placeholder="پیام خود را شرح دهید"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 justify-end mt-6">
+                <Button variant="outline" onClick={() => setIsModalOpen(false)}>
+                  انصراف
+                </Button>
+                <Button
+                  className="btn-primary shadow-glow"
+                  onClick={handleCreate}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                      در حال ارسال...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4 ml-2" />
+                      ارسال تیکت
+                    </>
+                  )}
                 </Button>
               </div>
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <MessageCircle className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-              <p className="text-muted-foreground">یک تیکت را برای مشاهده پیام‌ها انتخاب کنید</p>
-            </div>
-          )}
-        </div>
-      </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

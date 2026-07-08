@@ -1,20 +1,23 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Plus, Users, RefreshCw } from 'lucide-react';
-import Link from 'next/link';
+import { Users, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import { EntityFormModal, FormField } from '@/components/admin/EntityFormModal';
 import { adminUsersService } from '@/services/admin/index';
 import { User } from '@/types/api';
+import { toast } from 'sonner';
+import { getApiErrorMessage } from '@/services/api';
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<User | null>(null);
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -34,11 +37,40 @@ export default function AdminUsersPage() {
       await adminUsersService.delete(deleteId);
       setUsers(users.filter(u => u.id !== deleteId));
       setDeleteId(null);
+      toast.success('کاربر با موفقیت حذف شد');
     } catch (error) {
-      console.error('Failed to delete user:', error);
+      toast.error(getApiErrorMessage(error));
     }
     setIsDeleting(false);
   };
+
+  const handleEdit = (item: User) => {
+    setEditingItem(item);
+    setIsFormOpen(true);
+  };
+
+  const handleSubmit = async (data: Record<string, unknown>) => {
+    if (!editingItem) return;
+    await adminUsersService.update(editingItem.id, data as Partial<User>);
+    toast.success('کاربر با موفقیت ویرایش شد');
+    fetchUsers();
+  };
+
+  const fields: FormField[] = [
+    { key: 'name', label: 'نام', required: true },
+    { key: 'email', label: 'ایمیل', type: 'email', required: true },
+    { key: 'userName', label: 'نام کاربری', type: 'text' },
+    {
+      key: 'role',
+      label: 'نقش',
+      type: 'select',
+      options: [
+        { value: 'Admin', label: 'مدیر' },
+        { value: 'User', label: 'کاربر' },
+      ],
+    },
+    { key: 'isActive', label: 'فعال', type: 'switch' },
+  ];
 
   const columns = [
     { key: 'name', label: 'نام' },
@@ -98,7 +130,7 @@ export default function AdminUsersPage() {
             data={users}
             columns={columns}
             loading={isLoading}
-            onEdit={(user) => {/* TODO: Navigate to edit page */}}
+            onEdit={handleEdit}
             onDelete={(user) => setDeleteId(user.id)}
             emptyMessage="کاربری یافت نشد"
           />
@@ -112,6 +144,16 @@ export default function AdminUsersPage() {
         description="آیا از حذف این کاربر اطمینان دارید؟ این عمل قابل بازگشت نیست."
         onConfirm={handleDelete}
         loading={isDeleting}
+      />
+
+      <EntityFormModal
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        title={editingItem ? 'ویرایش کاربر' : 'ایجاد کاربر جدید'}
+        fields={fields}
+        initialValues={editingItem ? { ...editingItem } as Record<string, unknown> : undefined}
+        onSubmit={handleSubmit}
+        submitLabel={editingItem ? 'ذخیره تغییرات' : 'ایجاد کاربر'}
       />
     </div>
   );

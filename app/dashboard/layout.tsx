@@ -8,29 +8,25 @@ import {
   LayoutDashboard,
   User,
   FolderKanban,
-  CreditCard,
   LifeBuoy,
-  Settings,
   LogOut,
   Menu,
   X,
-  Bell,
   ChevronLeft,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { AuthGuard } from '@/components/auth/AuthGuard';
+import { NotificationDropdown } from '@/components/admin/NotificationDropdown';
 import { authService } from '@/services/AuthService';
-import { getStoredUser } from '@/lib/auth';
+import { useAuth, emitAuthChanged } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 
 const sidebarLinks = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'داشبورد' },
   { href: '/dashboard/projects', icon: FolderKanban, label: 'پروژه‌ها' },
-  { href: '/dashboard/profile', icon: User, label: 'پروفایل' },
-  { href: '/dashboard/billing', icon: CreditCard, label: 'صورت‌حساب' },
   { href: '/dashboard/support', icon: LifeBuoy, label: 'پشتیبانی' },
-  { href: '/dashboard/settings', icon: Settings, label: 'تنظیمات' },
+  { href: '/dashboard/profile', icon: User, label: 'پروفایل' },
 ];
 
 interface DashboardLayoutProps {
@@ -39,15 +35,16 @@ interface DashboardLayoutProps {
 
 function DashboardContent({ children }: DashboardLayoutProps) {
   const router = useRouter();
+  const { user } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const user = getStoredUser<{ name: string; email: string; avatar?: string }>();
   const displayName = user?.name || 'کاربر';
-  const displayEmail = user?.email || 'user@email.com';
+  const displayEmail = user?.email || '-';
 
   const handleLogout = async () => {
     await authService.logout();
+    emitAuthChanged();
     router.push('/login');
   };
 
@@ -131,7 +128,6 @@ function DashboardContent({ children }: DashboardLayoutProps) {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
-            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -139,12 +135,11 @@ function DashboardContent({ children }: DashboardLayoutProps) {
               onClick={() => setIsMobileMenuOpen(false)}
               className="fixed inset-0 bg-black/50 z-40 md:hidden"
             />
-            {/* Mobile Menu */}
             <motion.aside
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              transition={{ type: 'tween', duration: 0.3 }}
+              transition={{ type: 'tween', duration:  0.3 }}
               className="fixed right-0 top-0 bottom-0 w-72 bg-card z-50 md:hidden overflow-y-auto"
             >
               <div className="p-6 flex items-center justify-between border-b border-border">
@@ -209,20 +204,16 @@ function DashboardContent({ children }: DashboardLayoutProps) {
               </Link>
             </div>
             <div className="flex items-center gap-2 md:gap-4">
-              <ThemeToggle />
-              <button className="relative p-2 rounded-lg hover:bg-muted transition-colors">
-                <Bell className="w-5 h-5 text-muted-foreground" />
-                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-sky-500 dark:bg-cyan-500" />
-              </button>
-              <button
-                onClick={handleLogout}
-                className="hidden sm:block"
-              >
-                <Button variant="ghost" size="sm">
+              <NotificationDropdown />
+              <div className="flex items-center">
+                <ThemeToggle />
+              </div>
+              <div className="hidden sm:block">
+                <Button variant="ghost" size="sm" onClick={handleLogout}>
                   <LogOut className="w-4 h-4 ml-2" />
                   خروج
                 </Button>
-              </button>
+              </div>
             </div>
           </div>
         </header>
