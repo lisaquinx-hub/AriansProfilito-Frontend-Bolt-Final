@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { DollarSign, RefreshCw, Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { DollarSign, RefreshCw, Plus, Pencil, Trash2, Eye, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { EntityFormModal, FormField } from '@/components/admin/EntityFormModal';
+import { ViewDetailModal } from '@/components/admin/ViewDetailModal';
 import { adminPricingService } from '@/services/admin/PricingService';
 import { PricingPlan } from '@/types/api';
 import { toast } from 'sonner';
@@ -17,6 +18,10 @@ export default function AdminPricingPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<PricingPlan | null>(null);
+
+  const [viewItem, setViewItem] = useState<PricingPlan | null>(null);
+  const [viewLoading, setViewLoading] = useState(false);
+  const [viewError, setViewError] = useState<string | null>(null);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -53,6 +58,20 @@ export default function AdminPricingPage() {
   const handleCreate = () => {
     setEditingItem(null);
     setIsFormOpen(true);
+  };
+
+  const handleView = async (item: PricingPlan) => {
+    setViewItem({ ...item });
+    setViewError(null);
+    setViewLoading(true);
+    try {
+      const detail = await adminPricingService.getById(item.id);
+      if (detail) setViewItem(detail);
+    } catch (err) {
+      setViewError(getApiErrorMessage(err));
+    } finally {
+      setViewLoading(false);
+    }
   };
 
   const formFields: FormField[] = [
@@ -215,6 +234,15 @@ export default function AdminPricingPage() {
                     size="sm"
                     variant="ghost"
                     className="flex-1 gap-1"
+                    onClick={() => handleView(plan)}
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    جزئیات
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="flex-1 gap-1"
                     onClick={() => handleEdit(plan)}
                   >
                     <Pencil className="w-3.5 h-3.5" />
@@ -248,6 +276,27 @@ export default function AdminPricingPage() {
         fields={formFields}
         initialValues={getInitialValues(editingItem)}
         onSubmit={handleSubmit}
+      />
+
+      <ViewDetailModal
+        open={!!viewItem || viewLoading}
+        onClose={() => { setViewItem(null); setViewError(null); setViewLoading(false); }}
+        title="جزئیات پلن قیمت‌گذاری"
+        loading={viewLoading}
+        error={viewError}
+        fields={viewItem ? [
+          { label: 'شناسه', value: viewItem.id },
+          { label: 'عنوان', value: viewItem.title },
+          { label: 'توضیحات', value: viewItem.description || '-', fullWidth: true },
+          { label: 'قیمت', value: viewItem.price?.toLocaleString() || '-' },
+          { label: 'مدت (روز)', value: viewItem.duration },
+          { label: 'تحویل (روز)', value: viewItem.deliveryDays },
+          { label: 'محبوب', value: viewItem.isPopular ? 'بله' : 'خیر' },
+          { label: 'فعال', value: viewItem.isActive ? 'بله' : 'خیر' },
+          { label: 'ترتیب نمایش', value: viewItem.displayOrder ?? '-' },
+          { label: 'ویژگی‌ها', value: (viewItem.features || []).map(f => f.feature).join(' | ') || '-', fullWidth: true },
+          { label: 'تاریخ ایجاد', value: viewItem.createdAt ? new Date(viewItem.createdAt).toLocaleString('fa-IR') : '-' },
+        ] : []}
       />
     </div>
   );

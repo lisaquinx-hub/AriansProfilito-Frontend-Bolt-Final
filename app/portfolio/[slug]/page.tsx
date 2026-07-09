@@ -1,29 +1,30 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { PageHeader } from '@/components/shared';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { ArrowLeft, Calendar, Globe, Github, Loader2 } from 'lucide-react';
+import { ArrowLeft, Calendar, Globe, Github, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { portfolioService } from '@/services/PortfolioService';
 import { PortfolioDetail } from '@/types/api';
 
-interface Props {
-  params: Promise<{ slug: string }>;
-}
+export default function PortfolioDetailPage() {
+  const params = useParams<{ slug: string }>();
+  const slug = (Array.isArray(params?.slug) ? params.slug[0] : params?.slug) as string;
 
-export default function PortfolioDetailPage({ params }: Props) {
-  const { slug } = use(params);
   const [item, setItem] = useState<PortfolioDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
+    if (!slug) return;
     portfolioService.getBySlug(slug).then((data) => {
-      setItem(data);
+      if (data) setItem(data);
+      else setNotFound(true);
       setIsLoading(false);
     });
   }, [slug]);
@@ -35,15 +36,30 @@ export default function PortfolioDetailPage({ params }: Props) {
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-8 h-8 animate-spin text-sky-500" />
         </div>
+        <Footer />
       </main>
     );
   }
 
-  if (!item) {
-    notFound();
+  if (notFound || !item) {
+    return (
+      <main className="min-h-screen pt-24 pb-16 relative overflow-x-hidden">
+        <Navbar />
+        <div className="container mx-auto px-6 py-20 text-center">
+          <AlertCircle className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+          <h2 className="text-2xl font-bold mb-2">نمونه کار یافت نشد</h2>
+          <p className="text-muted-foreground mb-6">پروژه مورد نظر وجود ندارد یا حذف شده است.</p>
+          <Link href="/portfolio">
+            <Button variant="outline" className="rounded-full gap-2">
+              <ArrowLeft className="w-4 h-4 rotate-180" />
+              بازگشت به نمونه‌کارها
+            </Button>
+          </Link>
+        </div>
+        <Footer />
+      </main>
+    );
   }
-
-  const coverImage = item.images?.find((img) => img.isCover);
 
   return (
     <main className="min-h-screen pt-24 pb-16 relative overflow-x-hidden">
@@ -77,7 +93,9 @@ export default function PortfolioDetailPage({ params }: Props) {
               {item.isFeatured && (
                 <span className="px-4 py-2 rounded-full text-sm font-medium glass">ویژه</span>
               )}
-              <span className="px-4 py-2 rounded-full text-sm font-medium glass">{item.categoryName}</span>
+              {item.categoryName && (
+                <span className="px-4 py-2 rounded-full text-sm font-medium glass">{item.categoryName}</span>
+              )}
             </div>
           </div>
         </motion.div>
@@ -130,7 +148,7 @@ export default function PortfolioDetailPage({ params }: Props) {
               <div className="flex items-center gap-3 text-sm">
                 <Calendar className="w-4 h-4 text-sky-500 flex-shrink-0" />
                 <span className="text-muted-foreground">
-                  {new Date(item.projectDate).toLocaleDateString('fa-IR')}
+                  {item.projectDate ? new Date(item.projectDate).toLocaleDateString('fa-IR') : '-'}
                 </span>
               </div>
 

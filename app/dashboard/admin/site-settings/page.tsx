@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
 import { EntityFormModal, FormField } from '@/components/admin/EntityFormModal';
+import { ViewDetailModal } from '@/components/admin/ViewDetailModal';
 import { adminSiteSettingsService } from '@/services/admin/SettingsService';
 import { SiteSettings } from '@/types/api';
 import { toast } from 'sonner';
@@ -18,6 +19,10 @@ export default function AdminSiteSettingsPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<SiteSettings | null>(null);
+
+  const [viewItem, setViewItem] = useState<SiteSettings | null>(null);
+  const [viewLoading, setViewLoading] = useState(false);
+  const [viewError, setViewError] = useState<string | null>(null);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -40,6 +45,20 @@ export default function AdminSiteSettingsPage() {
       toast.error(getApiErrorMessage(error));
     }
     setIsDeleting(false);
+  };
+
+  const handleView = async (item: SiteSettings) => {
+    setViewItem({ ...item });
+    setViewError(null);
+    setViewLoading(true);
+    try {
+      const detail = await adminSiteSettingsService.getById(item.id);
+      if (detail) setViewItem(detail);
+    } catch (err) {
+      setViewError(getApiErrorMessage(err));
+    } finally {
+      setViewLoading(false);
+    }
   };
 
   const handleSubmit = async (data: Record<string, unknown>) => {
@@ -105,12 +124,33 @@ export default function AdminSiteSettingsPage() {
         </div>
       </div>
       <Card className="glass"><CardContent className="p-6">
-        <DataTable data={items} columns={columns} loading={isLoading} onEdit={(i) => { setEditingItem(i); setIsFormOpen(true); }} onDelete={(i) => setDeleteId(i.id)} emptyMessage="تنظیماتی یافت نشد" />
+        <DataTable data={items} columns={columns} loading={isLoading} onView={handleView} onEdit={(i) => { setEditingItem(i); setIsFormOpen(true); }} onDelete={(i) => setDeleteId(i.id)} emptyMessage="تنظیماتی یافت نشد" />
       </CardContent></Card>
       <ConfirmDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)} title="حذف تنظیمات" description="آیا از حذف اطمینان دارید؟" onConfirm={handleDelete} loading={isDeleting} />
       <EntityFormModal open={isFormOpen} onOpenChange={setIsFormOpen} title={editingItem ? 'ویرایش تنظیمات سایت' : 'تنظیمات جدید'} fields={fields}
         initialValues={editingItem ? { siteName: editingItem.siteName || '', logo: editingItem.logo || '', darkLogo: editingItem.darkLogo || '', favicon: editingItem.favicon || '', email: editingItem.email || '', phone: editingItem.phone || '', address: editingItem.address || '', footerText: editingItem.footerText || '', copyright: editingItem.copyright || '', googleMap: editingItem.googleMap || '', googleAnalytics: editingItem.googleAnalytics || '', metaTitle: editingItem.metaTitle || '', metaDescription: editingItem.metaDescription || '', metaKeywords: editingItem.metaKeywords || '' } : undefined}
         onSubmit={handleSubmit} />
+      <ViewDetailModal
+        open={!!viewItem || viewLoading}
+        onClose={() => { setViewItem(null); setViewError(null); setViewLoading(false); }}
+        title="جزئیات تنظیمات سایت"
+        loading={viewLoading}
+        error={viewError}
+        fields={viewItem ? [
+          { label: 'شناسه', value: viewItem.id },
+          { label: 'نام سایت', value: viewItem.siteName || '-' },
+          { label: 'ایمیل', value: viewItem.email || '-' },
+          { label: 'تلفن', value: viewItem.phone || '-' },
+          { label: 'آدرس', value: viewItem.address || '-', fullWidth: true },
+          { label: 'متن فوتر', value: viewItem.footerText || '-', fullWidth: true },
+          { label: 'کپی‌رایت', value: viewItem.copyright || '-' },
+          { label: 'Google Analytics', value: viewItem.googleAnalytics || '-' },
+          { label: 'عنوان متا', value: viewItem.metaTitle || '-' },
+          { label: 'توضیحات متا', value: viewItem.metaDescription || '-', fullWidth: true },
+          { label: 'کلمات کلیدی متا', value: viewItem.metaKeywords || '-' },
+          { label: 'تاریخ ایجاد', value: viewItem.createdAt ? new Date(viewItem.createdAt).toLocaleString('fa-IR') : '-' },
+        ] : []}
+      />
     </div>
   );
 }

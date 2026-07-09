@@ -6,10 +6,18 @@ import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
 import { EntityFormModal, FormField } from '@/components/admin/EntityFormModal';
+import { ViewDetailModal } from '@/components/admin/ViewDetailModal';
 import { adminNotificationsService, CreateNotificationDto } from '@/services/admin/NotificationsService';
 import { Notification } from '@/types/api';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/services/api';
+
+const NOTIFICATION_TYPE_OPTIONS = [
+  { value: '1', label: 'اطلاع (Info)' },
+  { value: '2', label: 'موفقیت (Success)' },
+  { value: '3', label: 'هشدار (Warning)' },
+  { value: '4', label: 'خطا (Error)' },
+];
 
 export default function AdminNotificationsPage() {
   const [items, setItems] = useState<Notification[]>([]);
@@ -17,6 +25,10 @@ export default function AdminNotificationsPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
+
+  const [viewItem, setViewItem] = useState<Notification | null>(null);
+  const [viewLoading, setViewLoading] = useState(false);
+  const [viewError, setViewError] = useState<string | null>(null);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -43,6 +55,20 @@ export default function AdminNotificationsPage() {
     setIsDeleting(false);
   };
 
+  const handleView = async (item: Notification) => {
+    setViewItem({ ...item });
+    setViewError(null);
+    setViewLoading(true);
+    try {
+      const detail = await adminNotificationsService.getById(item.id);
+      if (detail) setViewItem(detail);
+    } catch (err) {
+      setViewError(getApiErrorMessage(err));
+    } finally {
+      setViewLoading(false);
+    }
+  };
+
   const handleSubmit = async (data: Record<string, unknown>) => {
     const payload: CreateNotificationDto = {
       userId: String(data.userId || ''),
@@ -66,12 +92,7 @@ export default function AdminNotificationsPage() {
       key: 'type',
       label: 'نوع',
       type: 'select',
-      options: [
-        { value: '1', label: 'اطلاع (Info)' },
-        { value: '2', label: 'موفقیت (Success)' },
-        { value: '3', label: 'هشدار (Warning)' },
-        { value: '4', label: 'خطا (Error)' },
-      ],
+      options: NOTIFICATION_TYPE_OPTIONS,
     },
     { key: 'isRead', label: 'خوانده شده', type: 'switch' },
   ];
@@ -137,6 +158,7 @@ export default function AdminNotificationsPage() {
             data={items}
             columns={columns}
             loading={isLoading}
+            onView={handleView}
             onDelete={(item) => setDeleteId(item.id)}
             emptyMessage="اعلانی یافت نشد"
           />
@@ -159,6 +181,24 @@ export default function AdminNotificationsPage() {
         fields={fields}
         onSubmit={handleSubmit}
         submitLabel="ایجاد اعلان"
+      />
+
+      <ViewDetailModal
+        open={!!viewItem || viewLoading}
+        onClose={() => { setViewItem(null); setViewError(null); setViewLoading(false); }}
+        title="جزئیات اعلان"
+        loading={viewLoading}
+        error={viewError}
+        fields={viewItem ? [
+          { label: 'شناسه', value: viewItem.id },
+          { label: 'عنوان', value: viewItem.title },
+          { label: 'پیام', value: viewItem.message, fullWidth: true },
+          { label: 'نوع', value: NOTIFICATION_TYPE_OPTIONS.find(o => o.value === String(viewItem.type))?.label || String(viewItem.type) },
+          { label: 'وضعیت', value: viewItem.isRead ? 'خوانده شده' : 'جدید' },
+          { label: 'کاربر', value: viewItem.userFullName || '-' },
+          { label: 'ایمیل کاربر', value: viewItem.userEmail || '-' },
+          { label: 'تاریخ ایجاد', value: viewItem.createdAt ? new Date(viewItem.createdAt).toLocaleString('fa-IR') : '-' },
+        ] : []}
       />
     </div>
   );

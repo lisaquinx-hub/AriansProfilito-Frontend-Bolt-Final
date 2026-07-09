@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
 import { EntityFormModal, FormField } from '@/components/admin/EntityFormModal';
+import { ViewDetailModal } from '@/components/admin/ViewDetailModal';
 import { adminPaymentsService, CreatePaymentDto, UpdatePaymentDto } from '@/services/admin/PaymentsService';
 import { Payment } from '@/types/api';
 import { toast } from 'sonner';
@@ -25,6 +26,10 @@ export default function AdminPaymentsPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Payment | null>(null);
+
+  const [viewItem, setViewItem] = useState<Payment | null>(null);
+  const [viewLoading, setViewLoading] = useState(false);
+  const [viewError, setViewError] = useState<string | null>(null);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -47,6 +52,20 @@ export default function AdminPaymentsPage() {
       toast.error(getApiErrorMessage(error));
     }
     setIsDeleting(false);
+  };
+
+  const handleView = async (item: Payment) => {
+    setViewItem({ ...item });
+    setViewError(null);
+    setViewLoading(true);
+    try {
+      const detail = await adminPaymentsService.getById(item.id);
+      if (detail) setViewItem(detail);
+    } catch (err) {
+      setViewError(getApiErrorMessage(err));
+    } finally {
+      setViewLoading(false);
+    }
   };
 
   const handleSubmit = async (data: Record<string, unknown>) => {
@@ -117,12 +136,32 @@ export default function AdminPaymentsPage() {
         </div>
       </div>
       <Card className="glass"><CardContent className="p-6">
-        <DataTable data={items} columns={columns} loading={isLoading} onEdit={(i) => { setEditingItem(i); setIsFormOpen(true); }} onDelete={(i) => setDeleteId(i.id)} emptyMessage="پرداختی یافت نشد" />
+        <DataTable data={items} columns={columns} loading={isLoading} onView={handleView} onEdit={(i) => { setEditingItem(i); setIsFormOpen(true); }} onDelete={(i) => setDeleteId(i.id)} emptyMessage="پرداختی یافت نشد" />
       </CardContent></Card>
       <ConfirmDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)} title="حذف پرداخت" description="آیا از حذف این پرداخت اطمینان دارید؟" onConfirm={handleDelete} loading={isDeleting} />
       <EntityFormModal open={isFormOpen} onOpenChange={setIsFormOpen} title={editingItem ? 'ویرایش پرداخت' : 'پرداخت جدید'} fields={fields}
         initialValues={editingItem ? { invoiceId: editingItem.invoiceId || '', amount: editingItem.amount, gateway: editingItem.gateway || '', authority: editingItem.authority || '', refId: editingItem.refId || '', status: String(editingItem.status), cardPan: editingItem.cardPan || '', trackingCode: editingItem.trackingCode || '', paidAt: editingItem.paidAt?.split('T')[0] || '' } : undefined}
         onSubmit={handleSubmit} />
+      <ViewDetailModal
+        open={!!viewItem || viewLoading}
+        onClose={() => { setViewItem(null); setViewError(null); setViewLoading(false); }}
+        title="جزئیات پرداخت"
+        loading={viewLoading}
+        error={viewError}
+        fields={viewItem ? [
+          { label: 'شناسه', value: viewItem.id },
+          { label: 'شماره فاکتور', value: viewItem.invoiceNumber || '-' },
+          { label: 'مبلغ', value: viewItem.amount?.toLocaleString() || '-' },
+          { label: 'درگاه پرداخت', value: viewItem.gateway || '-' },
+          { label: 'Authority', value: viewItem.authority || '-' },
+          { label: 'Ref ID', value: viewItem.refId || '-' },
+          { label: 'وضعیت', value: PAYMENT_STATUS_OPTIONS.find(o => o.value === String(viewItem.status))?.label || String(viewItem.status) },
+          { label: 'شماره کارت', value: viewItem.cardPan || '-' },
+          { label: 'کد پیگیری', value: viewItem.trackingCode || '-' },
+          { label: 'تاریخ پرداخت', value: viewItem.paidAt ? new Date(viewItem.paidAt).toLocaleString('fa-IR') : '-' },
+          { label: 'تاریخ ایجاد', value: viewItem.createdAt ? new Date(viewItem.createdAt).toLocaleString('fa-IR') : '-' },
+        ] : []}
+      />
     </div>
   );
 }

@@ -1,13 +1,14 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/shared';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Clock, Eye, Heart, Tag, TrendingUp, Send, ArrowLeft } from 'lucide-react';
+import { Clock, Tag, TrendingUp, Send, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,21 +17,21 @@ import { blogPostService } from '@/services/BlogPostService';
 import { commentsService } from '@/services/CommentsService';
 import { BlogPost, Comment as CommentType } from '@/types/api';
 
-interface Props {
-  params: Promise<{ slug: string }>;
-}
+export default function BlogPostPage() {
+  const params = useParams<{ slug: string }>();
+  const slug = (Array.isArray(params?.slug) ? params.slug[0] : params?.slug) as string;
 
-export default function BlogPostPage({ params }: Props) {
-  const { slug } = use(params);
   const [post, setPost] = useState<BlogPost | null>(null);
   const [comments, setComments] = useState<CommentType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [notFoundState, setNotFoundState] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [commentSuccess, setCommentSuccess] = useState(false);
   const [commentError, setCommentError] = useState<string | null>(null);
   const [commentForm, setCommentForm] = useState({ fullName: '', email: '', message: '' });
 
   useEffect(() => {
+    if (!slug) return;
     const fetchData = async () => {
       setIsLoading(true);
       const postData = await blogPostService.getBySlug(slug);
@@ -38,6 +39,8 @@ export default function BlogPostPage({ params }: Props) {
         setPost(postData);
         const commentsData = await commentsService.getApprovedByBlogPostId(postData.id);
         setComments(commentsData);
+      } else {
+        setNotFoundState(true);
       }
       setIsLoading(false);
     };
@@ -81,7 +84,7 @@ export default function BlogPostPage({ params }: Props) {
     );
   }
 
-  if (!post) {
+  if (notFoundState || !post) {
     notFound();
   }
 
@@ -93,12 +96,12 @@ export default function BlogPostPage({ params }: Props) {
 
       <div className="container mx-auto px-6 relative">
         <PageHeader
-          title={post.title}
-          subtitle={post.excerpt || ''}
+          title={post!.title}
+          subtitle={post!.excerpt || ''}
           breadcrumbs={[
             { label: 'خانه', href: '/' },
             { label: 'وبلاگ', href: '/blog' },
-            { label: post.title },
+            { label: post!.title },
           ]}
         />
 
@@ -109,21 +112,21 @@ export default function BlogPostPage({ params }: Props) {
               animate={{ opacity: 1, y: 0 }}
               className="flex flex-wrap items-center gap-6 text-muted-foreground mb-8"
             >
-              {post.authorName && (
+              {post!.authorName && (
                 <div className="flex items-center gap-2">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sky-500/20 to-blue-500/20 flex items-center justify-center font-bold">
-                    {post.authorAvatar || post.authorName[0] || 'ن'}
+                    {post!.authorName[0] || 'ن'}
                   </div>
-                  <span className="font-medium text-foreground">{post.authorName}</span>
+                  <span className="font-medium text-foreground">{post!.authorName}</span>
                 </div>
               )}
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4" />
-                <span>{post.readTime || 5} دقیقه</span>
+                <span>{post!.readTime || 5} دقیقه</span>
               </div>
-              {post.publishedAt && (
+              {post!.publishedAt && (
                 <div className="text-sm">
-                  {new Date(post.publishedAt).toLocaleDateString('fa-IR')}
+                  {new Date(post!.publishedAt).toLocaleDateString('fa-IR')}
                 </div>
               )}
             </motion.div>
@@ -135,13 +138,13 @@ export default function BlogPostPage({ params }: Props) {
             >
               <div className="relative aspect-video rounded-xl bg-gradient-to-br from-sky-500/20 to-blue-500/20 dark:from-blue-500/20 dark:to-cyan-500/20 flex items-center justify-center">
                 <span className="text-8xl md:text-[120px] font-bold text-foreground/5">
-                  {post.title[0]}
+                  {post!.title[0]}
                 </span>
               </div>
-              {post.categoryName && (
+              {post!.categoryName && (
                 <div className="absolute top-6 right-6">
                   <span className="px-4 py-2 rounded-full text-sm font-medium glass">
-                    {post.categoryName}
+                    {post!.categoryName}
                   </span>
                 </div>
               )}
@@ -155,12 +158,12 @@ export default function BlogPostPage({ params }: Props) {
             >
               <div className="prose prose-lg dark:prose-invert max-w-none">
                 <div className="text-lg text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                  {post.content || post.excerpt || ''}
+                  {post!.content || post!.excerpt || ''}
                 </div>
               </div>
             </motion.div>
 
-            {post.keywords && (
+            {post!.keywords && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -168,7 +171,7 @@ export default function BlogPostPage({ params }: Props) {
                 className="flex items-center gap-3 mb-8 flex-wrap"
               >
                 <Tag className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                {post.keywords.split(',').map((tag, index) => (
+                {post!.keywords.split(',').map((tag, index) => (
                   <span key={index} className="px-3 py-1 rounded-full text-sm glass text-muted-foreground">
                     {tag.trim()}
                   </span>
@@ -176,6 +179,7 @@ export default function BlogPostPage({ params }: Props) {
               </motion.div>
             )}
 
+            {/* Comments section */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -184,10 +188,11 @@ export default function BlogPostPage({ params }: Props) {
             >
               <h2 className="text-xl font-bold mb-6">نظرات ({comments.length})</h2>
 
+              {/* Comment form */}
               <form onSubmit={handleCommentSubmit} className="space-y-4 mb-8">
                 {commentSuccess && (
                   <div className="bg-green-500/10 border border-green-500/30 text-green-600 dark:text-green-400 px-4 py-3 rounded-lg text-sm">
-                    نظر شما با موفقیت ثبت شد و در انتظار تأیید است.
+                    نظر شما ثبت شد و پس از تأیید نمایش داده می‌شود.
                   </div>
                 )}
                 {commentError && (
@@ -238,6 +243,7 @@ export default function BlogPostPage({ params }: Props) {
                 </Button>
               </form>
 
+              {/* Comments list */}
               {comments.length > 0 ? (
                 <div className="space-y-4">
                   {comments.map((comment) => (
@@ -258,7 +264,9 @@ export default function BlogPostPage({ params }: Props) {
                   ))}
                 </div>
               ) : (
-                <p className="text-muted-foreground text-sm">هنوز نظری ثبت نشده است.</p>
+                <p className="text-muted-foreground text-sm">
+                  نظری وجود ندارد. اولین ثبت‌کننده نظر باشید.
+                </p>
               )}
             </motion.div>
 
@@ -284,26 +292,26 @@ export default function BlogPostPage({ params }: Props) {
                 <h3 className="text-lg font-semibold">اطلاعات مقاله</h3>
               </div>
               <div className="space-y-3 text-sm text-muted-foreground">
-                {post.categoryName && (
+                {post!.categoryName && (
                   <div className="flex justify-between">
                     <span>دسته‌بندی:</span>
-                    <span>{post.categoryName}</span>
+                    <span>{post!.categoryName}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
                   <span>زمان مطالعه:</span>
-                  <span>{post.readTime || 5} دقیقه</span>
+                  <span>{post!.readTime || 5} دقیقه</span>
                 </div>
-                {post.publishedAt && (
+                {post!.publishedAt && (
                   <div className="flex justify-between">
                     <span>تاریخ انتشار:</span>
-                    <span>{new Date(post.publishedAt).toLocaleDateString('fa-IR')}</span>
+                    <span>{new Date(post!.publishedAt).toLocaleDateString('fa-IR')}</span>
                   </div>
                 )}
-                {post.authorName && (
+                {post!.authorName && (
                   <div className="flex justify-between">
                     <span>نویسنده:</span>
-                    <span>{post.authorName}</span>
+                    <span>{post!.authorName}</span>
                   </div>
                 )}
               </div>

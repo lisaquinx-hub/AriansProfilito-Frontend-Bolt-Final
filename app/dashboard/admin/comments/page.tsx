@@ -5,8 +5,10 @@ import { MessageSquare, RefreshCw, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
+import { ViewDetailModal } from '@/components/admin/ViewDetailModal';
 import { adminCommentsService } from '@/services/admin/CommentsService';
 import { Comment } from '@/types/api';
+import { getApiErrorMessage } from '@/services/api';
 
 export default function AdminCommentsPage() {
   const [comments, setComments] = useState<Comment[]>([]);
@@ -14,6 +16,10 @@ export default function AdminCommentsPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+
+  const [viewItem, setViewItem] = useState<Comment | null>(null);
+  const [viewLoading, setViewLoading] = useState(false);
+  const [viewError, setViewError] = useState<string | null>(null);
 
   const fetchComments = async () => {
     setIsLoading(true);
@@ -52,6 +58,20 @@ export default function AdminCommentsPage() {
     setIsUpdating(false);
   };
 
+  const handleView = async (item: Comment) => {
+    setViewItem({ ...item });
+    setViewError(null);
+    setViewLoading(true);
+    try {
+      const detail = await adminCommentsService.getById(item.id);
+      if (detail) setViewItem(detail);
+    } catch (err) {
+      setViewError(getApiErrorMessage(err));
+    } finally {
+      setViewLoading(false);
+    }
+  };
+
   const columns = [
     {
       key: 'fullName',
@@ -79,11 +99,15 @@ export default function AdminCommentsPage() {
       key: 'isApproved',
       label: 'وضعیت',
       render: (comment: Comment) => (
-        <span className={`px-2 py-1 rounded-full text-xs ${
-          comment.isApproved ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'
-        }`}>
+        <button
+          onClick={() => handleApproval(comment, !comment.isApproved)}
+          disabled={isUpdating}
+          className={`px-2 py-1 rounded-full text-xs ${
+            comment.isApproved ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'
+          }`}
+        >
           {comment.isApproved ? 'تأیید شده' : 'در انتظار'}
-        </span>
+        </button>
       ),
     },
     {
@@ -117,7 +141,7 @@ export default function AdminCommentsPage() {
             data={comments}
             columns={columns}
             loading={isLoading}
-            onEdit={(comment) => handleApproval(comment, !comment.isApproved)}
+            onView={handleView}
             onDelete={(comment) => setDeleteId(comment.id)}
             emptyMessage="نظری یافت نشد"
           />
@@ -131,6 +155,23 @@ export default function AdminCommentsPage() {
         description="آیا از حذف این نظر اطمینان دارید؟"
         onConfirm={handleDelete}
         loading={isDeleting}
+      />
+
+      <ViewDetailModal
+        open={!!viewItem || viewLoading}
+        onClose={() => { setViewItem(null); setViewError(null); setViewLoading(false); }}
+        title="جزئیات نظر"
+        loading={viewLoading}
+        error={viewError}
+        fields={viewItem ? [
+          { label: 'شناسه', value: viewItem.id },
+          { label: 'نام', value: viewItem.fullName },
+          { label: 'ایمیل', value: viewItem.email },
+          { label: 'مقاله', value: viewItem.blogPostTitle || '-' },
+          { label: 'وضعیت', value: viewItem.isApproved ? 'تأیید شده' : 'در انتظار تأیید' },
+          { label: 'پیام', value: viewItem.message, fullWidth: true },
+          { label: 'تاریخ ایجاد', value: viewItem.createdAt ? new Date(viewItem.createdAt).toLocaleString('fa-IR') : '-' },
+        ] : []}
       />
     </div>
   );

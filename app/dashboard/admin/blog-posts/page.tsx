@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
 import { EntityFormModal, FormField } from '@/components/admin/EntityFormModal';
+import { ViewDetailModal } from '@/components/admin/ViewDetailModal';
 import { adminBlogPostsService } from '@/services/admin/BlogPostsService';
 import { adminBlogCategoriesService } from '@/services/admin/BlogCategoriesService';
 import { BlogPost, BlogCategory } from '@/types/api';
@@ -20,6 +21,10 @@ export default function AdminBlogPostsPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<BlogPost | null>(null);
+
+  const [viewItem, setViewItem] = useState<BlogPost | null>(null);
+  const [viewLoading, setViewLoading] = useState(false);
+  const [viewError, setViewError] = useState<string | null>(null);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -46,6 +51,20 @@ export default function AdminBlogPostsPage() {
       toast.error(getApiErrorMessage(error));
     }
     setIsDeleting(false);
+  };
+
+  const handleView = async (item: BlogPost) => {
+    setViewItem({ ...item });
+    setViewError(null);
+    setViewLoading(true);
+    try {
+      const detail = await adminBlogPostsService.getById(item.id);
+      if (detail) setViewItem(detail);
+    } catch (err) {
+      setViewError(getApiErrorMessage(err));
+    } finally {
+      setViewLoading(false);
+    }
   };
 
   const handleSubmit = async (data: Record<string, unknown>) => {
@@ -143,6 +162,7 @@ export default function AdminBlogPostsPage() {
             data={items}
             columns={columns}
             loading={isLoading}
+            onView={handleView}
             onEdit={(item) => { setEditingItem(item); setIsFormOpen(true); }}
             onDelete={(item) => setDeleteId(item.id)}
             emptyMessage="پستی یافت نشد"
@@ -177,6 +197,26 @@ export default function AdminBlogPostsPage() {
           categoryId: editingItem.categoryId || '',
         } : undefined}
         onSubmit={handleSubmit}
+      />
+      <ViewDetailModal
+        open={!!viewItem || viewLoading}
+        onClose={() => { setViewItem(null); setViewError(null); setViewLoading(false); }}
+        title="جزئیات پست وبلاگ"
+        loading={viewLoading}
+        error={viewError}
+        fields={viewItem ? [
+          { label: 'شناسه', value: viewItem.id },
+          { label: 'عنوان', value: viewItem.title, fullWidth: true },
+          { label: 'Slug', value: viewItem.slug },
+          { label: 'دسته‌بندی', value: viewItem.categoryName || '-' },
+          { label: 'وضعیت', value: viewItem.isPublished ? 'منتشر شده' : 'پیش‌نویس' },
+          { label: 'زمان مطالعه', value: `${viewItem.readTime || 0} دقیقه` },
+          { label: 'تاریخ انتشار', value: viewItem.publishedAt ? new Date(viewItem.publishedAt).toLocaleDateString('fa-IR') : '-' },
+          { label: 'نویسنده', value: viewItem.authorName || '-' },
+          { label: 'خلاصه', value: viewItem.excerpt || '-', fullWidth: true },
+          { label: 'کلمات کلیدی', value: viewItem.keywords || '-', fullWidth: true },
+          { label: 'تاریخ ایجاد', value: viewItem.createdAt ? new Date(viewItem.createdAt).toLocaleString('fa-IR') : '-' },
+        ] : []}
       />
     </div>
   );

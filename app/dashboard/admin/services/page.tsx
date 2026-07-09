@@ -5,9 +5,10 @@ import { Briefcase, RefreshCw, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
-import { adminServicesService, CreateServiceDto, UpdateServiceDto } from '@/services/admin/ServicesService';
+import { adminServicesService, CreateServiceDto } from '@/services/admin/ServicesService';
 import { Service } from '@/types/api';
 import { EntityFormModal, FormField } from '@/components/admin/EntityFormModal';
+import { ViewDetailModal } from '@/components/admin/ViewDetailModal';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/services/api';
 
@@ -18,6 +19,9 @@ export default function AdminServicesPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Service | null>(null);
+  const [viewItem, setViewItem] = useState<Service | null>(null);
+  const [viewLoading, setViewLoading] = useState(false);
+  const [viewError, setViewError] = useState<string | null>(null);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -27,6 +31,22 @@ export default function AdminServicesPage() {
   };
 
   useEffect(() => { fetchData(); }, []);
+
+  const handleView = async (item: Service) => {
+    setViewItem(null);
+    setViewError(null);
+    setViewLoading(true);
+    // open modal immediately, load detail
+    setViewItem({ ...item });
+    try {
+      const detail = await adminServicesService.getById(item.id);
+      if (detail) setViewItem(detail);
+    } catch (err) {
+      setViewError(getApiErrorMessage(err));
+    } finally {
+      setViewLoading(false);
+    }
+  };
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -86,7 +106,7 @@ export default function AdminServicesPage() {
     { key: 'icon', label: 'آیکون' },
     { key: 'isFeatured', label: 'ویژه', type: 'switch' },
     { key: 'isActive', label: 'فعال', type: 'switch' },
-    { key: 'featuresText', label: 'ویژگی‌ها (هر خط یک ویژگی)', type: 'textarea', fullWidth: true, rows: 4, placeholder: 'ویژگی اول\nویژگی دوم' },
+    { key: 'featuresText', label: 'ویژگی‌ها (هر خط یک ویژگی)', type: 'textarea', fullWidth: true, rows: 4 },
   ];
 
   const columns = [
@@ -99,6 +119,21 @@ export default function AdminServicesPage() {
     )},
     { key: 'isFeatured', label: 'ویژه', render: (i: Service) => i.isFeatured ? 'بله' : 'خیر' },
   ];
+
+  const viewFields = viewItem ? [
+    { label: 'شناسه', value: viewItem.id },
+    { label: 'عنوان', value: viewItem.title },
+    { label: 'Slug', value: viewItem.slug },
+    { label: 'وضعیت', value: viewItem.isActive ? 'فعال' : 'غیرفعال' },
+    { label: 'ویژه', value: viewItem.isFeatured ? 'بله' : 'خیر' },
+    { label: 'روزهای تحویل', value: viewItem.estimatedDeliveryDays },
+    { label: 'ترتیب نمایش', value: viewItem.displayOrder },
+    { label: 'آیکون', value: viewItem.icon },
+    { label: 'توضیح کوتاه', value: viewItem.shortDescription, fullWidth: true },
+    { label: 'توضیحات', value: viewItem.description, fullWidth: true },
+    { label: 'ویژگی‌ها', value: viewItem.features?.map(f => f.title).join(' | ') || '-', fullWidth: true },
+    { label: 'تاریخ ایجاد', value: viewItem.createdAt ? new Date(viewItem.createdAt).toLocaleDateString('fa-IR') : '-' },
+  ] : [];
 
   return (
     <div className="space-y-6">
@@ -113,12 +148,40 @@ export default function AdminServicesPage() {
         </div>
       </div>
       <Card className="glass"><CardContent className="p-6">
-        <DataTable data={items} columns={columns} loading={isLoading} onEdit={(i) => { setEditingItem(i); setIsFormOpen(true); }} onDelete={(i) => setDeleteId(i.id)} emptyMessage="خدمتی یافت نشد" />
+        <DataTable
+          data={items}
+          columns={columns}
+          loading={isLoading}
+          onView={handleView}
+          onEdit={(i) => { setEditingItem(i); setIsFormOpen(true); }}
+          onDelete={(i) => setDeleteId(i.id)}
+          emptyMessage="خدمتی یافت نشد"
+        />
       </CardContent></Card>
       <ConfirmDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)} title="حذف خدمت" description="آیا از حذف این خدمت اطمینان دارید؟" onConfirm={handleDelete} loading={isDeleting} />
-      <EntityFormModal open={isFormOpen} onOpenChange={setIsFormOpen} title={editingItem ? 'ویرایش خدمت' : 'خدمت جدید'} fields={fields}
-        initialValues={editingItem ? { title: editingItem.title, slug: editingItem.slug || '', thumbnail: editingItem.thumbnail || '', coverImage: editingItem.coverImage || '', shortDescription: editingItem.shortDescription || '', description: editingItem.description, estimatedDeliveryDays: editingItem.estimatedDeliveryDays || 0, displayOrder: editingItem.displayOrder || 0, icon: editingItem.icon || '', isFeatured: editingItem.isFeatured || false, isActive: editingItem.isActive ?? true, featuresText: (editingItem.features || []).map(f => f.title).join('\n') } : undefined}
-        onSubmit={handleSubmit} />
+      <EntityFormModal
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        title={editingItem ? 'ویرایش خدمت' : 'خدمت جدید'}
+        fields={fields}
+        initialValues={editingItem ? {
+          title: editingItem.title, slug: editingItem.slug || '', thumbnail: editingItem.thumbnail || '',
+          coverImage: editingItem.coverImage || '', shortDescription: editingItem.shortDescription || '',
+          description: editingItem.description, estimatedDeliveryDays: editingItem.estimatedDeliveryDays || 0,
+          displayOrder: editingItem.displayOrder || 0, icon: editingItem.icon || '',
+          isFeatured: editingItem.isFeatured || false, isActive: editingItem.isActive ?? true,
+          featuresText: (editingItem.features || []).map(f => f.title).join('\n'),
+        } : undefined}
+        onSubmit={handleSubmit}
+      />
+      <ViewDetailModal
+        open={!!viewItem || viewLoading}
+        onClose={() => { setViewItem(null); setViewError(null); setViewLoading(false); }}
+        title="جزئیات خدمت"
+        loading={viewLoading}
+        error={viewError}
+        fields={viewFields}
+      />
     </div>
   );
 }

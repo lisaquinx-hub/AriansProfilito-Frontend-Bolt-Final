@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
 import { EntityFormModal, FormField } from '@/components/admin/EntityFormModal';
+import { ViewDetailModal } from '@/components/admin/ViewDetailModal';
 import { adminSettingsService } from '@/services/admin/SettingsService';
 import { Settings } from '@/types/api';
 import { toast } from 'sonner';
@@ -18,6 +19,10 @@ export default function AdminSettingsPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Settings | null>(null);
+
+  const [viewItem, setViewItem] = useState<Settings | null>(null);
+  const [viewLoading, setViewLoading] = useState(false);
+  const [viewError, setViewError] = useState<string | null>(null);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -40,6 +45,20 @@ export default function AdminSettingsPage() {
       toast.error(getApiErrorMessage(error));
     }
     setIsDeleting(false);
+  };
+
+  const handleView = async (item: Settings) => {
+    setViewItem({ ...item });
+    setViewError(null);
+    setViewLoading(true);
+    try {
+      const detail = await adminSettingsService.getById(item.id);
+      if (detail) setViewItem(detail);
+    } catch (err) {
+      setViewError(getApiErrorMessage(err));
+    } finally {
+      setViewLoading(false);
+    }
   };
 
   const handleSubmit = async (data: Record<string, unknown>) => {
@@ -97,12 +116,32 @@ export default function AdminSettingsPage() {
         </div>
       </div>
       <Card className="glass"><CardContent className="p-6">
-        <DataTable data={items} columns={columns} loading={isLoading} onEdit={(i) => { setEditingItem(i); setIsFormOpen(true); }} onDelete={(i) => setDeleteId(i.id)} emptyMessage="تنظیماتی یافت نشد" />
+        <DataTable data={items} columns={columns} loading={isLoading} onView={handleView} onEdit={(i) => { setEditingItem(i); setIsFormOpen(true); }} onDelete={(i) => setDeleteId(i.id)} emptyMessage="تنظیماتی یافت نشد" />
       </CardContent></Card>
       <ConfirmDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)} title="حذف تنظیمات" description="آیا از حذف اطمینان دارید؟" onConfirm={handleDelete} loading={isDeleting} />
       <EntityFormModal open={isFormOpen} onOpenChange={setIsFormOpen} title={editingItem ? 'ویرایش تنظیمات' : 'تنظیمات جدید'} fields={fields}
         initialValues={editingItem ? { siteName: editingItem.siteName || '', logo: editingItem.logo || '', email: editingItem.email || '', phoneNumber: editingItem.phoneNumber || '', address: editingItem.address || '', telegram: editingItem.telegram || '', instagram: editingItem.instagram || '', linkedin: editingItem.linkedin || '', whatsApp: editingItem.whatsApp || '', footerDescription: editingItem.footerDescription || '' } : undefined}
         onSubmit={handleSubmit} />
+      <ViewDetailModal
+        open={!!viewItem || viewLoading}
+        onClose={() => { setViewItem(null); setViewError(null); setViewLoading(false); }}
+        title="جزئیات تنظیمات"
+        loading={viewLoading}
+        error={viewError}
+        fields={viewItem ? [
+          { label: 'شناسه', value: viewItem.id },
+          { label: 'نام سایت', value: viewItem.siteName || '-' },
+          { label: 'ایمیل', value: viewItem.email || '-' },
+          { label: 'تلفن', value: viewItem.phoneNumber || '-' },
+          { label: 'آدرس', value: viewItem.address || '-', fullWidth: true },
+          { label: 'تلگرام', value: viewItem.telegram || '-' },
+          { label: 'اینستاگرام', value: viewItem.instagram || '-' },
+          { label: 'لینکدین', value: viewItem.linkedin || '-' },
+          { label: 'واتساپ', value: viewItem.whatsApp || '-' },
+          { label: 'توضیحات فوتر', value: viewItem.footerDescription || '-', fullWidth: true },
+          { label: 'تاریخ ایجاد', value: viewItem.createdAt ? new Date(viewItem.createdAt).toLocaleString('fa-IR') : '-' },
+        ] : []}
+      />
     </div>
   );
 }

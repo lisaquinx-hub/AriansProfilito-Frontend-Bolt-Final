@@ -22,11 +22,11 @@ import { authService } from '@/services/AuthService';
 import { useAuth, emitAuthChanged } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 
+// Profile is NOT in the sidebar — it is accessed by clicking the user avatar/card
 const sidebarLinks = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'داشبورد' },
   { href: '/dashboard/projects', icon: FolderKanban, label: 'پروژه‌ها' },
   { href: '/dashboard/support', icon: LifeBuoy, label: 'پشتیبانی' },
-  { href: '/dashboard/profile', icon: User, label: 'پروفایل' },
 ];
 
 interface DashboardLayoutProps {
@@ -101,21 +101,24 @@ function DashboardContent({ children }: DashboardLayoutProps) {
           })}
         </nav>
 
-        {/* User Section */}
+        {/* User Section — click avatar/name to go to profile */}
         <div className="p-4 border-t border-border dark:border-white/5">
-          <div className="flex items-center gap-3">
+          <Link
+            href="/dashboard/profile"
+            className="flex items-center gap-3 rounded-xl p-2 hover:bg-muted/50 transition-colors"
+          >
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sky-500 to-blue-600 dark:from-blue-500 dark:to-cyan-500 flex items-center justify-center flex-shrink-0">
               <User className="w-5 h-5 text-white" />
             </div>
-            <div className={cn('transition-opacity', isSidebarOpen ? 'opacity-100' : 'opacity-0')}>
-              <div className="text-sm font-medium">{displayName}</div>
-              <div className="text-xs text-muted-foreground">{displayEmail}</div>
+            <div className={cn('transition-opacity min-w-0', isSidebarOpen ? 'opacity-100' : 'opacity-0')}>
+              <div className="text-sm font-medium truncate">{displayName}</div>
+              <div className="text-xs text-muted-foreground truncate">{displayEmail}</div>
             </div>
-          </div>
+          </Link>
           {isSidebarOpen && (
             <button
               onClick={handleLogout}
-              className="mt-3 flex items-center gap-2 text-sm text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
+              className="mt-2 flex items-center gap-2 text-sm text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 px-2"
             >
               <LogOut className="w-4 h-4" />
               خروج
@@ -168,6 +171,15 @@ function DashboardContent({ children }: DashboardLayoutProps) {
                     </Link>
                   );
                 })}
+                {/* Profile link in mobile menu */}
+                <Link
+                  href="/dashboard/profile"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted transition-colors"
+                >
+                  <User className="w-5 h-5 text-muted-foreground" />
+                  <span>پروفایل</span>
+                </Link>
               </nav>
               <div className="p-4 border-t border-border">
                 <button
@@ -205,15 +217,15 @@ function DashboardContent({ children }: DashboardLayoutProps) {
             </div>
             <div className="flex items-center gap-2 md:gap-4">
               <NotificationDropdown />
-              <div className="flex items-center">
-                <ThemeToggle />
-              </div>
-              <div className="hidden sm:block">
-                <Button variant="ghost" size="sm" onClick={handleLogout}>
-                  <LogOut className="w-4 h-4 ml-2" />
-                  خروج
-                </Button>
-              </div>
+              <ThemeToggle />
+              {/* Avatar in header — also links to profile */}
+              <Link
+                href="/dashboard/profile"
+                className="w-9 h-9 rounded-full bg-gradient-to-br from-sky-500 to-blue-600 dark:from-blue-500 dark:to-cyan-500 flex items-center justify-center hover:ring-2 hover:ring-sky-400 transition-all"
+                title="پروفایل"
+              >
+                <User className="w-4 h-4 text-white" />
+              </Link>
             </div>
           </div>
         </header>

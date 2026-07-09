@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
 import { EntityFormModal, FormField } from '@/components/admin/EntityFormModal';
+import { ViewDetailModal } from '@/components/admin/ViewDetailModal';
 import { adminProjectsService } from '@/services/admin/ProjectsService';
 import { adminPricingService } from '@/services/admin/PricingService';
 import { Project, PricingPlan } from '@/types/api';
@@ -43,6 +44,10 @@ export default function AdminProjectsPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Project | null>(null);
+
+  const [viewItem, setViewItem] = useState<Project | null>(null);
+  const [viewLoading, setViewLoading] = useState(false);
+  const [viewError, setViewError] = useState<string | null>(null);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -83,6 +88,20 @@ export default function AdminProjectsPage() {
   const handleCreate = () => {
     setEditingItem(null);
     setIsFormOpen(true);
+  };
+
+  const handleView = async (item: Project) => {
+    setViewItem({ ...item });
+    setViewError(null);
+    setViewLoading(true);
+    try {
+      const detail = await adminProjectsService.getById(item.id);
+      if (detail) setViewItem(detail);
+    } catch (err) {
+      setViewError(getApiErrorMessage(err));
+    } finally {
+      setViewLoading(false);
+    }
   };
 
   const formFields: FormField[] = [
@@ -277,6 +296,7 @@ export default function AdminProjectsPage() {
               data={items}
               columns={columns}
               loading={false}
+              onView={handleView}
               onEdit={handleEdit}
               onDelete={(item) => setDeleteId(item.id)}
               emptyMessage="پروژه‌ای یافت نشد"
@@ -302,6 +322,32 @@ export default function AdminProjectsPage() {
         initialValues={getInitialValues(editingItem)}
         onSubmit={handleSubmit}
         submitLabel={editingItem ? 'ذخیره تغییرات' : 'ایجاد پروژه'}
+      />
+
+      <ViewDetailModal
+        open={!!viewItem || viewLoading}
+        onClose={() => { setViewItem(null); setViewError(null); setViewLoading(false); }}
+        title="جزئیات پروژه"
+        loading={viewLoading}
+        error={viewError}
+        fields={viewItem ? [
+          { label: 'شناسه', value: viewItem.id },
+          { label: 'عنوان', value: viewItem.title },
+          { label: 'کد پروژه', value: (viewItem as Project & { projectCode?: string }).projectCode || '-' },
+          { label: 'مشتری', value: viewItem.customerFullName || '-' },
+          { label: 'ایمیل مشتری', value: viewItem.customerEmail || '-' },
+          { label: 'پلن قیمت‌گذاری', value: viewItem.pricingPlanTitle || '-' },
+          { label: 'وضعیت', value: statusLabel(viewItem.status) },
+          { label: 'پیشرفت', value: `${viewItem.progress}%` },
+          { label: 'قیمت', value: viewItem.price?.toLocaleString() || '-' },
+          { label: 'مبلغ پرداخت شده', value: viewItem.paidAmount?.toLocaleString() || '-' },
+          { label: 'تاریخ تحویل تخمینی', value: viewItem.estimatedDeliveryDate ? new Date(viewItem.estimatedDeliveryDate).toLocaleDateString('fa-IR') : '-' },
+          { label: 'تاریخ شروع', value: viewItem.startDate ? new Date(viewItem.startDate).toLocaleDateString('fa-IR') : '-' },
+          { label: 'تاریخ پایان', value: viewItem.endDate ? new Date(viewItem.endDate).toLocaleDateString('fa-IR') : '-' },
+          { label: 'یادداشت مدیر', value: viewItem.adminNote || '-', fullWidth: true },
+          { label: 'توضیح مشتری', value: viewItem.customerComment || '-', fullWidth: true },
+          { label: 'تاریخ ایجاد', value: viewItem.createdAt ? new Date(viewItem.createdAt).toLocaleString('fa-IR') : '-' },
+        ] : []}
       />
     </div>
   );

@@ -103,17 +103,21 @@ function AdminLayoutContent({ children }: AdminLayoutContentProps) {
         </nav>
 
         <div className="p-4 border-t border-border dark:border-white/5">
-          <div className="flex items-center gap-3">
+          {/* Avatar/user card — click to go to profile */}
+          <Link
+            href="/dashboard/profile"
+            className="flex items-center gap-3 rounded-xl p-2 hover:bg-muted/50 transition-colors"
+          >
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sky-500 to-blue-600 dark:from-blue-500 dark:to-cyan-500 flex items-center justify-center flex-shrink-0">
               <Users className="w-5 h-5 text-white" />
             </div>
-            <div className={cn('transition-opacity', isSidebarOpen ? 'opacity-100' : 'opacity-0')}>
-              <div className="text-sm font-medium">{displayName}</div>
-              <div className="text-xs text-muted-foreground">{displayEmail}</div>
+            <div className={cn('transition-opacity min-w-0', isSidebarOpen ? 'opacity-100' : 'opacity-0')}>
+              <div className="text-sm font-medium truncate">{displayName}</div>
+              <div className="text-xs text-muted-foreground truncate">{displayEmail}</div>
             </div>
-          </div>
+          </Link>
           {isSidebarOpen && (
-            <button onClick={handleLogout} className="mt-3 flex items-center gap-2 text-sm text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300">
+            <button onClick={handleLogout} className="mt-2 px-2 flex items-center gap-2 text-sm text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300">
               <LogOut className="w-4 h-4" />خروج
             </button>
           )}
