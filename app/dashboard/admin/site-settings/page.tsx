@@ -55,14 +55,18 @@ export default function AdminSiteSettingsPage() {
   };
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    if (editingItem) {
-      await adminSiteSettingsService.update(editingItem.id, data as Partial<SiteSettings>);
-      toast.success('تنظیمات با موفقیت ویرایش شد');
-    } else {
-      await adminSiteSettingsService.create(data as Partial<SiteSettings>);
-      toast.success('تنظیمات با موفقیت ایجاد شد');
+    try {
+      if (editingItem) {
+        await adminSiteSettingsService.update(editingItem.id, data as Partial<SiteSettings>);
+        toast.success('تنظیمات با موفقیت ویرایش شد');
+      } else {
+        await adminSiteSettingsService.create(data as Partial<SiteSettings>);
+        toast.success('تنظیمات با موفقیت ایجاد شد');
+      }
+      fetchData();
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
     }
-    fetchData();
   };
 
   const fields: FormField[] = [

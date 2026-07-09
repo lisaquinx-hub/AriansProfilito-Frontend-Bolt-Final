@@ -42,7 +42,28 @@ export default function ProfilePage() {
       setIsLoading(true);
       setError(null);
       try {
-        const data = await userService.getProfile();
+        let data: UserProfile | null = null;
+
+        try {
+          data = await userService.getProfile();
+        } catch {
+          // Fallback to /Auth/me if /users/profile is not available
+        }
+
+        if (!data) {
+          const currentUser = await authService.getCurrentUser();
+          data = {
+            id: currentUser.id,
+            name: currentUser.name,
+            email: currentUser.email,
+            phone: currentUser.phone,
+            company: currentUser.company,
+            bio: currentUser.bio,
+            role: currentUser.role,
+            roles: currentUser.roles,
+          };
+        }
+
         setProfile(data);
         setFormData({
           name: data.name || '',

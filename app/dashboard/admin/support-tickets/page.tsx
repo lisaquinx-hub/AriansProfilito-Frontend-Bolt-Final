@@ -34,10 +34,16 @@ export default function AdminSupportTicketsPage() {
   };
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    if (!editingItem) return;
-    await adminSupportTicketsService.update(editingItem.id, data as Partial<SupportTicket>);
-    toast.success('تیکت با موفقیت ویرایش شد');
-    fetchData();
+    try {
+      if (!editingItem) {
+        throw new Error('تیکت قابل ایجاد نیست');
+      }
+      await adminSupportTicketsService.update(editingItem.id, data as Partial<SupportTicket>);
+      toast.success('تیکت با موفقیت ویرایش شد');
+      fetchData();
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
   };
 
   const fields: FormField[] = [
@@ -76,11 +82,12 @@ export default function AdminSupportTicketsPage() {
       label: 'وضعیت',
       render: (item: SupportTicket) => (
         <span className={`px-2 py-1 rounded-full text-xs ${
-          item.status === 'Open' ? 'bg-green-500/10 text-green-500' :
-          item.status === 'InProgress' ? 'bg-yellow-500/10 text-yellow-500' :
+          item.status === 'open' ? 'bg-green-500/10 text-green-500' :
+          item.status === 'in_progress' ? 'bg-yellow-500/10 text-yellow-500' :
+          item.status === 'resolved' ? 'bg-blue-500/10 text-blue-500' :
           'bg-gray-500/10 text-gray-500'
         }`}>
-          {item.status === 'Open' ? 'باز' : item.status === 'InProgress' ? 'در حال بررسی' : 'بسته'}
+          {item.status === 'open' ? 'باز' : item.status === 'in_progress' ? 'در حال بررسی' : item.status === 'resolved' ? 'حل شده' : 'بسته'}
         </span>
       ),
     },
@@ -119,7 +126,6 @@ export default function AdminSupportTicketsPage() {
             columns={columns}
             loading={isLoading}
             onEdit={handleEdit}
-            onView={() => {}}
             emptyMessage="تیکتی یافت نشد"
           />
         </CardContent>

@@ -55,14 +55,18 @@ export default function AdminSettingsPage() {
   };
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    if (editingItem) {
-      await adminSettingsService.update(editingItem.id, data as Partial<SettingsType>);
-      toast.success('تنظیمات با موفقیت ویرایش شد');
-    } else {
-      await adminSettingsService.create(data as Partial<SettingsType>);
-      toast.success('تنظیمات با موفقیت ایجاد شد');
+    try {
+      if (editingItem) {
+        await adminSettingsService.update(editingItem.id, data as Partial<SettingsType>);
+        toast.success('تنظیمات با موفقیت ویرایش شد');
+      } else {
+        await adminSettingsService.create(data as Partial<SettingsType>);
+        toast.success('تنظیمات با موفقیت ایجاد شد');
+      }
+      fetchData();
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
     }
-    fetchData();
   };
 
   const fields: FormField[] = [

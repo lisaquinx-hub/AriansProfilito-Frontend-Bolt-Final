@@ -55,14 +55,18 @@ export default function AdminNotificationsPage() {
   };
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    if (editingItem) {
-      await adminNotificationsService.update(editingItem.id, data as Partial<Notification>);
-      toast.success('اعلان با موفقیت ویرایش شد');
-    } else {
-      await adminNotificationsService.create(data as Partial<Notification>);
-      toast.success('اعلان با موفقیت ایجاد شد');
+    try {
+      if (editingItem) {
+        await adminNotificationsService.update(editingItem.id, data as Partial<Notification>);
+        toast.success('اعلان با موفقیت ویرایش شد');
+      } else {
+        await adminNotificationsService.create(data as Partial<Notification>);
+        toast.success('اعلان با موفقیت ایجاد شد');
+      }
+      fetchData();
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
     }
-    fetchData();
   };
 
   const fields: FormField[] = [

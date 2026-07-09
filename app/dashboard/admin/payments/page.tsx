@@ -55,18 +55,22 @@ export default function AdminPaymentsPage() {
   };
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    const submitData = {
-      ...data,
-      amount: data.amount ? Number(data.amount) : undefined,
-    };
-    if (editingItem) {
-      await adminPaymentsService.update(editingItem.id, submitData as Partial<Payment>);
-      toast.success('پرداخت با موفقیت ویرایش شد');
-    } else {
-      await adminPaymentsService.create(submitData as Partial<Payment>);
-      toast.success('پرداخت با موفقیت ایجاد شد');
+    try {
+      const submitData = {
+        ...data,
+        amount: data.amount ? Number(data.amount) : undefined,
+      };
+      if (editingItem) {
+        await adminPaymentsService.update(editingItem.id, submitData as Partial<Payment>);
+        toast.success('پرداخت با موفقیت ویرایش شد');
+      } else {
+        await adminPaymentsService.create(submitData as Partial<Payment>);
+        toast.success('پرداخت با موفقیت ایجاد شد');
+      }
+      fetchData();
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
     }
-    fetchData();
   };
 
   const fields: FormField[] = [
@@ -114,11 +118,12 @@ export default function AdminPaymentsPage() {
       label: 'وضعیت',
       render: (item: Payment) => (
         <span className={`px-2 py-1 rounded-full text-xs ${
-          item.status === 'Success' ? 'bg-green-500/10 text-green-500' :
-          item.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-500' :
+          item.status === 'completed' ? 'bg-green-500/10 text-green-500' :
+          item.status === 'pending' ? 'bg-yellow-500/10 text-yellow-500' :
+          item.status === 'refunded' ? 'bg-blue-500/10 text-blue-500' :
           'bg-red-500/10 text-red-500'
         }`}>
-          {item.status === 'Success' ? 'موفق' : item.status === 'Pending' ? 'در انتظار' : 'ناموفق'}
+          {item.status === 'completed' ? 'موفق' : item.status === 'pending' ? 'در انتظار' : item.status === 'refunded' ? 'بازگشت داده شده' : 'ناموفق'}
         </span>
       ),
     },
@@ -157,7 +162,6 @@ export default function AdminPaymentsPage() {
             data={items}
             columns={columns}
             loading={isLoading}
-            onView={() => {}}
             onEdit={handleEdit}
             onDelete={(item) => setDeleteId(item.id)}
             emptyMessage="پرداختی یافت نشد"

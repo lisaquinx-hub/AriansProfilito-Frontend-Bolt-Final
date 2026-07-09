@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 export interface FormField {
   key: string;
   label: string;
-  type?: 'text' | 'textarea' | 'number' | 'switch' | 'select' | 'email' | 'tel' | 'url' | 'date';
+  type?: 'text' | 'textarea' | 'number' | 'switch' | 'select' | 'email' | 'tel' | 'url' | 'date' | 'datetime-local' | 'tags';
   required?: boolean;
   placeholder?: string;
   options?: { value: string; label: string }[];
@@ -49,7 +49,19 @@ export function EntityFormModal({
       const initial: Record<string, unknown> = {};
       fields.forEach((field) => {
         const val = initialValues?.[field.key];
-        initial[field.key] = field.type === 'switch' ? (val ?? false) : (val ?? '');
+        if (field.type === 'switch') {
+          initial[field.key] = val ?? false;
+        } else if (field.type === 'tags') {
+          initial[field.key] = Array.isArray(val) ? (val as string[]).join(', ') : (val ?? '');
+        } else if (field.type === 'number') {
+          initial[field.key] = val !== undefined && val !== null ? String(val) : '';
+        } else if (val && typeof val === 'string' && field.type === 'date' && val.includes('T')) {
+          initial[field.key] = val.split('T')[0];
+        } else if (val && typeof val === 'string' && field.type === 'datetime-local' && val.includes('T')) {
+          initial[field.key] = val.replace('Z', '').slice(0, 16);
+        } else {
+          initial[field.key] = val ?? '';
+        }
       });
       setFormData(initial);
       setSubmitError(null);
@@ -166,6 +178,39 @@ export function EntityFormModal({
               value={String(value ?? '')}
               onChange={(e) => handleChange(field.key, e.target.value)}
               className="bg-muted/50 border-border"
+            />
+          </div>
+        );
+      case 'datetime-local':
+        return (
+          <div key={field.key} className={cn('space-y-2', colSpan)}>
+            <Label htmlFor={field.key}>
+              {field.label}
+              {field.required && <span className="text-red-500 mr-1">*</span>}
+            </Label>
+            <Input
+              id={field.key}
+              type="datetime-local"
+              value={String(value ?? '')}
+              onChange={(e) => handleChange(field.key, e.target.value)}
+              className="bg-muted/50 border-border"
+            />
+          </div>
+        );
+      case 'tags':
+        return (
+          <div key={field.key} className={cn('space-y-2', colSpan)}>
+            <Label htmlFor={field.key}>
+              {field.label}
+              {field.required && <span className="text-red-500 mr-1">*</span>}
+            </Label>
+            <Textarea
+              id={field.key}
+              value={String(value ?? '')}
+              onChange={(e) => handleChange(field.key, e.target.value)}
+              className="bg-muted/50 border-border resize-none"
+              rows={2}
+              placeholder={field.placeholder ?? 'مقدارها را با کاما جدا کنید'}
             />
           </div>
         );

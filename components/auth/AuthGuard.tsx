@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { isAuthenticated, isAdmin, getStoredUser, type StoredUser } from '@/lib/auth';
+import { isAuthenticated, hasAdminRole, getStoredUser, type StoredUser } from '@/lib/auth';
 import { motion } from 'framer-motion';
 import { ShieldAlert, Lock, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
@@ -30,8 +30,7 @@ export function AuthGuard({ children, requireAdmin = false }: AuthGuardProps) {
 
       if (requireAdmin) {
         const user = getStoredUser<StoredUser>();
-        const admin = isAdmin();
-        if (!admin) {
+        if (!hasAdminRole(user)) {
           setAuthState('denied');
           setIsChecking(false);
           return;

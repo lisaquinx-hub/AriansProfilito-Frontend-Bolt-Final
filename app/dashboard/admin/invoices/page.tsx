@@ -55,20 +55,24 @@ export default function AdminInvoicesPage() {
   };
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    const submitData = {
-      ...data,
-      amount: data.amount ? Number(data.amount) : undefined,
-      tax: data.tax ? Number(data.tax) : undefined,
-      totalAmount: data.totalAmount ? Number(data.totalAmount) : undefined,
-    };
-    if (editingItem) {
-      await adminInvoicesService.update(editingItem.id, submitData as Partial<Invoice>);
-      toast.success('فاکتور با موفقیت ویرایش شد');
-    } else {
-      await adminInvoicesService.create(submitData as Partial<Invoice>);
-      toast.success('فاکتور با موفقیت ایجاد شد');
+    try {
+      const submitData = {
+        ...data,
+        amount: data.amount ? Number(data.amount) : undefined,
+        tax: data.tax ? Number(data.tax) : undefined,
+        totalAmount: data.totalAmount ? Number(data.totalAmount) : undefined,
+      };
+      if (editingItem) {
+        await adminInvoicesService.update(editingItem.id, submitData as Partial<Invoice>);
+        toast.success('فاکتور با موفقیت ویرایش شد');
+      } else {
+        await adminInvoicesService.create(submitData as Partial<Invoice>);
+        toast.success('فاکتور با موفقیت ایجاد شد');
+      }
+      fetchData();
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
     }
-    fetchData();
   };
 
   const fields: FormField[] = [
@@ -107,11 +111,12 @@ export default function AdminInvoicesPage() {
       label: 'وضعیت',
       render: (item: Invoice) => (
         <span className={`px-2 py-1 rounded-full text-xs ${
-          item.status === 'Paid' ? 'bg-green-500/10 text-green-500' :
-          item.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-500' :
-          'bg-red-500/10 text-red-500'
+          item.status === 'paid' ? 'bg-green-500/10 text-green-500' :
+          item.status === 'pending' ? 'bg-yellow-500/10 text-yellow-500' :
+          item.status === 'overdue' ? 'bg-red-500/10 text-red-500' :
+          'bg-gray-500/10 text-gray-500'
         }`}>
-          {item.status === 'Paid' ? 'پرداخت شده' : item.status === 'Pending' ? 'در انتظار' : 'لغو شده'}
+          {item.status === 'paid' ? 'پرداخت شده' : item.status === 'pending' ? 'در انتظار' : item.status === 'overdue' ? 'سررسید گذشته' : 'لغو شده'}
         </span>
       ),
     },

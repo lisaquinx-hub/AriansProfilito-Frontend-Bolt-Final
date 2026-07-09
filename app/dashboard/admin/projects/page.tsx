@@ -55,36 +55,67 @@ export default function AdminProjectsPage() {
   };
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    const submitData = {
-      ...data,
+    const submitData: Record<string, unknown> = {
+      title: data.title,
+      slug: data.slug || undefined,
+      description: data.description,
+      longDescription: data.longDescription || undefined,
+      category: data.category || undefined,
+      metric: data.metric || undefined,
+      metricValue: data.metricValue || undefined,
+      image: data.image || undefined,
+      videoUrl: data.videoUrl || undefined,
+      clientName: data.clientName || undefined,
+      projectUrl: data.projectUrl || undefined,
+      completionTime: data.completionTime || undefined,
+      startingPrice: data.startingPrice || undefined,
+      featured: Boolean(data.featured),
+      isActive: Boolean(data.isActive),
       displayOrder: data.displayOrder ? Number(data.displayOrder) : undefined,
+      technologies: data.technologies
+        ? String(data.technologies).split(',').map((s: string) => s.trim()).filter(Boolean)
+        : undefined,
+      features: data.features
+        ? String(data.features).split(',').map((s: string) => s.trim()).filter(Boolean)
+        : undefined,
+      gallery: data.gallery
+        ? String(data.gallery).split(',').map((s: string) => s.trim()).filter(Boolean)
+        : undefined,
     };
-    if (editingItem) {
-      await adminProjectsService.update(editingItem.id, submitData as Partial<Project>);
-      toast.success('پروژه با موفقیت ویرایش شد');
-    } else {
-      await adminProjectsService.create(submitData as Partial<Project>);
-      toast.success('پروژه با موفقیت ایجاد شد');
+    try {
+      if (editingItem) {
+        await adminProjectsService.update(editingItem.id, submitData as Partial<Project>);
+        toast.success('پروژه با موفقیت ویرایش شد');
+      } else {
+        await adminProjectsService.create(submitData as Partial<Project>);
+        toast.success('پروژه با موفقیت ایجاد شد');
+      }
+      fetchData();
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
     }
-    fetchData();
   };
 
   const fields: FormField[] = [
-    { key: 'title', label: 'عنوان', required: true },
-    { key: 'slug', label: 'اسلاگ', type: 'text' },
-    { key: 'description', label: 'توضیحات کوتاه', type: 'textarea', required: true },
-    { key: 'longDescription', label: 'توضیحات کامل', type: 'textarea', fullWidth: true, rows: 5 },
-    { key: 'category', label: 'دسته‌بندی', type: 'text' },
-    { key: 'metric', label: 'معیار', type: 'text' },
-    { key: 'metricValue', label: 'مقدار معیار', type: 'text' },
-    { key: 'image', label: 'تصویر', type: 'url' },
-    { key: 'featured', label: 'ویژه', type: 'switch' },
-    { key: 'completionTime', label: 'زمان تکمیل', type: 'text' },
-    { key: 'startingPrice', label: 'قیمت شروع', type: 'text' },
-    { key: 'clientName', label: 'نام مشتری', type: 'text' },
-    { key: 'projectUrl', label: 'آدرس پروژه', type: 'url' },
-    { key: 'isActive', label: 'فعال', type: 'switch' },
+    { key: 'title', label: 'عنوان پروژه', required: true, fullWidth: true },
+    { key: 'slug', label: 'اسلاگ (URL)' },
+    { key: 'category', label: 'دسته‌بندی' },
+    { key: 'clientName', label: 'نام مشتری' },
+    { key: 'projectUrl', label: 'لینک پروژه', type: 'url' },
+    { key: 'videoUrl', label: 'لینک ویدیو', type: 'url' },
+    { key: 'image', label: 'تصویر کاور (URL)', type: 'url' },
+    { key: 'completionTime', label: 'زمان انجام' },
+    { key: 'startingPrice', label: 'قیمت شروع' },
+    { key: 'metric', label: 'متریک (مثلاً +۵۰٪)' },
+    { key: 'metricValue', label: 'مقدار متریک' },
     { key: 'displayOrder', label: 'ترتیب نمایش', type: 'number' },
+    { key: 'description', label: 'توضیح کوتاه', type: 'textarea', fullWidth: true, required: true },
+    { key: 'longDescription', label: 'توضیح کامل', type: 'textarea', fullWidth: true, rows: 5 },
+    { key: 'technologies', label: 'تکنولوژی‌ها (با کاما جدا کنید)', type: 'tags', fullWidth: true },
+    { key: 'features', label: 'ویژگی‌ها (با کاما جدا کنید)', type: 'tags', fullWidth: true },
+    { key: 'gallery', label: 'گالری تصاویر (URL با کاما)', type: 'tags', fullWidth: true },
+    { key: 'featured', label: 'پروژه ویژه', type: 'switch' },
+    { key: 'isActive', label: 'فعال', type: 'switch' },
   ];
 
   const columns = [
@@ -157,7 +188,12 @@ export default function AdminProjectsPage() {
         onOpenChange={setIsFormOpen}
         title={editingItem ? 'ویرایش پروژه' : 'ایجاد پروژه جدید'}
         fields={fields}
-        initialValues={editingItem ? { ...editingItem } as Record<string, unknown> : undefined}
+        initialValues={editingItem ? {
+          ...editingItem,
+          technologies: editingItem.technologies?.join(', '),
+          features: editingItem.features?.join(', '),
+          gallery: editingItem.gallery?.join(', '),
+        } as Record<string, unknown> : undefined}
         onSubmit={handleSubmit}
         submitLabel={editingItem ? 'ذخیره تغییرات' : 'ایجاد پروژه'}
       />

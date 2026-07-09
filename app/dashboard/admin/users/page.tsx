@@ -50,10 +50,16 @@ export default function AdminUsersPage() {
   };
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    if (!editingItem) return;
-    await adminUsersService.update(editingItem.id, data as Partial<User>);
-    toast.success('کاربر با موفقیت ویرایش شد');
-    fetchUsers();
+    try {
+      if (!editingItem) {
+        throw new Error('کاربر قابل ایجاد نیست');
+      }
+      await adminUsersService.update(editingItem.id, data as Partial<User>);
+      toast.success('کاربر با موفقیت ویرایش شد');
+      fetchUsers();
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
   };
 
   const fields: FormField[] = [

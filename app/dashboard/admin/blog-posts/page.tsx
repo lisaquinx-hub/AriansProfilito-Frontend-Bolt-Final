@@ -55,14 +55,18 @@ export default function AdminBlogPostsPage() {
   };
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    if (editingItem) {
-      await adminBlogPostsService.update(editingItem.id, data as Partial<BlogPost>);
-      toast.success('مقاله با موفقیت ویرایش شد');
-    } else {
-      await adminBlogPostsService.create(data as Partial<BlogPost>);
-      toast.success('مقاله با موفقیت ایجاد شد');
+    try {
+      if (editingItem) {
+        await adminBlogPostsService.update(editingItem.id, data as Partial<BlogPost>);
+        toast.success('مقاله با موفقیت ویرایش شد');
+      } else {
+        await adminBlogPostsService.create(data as Partial<BlogPost>);
+        toast.success('مقاله با موفقیت ایجاد شد');
+      }
+      fetchPosts();
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
     }
-    fetchPosts();
   };
 
   const fields: FormField[] = [
