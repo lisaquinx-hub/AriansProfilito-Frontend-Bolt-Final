@@ -39,7 +39,7 @@ function DashboardContent({ children }: DashboardLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const displayName = user?.name || 'کاربر';
+  const displayName = user?.fullName || user?.email || 'کاربر';
   const displayEmail = user?.email || '-';
 
   const handleLogout = async () => {
@@ -139,7 +139,7 @@ function DashboardContent({ children }: DashboardLayoutProps) {
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              transition={{ type: 'tween', duration:  0.3 }}
+              transition={{ type: 'tween', duration: 0.3 }}
               className="fixed right-0 top-0 bottom-0 w-72 bg-card z-50 md:hidden overflow-y-auto"
             >
               <div className="p-6 flex items-center justify-between border-b border-border">

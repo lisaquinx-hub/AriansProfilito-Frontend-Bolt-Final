@@ -2,6 +2,23 @@ import { api, getApiErrorMessage } from '../api';
 import { ApiResponse } from '@/lib/api-utils';
 import { Service } from '@/types/api';
 
+export interface CreateServiceDto {
+  title: string;
+  slug?: string;
+  thumbnail: string;
+  coverImage: string;
+  shortDescription?: string;
+  description: string;
+  estimatedDeliveryDays: number;
+  isFeatured: boolean;
+  displayOrder: number;
+  icon?: string;
+  isActive: boolean;
+  features: Array<{ title: string; displayOrder: number }>;
+}
+
+export type UpdateServiceDto = CreateServiceDto;
+
 class AdminServicesService {
   private endpoint = '/admin/services';
 
@@ -24,7 +41,7 @@ class AdminServicesService {
     }
   }
 
-  async create(data: Partial<Service>): Promise<Service | null> {
+  async create(data: CreateServiceDto): Promise<Service | null> {
     try {
       const response = await api.post<ApiResponse<Service>>(this.endpoint, data);
       return response.data.data;
@@ -33,7 +50,7 @@ class AdminServicesService {
     }
   }
 
-  async update(id: string, data: Partial<Service>): Promise<Service | null> {
+  async update(id: string, data: UpdateServiceDto): Promise<Service | null> {
     try {
       const response = await api.put<ApiResponse<Service>>(`${this.endpoint}/${id}`, data);
       return response.data.data;

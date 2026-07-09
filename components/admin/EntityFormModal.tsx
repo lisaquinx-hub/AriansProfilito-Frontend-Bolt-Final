@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,12 +8,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { cn } from '@/lib/utils';
 
 export interface FormField {
   key: string;
   label: string;
-  type?: 'text' | 'textarea' | 'number' | 'switch' | 'select' | 'email' | 'tel' | 'url' | 'date' | 'datetime-local' | 'tags';
+  type?: 'text' | 'textarea' | 'number' | 'switch' | 'select' | 'email' | 'tel' | 'url' | 'date' | 'datetime-local' | 'tags' | 'password';
   required?: boolean;
   placeholder?: string;
   options?: { value: string; label: string }[];
@@ -40,243 +39,178 @@ export function EntityFormModal({
   onSubmit,
   submitLabel = 'ذخیره',
 }: EntityFormModalProps) {
-  const [formData, setFormData] = useState<Record<string, unknown>>({});
+  const [values, setValues] = useState<Record<string, unknown>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
       const initial: Record<string, unknown> = {};
-      fields.forEach((field) => {
-        const val = initialValues?.[field.key];
-        if (field.type === 'switch') {
-          initial[field.key] = val ?? false;
-        } else if (field.type === 'tags') {
-          initial[field.key] = Array.isArray(val) ? (val as string[]).join(', ') : (val ?? '');
-        } else if (field.type === 'number') {
-          initial[field.key] = val !== undefined && val !== null ? String(val) : '';
-        } else if (val && typeof val === 'string' && field.type === 'date' && val.includes('T')) {
-          initial[field.key] = val.split('T')[0];
-        } else if (val && typeof val === 'string' && field.type === 'datetime-local' && val.includes('T')) {
-          initial[field.key] = val.replace('Z', '').slice(0, 16);
+      fields.forEach((f) => {
+        if (initialValues && f.key in initialValues) {
+          let val = initialValues[f.key];
+          if (f.type === 'date' && typeof val === 'string' && val.includes('T')) {
+            val = val.split('T')[0];
+          } else if (f.type === 'datetime-local' && typeof val === 'string' && val.includes('T')) {
+            val = val.replace('Z', '').slice(0, 16);
+          }
+          initial[f.key] = val;
         } else {
-          initial[field.key] = val ?? '';
+          if (f.type === 'switch') initial[f.key] = false;
+          else if (f.type === 'number') initial[f.key] = 0;
+          else initial[f.key] = '';
         }
       });
-      setFormData(initial);
-      setSubmitError(null);
+      setValues(initial);
+      setError(null);
     }
-  }, [open, initialValues, fields]);
+  }, [open, initialValues]);
 
   const handleChange = (key: string, value: unknown) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
+    setValues((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const missing = fields.filter((f) => f.required && !formData[f.key]);
-    if (missing.length > 0) {
-      setSubmitError(`${missing[0].label} الزامی است`);
-      return;
+    setError(null);
+
+    for (const field of fields) {
+      if (field.required) {
+        const val = values[field.key];
+        if (val === undefined || val === null || String(val).trim() === '') {
+          setError(`فیلد "${field.label}" الزامی است`);
+          return;
+        }
+      }
     }
+
     setIsSubmitting(true);
-    setSubmitError(null);
     try {
-      await onSubmit(formData);
+      await onSubmit(values);
       onOpenChange(false);
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'خطا در ذخیره‌سازی');
+      setError(err instanceof Error ? err.message : 'خطا در ذخیره‌سازی');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const renderField = (field: FormField) => {
-    const value = formData[field.key];
-    const colSpan = field.fullWidth ? 'md:col-span-2' : '';
+    const value = values[field.key];
 
-    switch (field.type) {
-      case 'textarea':
-        return (
-          <div key={field.key} className={cn('space-y-2', colSpan)}>
-            <Label htmlFor={field.key}>
-              {field.label}
-              {field.required && <span className="text-red-500 mr-1">*</span>}
-            </Label>
-            <Textarea
-              id={field.key}
-              value={String(value ?? '')}
-              onChange={(e) => handleChange(field.key, e.target.value)}
-              className="bg-muted/50 border-border resize-none"
-              rows={field.rows ?? 3}
-              placeholder={field.placeholder}
-            />
-          </div>
-        );
-      case 'switch':
-        return (
-          <div key={field.key} className={cn('space-y-2', colSpan)}>
-            <div className="flex items-center justify-between">
-              <Label htmlFor={field.key}>{field.label}</Label>
-              <Switch
-                id={field.key}
-                checked={Boolean(value)}
-                onCheckedChange={(checked) => handleChange(field.key, checked)}
-              />
-            </div>
-          </div>
-        );
-      case 'select':
-        return (
-          <div key={field.key} className={cn('space-y-2', colSpan)}>
-            <Label htmlFor={field.key}>
-              {field.label}
-              {field.required && <span className="text-red-500 mr-1">*</span>}
-            </Label>
-            <select
-              id={field.key}
-              value={String(value ?? '')}
-              onChange={(e) => handleChange(field.key, e.target.value)}
-              className="w-full h-10 rounded-md border border-border bg-muted/50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
-            >
-              <option value="">انتخاب کنید</option>
-              {field.options?.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        );
-      case 'number':
-        return (
-          <div key={field.key} className={cn('space-y-2', colSpan)}>
-            <Label htmlFor={field.key}>
-              {field.label}
-              {field.required && <span className="text-red-500 mr-1">*</span>}
-            </Label>
-            <Input
-              id={field.key}
-              type="number"
-              value={String(value ?? '')}
-              onChange={(e) => handleChange(field.key, e.target.value)}
-              className="bg-muted/50 border-border"
-              placeholder={field.placeholder}
-            />
-          </div>
-        );
-      case 'date':
-        return (
-          <div key={field.key} className={cn('space-y-2', colSpan)}>
-            <Label htmlFor={field.key}>
-              {field.label}
-              {field.required && <span className="text-red-500 mr-1">*</span>}
-            </Label>
-            <Input
-              id={field.key}
-              type="date"
-              value={String(value ?? '')}
-              onChange={(e) => handleChange(field.key, e.target.value)}
-              className="bg-muted/50 border-border"
-            />
-          </div>
-        );
-      case 'datetime-local':
-        return (
-          <div key={field.key} className={cn('space-y-2', colSpan)}>
-            <Label htmlFor={field.key}>
-              {field.label}
-              {field.required && <span className="text-red-500 mr-1">*</span>}
-            </Label>
-            <Input
-              id={field.key}
-              type="datetime-local"
-              value={String(value ?? '')}
-              onChange={(e) => handleChange(field.key, e.target.value)}
-              className="bg-muted/50 border-border"
-            />
-          </div>
-        );
-      case 'tags':
-        return (
-          <div key={field.key} className={cn('space-y-2', colSpan)}>
-            <Label htmlFor={field.key}>
-              {field.label}
-              {field.required && <span className="text-red-500 mr-1">*</span>}
-            </Label>
-            <Textarea
-              id={field.key}
-              value={String(value ?? '')}
-              onChange={(e) => handleChange(field.key, e.target.value)}
-              className="bg-muted/50 border-border resize-none"
-              rows={2}
-              placeholder={field.placeholder ?? 'مقدارها را با کاما جدا کنید'}
-            />
-          </div>
-        );
-      default:
-        return (
-          <div key={field.key} className={cn('space-y-2', colSpan)}>
-            <Label htmlFor={field.key}>
-              {field.label}
-              {field.required && <span className="text-red-500 mr-1">*</span>}
-            </Label>
-            <Input
-              id={field.key}
-              type={field.type || 'text'}
-              value={String(value ?? '')}
-              onChange={(e) => handleChange(field.key, e.target.value)}
-              className="bg-muted/50 border-border"
-              placeholder={field.placeholder}
-            />
-          </div>
-        );
+    if (field.type === 'switch') {
+      return (
+        <div className="flex items-center gap-3">
+          <Switch
+            checked={Boolean(value)}
+            onCheckedChange={(checked) => handleChange(field.key, checked)}
+          />
+          <Label className="text-sm text-muted-foreground">{Boolean(value) ? 'فعال' : 'غیرفعال'}</Label>
+        </div>
+      );
     }
+
+    if (field.type === 'select') {
+      return (
+        <select
+          value={String(value ?? '')}
+          onChange={(e) => handleChange(field.key, e.target.value)}
+          className="w-full h-10 px-3 rounded-md bg-muted/50 border border-border focus:border-sky-500 dark:focus:border-cyan-500 text-foreground text-sm transition-colors focus:outline-none"
+        >
+          <option value="">انتخاب کنید...</option>
+          {(field.options || []).map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      );
+    }
+
+    if (field.type === 'textarea') {
+      return (
+        <Textarea
+          value={String(value ?? '')}
+          onChange={(e) => handleChange(field.key, e.target.value)}
+          placeholder={field.placeholder}
+          rows={field.rows || 4}
+          className="bg-muted/50 border-border resize-none"
+          required={field.required}
+        />
+      );
+    }
+
+    return (
+      <Input
+        type={field.type || 'text'}
+        value={String(value ?? '')}
+        onChange={(e) => handleChange(field.key, field.type === 'number' ? Number(e.target.value) : e.target.value)}
+        placeholder={field.placeholder}
+        className="bg-muted/50 border-border"
+        required={field.required}
+      />
+    );
   };
 
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => onOpenChange(false)}
           />
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="relative glass rounded-2xl p-6 max-w-lg w-full max-h-[85vh] overflow-y-auto"
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            className="relative glass rounded-2xl w-full max-w-2xl my-auto shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold">{title}</h3>
+            <div className="flex items-center justify-between p-6 border-b border-border">
+              <h2 className="text-lg font-semibold">{title}</h2>
               <button
+                type="button"
                 onClick={() => onOpenChange(false)}
                 className="p-2 rounded-lg hover:bg-muted transition-colors"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            {submitError && (
-              <div className="mb-4 p-3 rounded-lg bg-red-500/10 text-red-500 text-sm">
-                {submitError}
-              </div>
-            )}
-
             <form onSubmit={handleSubmit}>
-              <div className="grid md:grid-cols-2 gap-4">
-                {fields.map((field) => renderField(field))}
+              <div className="p-6 max-h-[70vh] overflow-y-auto">
+                {error && (
+                  <div className="mb-4 p-3 rounded-lg bg-red-500/10 text-red-500 text-sm border border-red-500/20">
+                    {error}
+                  </div>
+                )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {fields.map((field) => (
+                    <div
+                      key={field.key}
+                      className={field.fullWidth || field.type === 'textarea' ? 'col-span-full' : ''}
+                    >
+                      <Label className="text-sm font-medium mb-2 block">
+                        {field.label}
+                        {field.required && <span className="text-red-500 mr-1">*</span>}
+                      </Label>
+                      {renderField(field)}
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              <div className="flex gap-3 justify-end mt-6">
+              <div className="flex items-center justify-end gap-3 p-6 border-t border-border">
                 <Button
                   type="button"
                   variant="outline"
+                  className="rounded-full"
                   onClick={() => onOpenChange(false)}
+                  disabled={isSubmitting}
                 >
                   انصراف
                 </Button>
@@ -286,13 +220,9 @@ export function EntityFormModal({
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                      در حال ذخیره...
-                    </>
-                  ) : (
-                    submitLabel
-                  )}
+                    <Loader2 className="w-4 h-4 animate-spin ml-2" />
+                  ) : null}
+                  {submitLabel}
                 </Button>
               </div>
             </form>

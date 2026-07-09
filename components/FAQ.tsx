@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { ChevronDown, ArrowLeft } from 'lucide-react';
-import { faqs as mockFaqs } from '@/lib/mock-data';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { faqService } from '@/services/FaqService';
@@ -21,8 +20,6 @@ export default function FAQ() {
       const data = await faqService.getAll();
       if (data && data.length > 0) {
         setFaqs(data);
-      } else {
-        setFaqs(mockFaqs);
       }
       setIsLoading(false);
     };

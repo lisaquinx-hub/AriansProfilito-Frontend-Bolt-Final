@@ -2,9 +2,8 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Clock, User, Eye, Heart, ArrowLeft } from 'lucide-react';
-import { BlogPost } from '@/lib/mock-data';
-import { cn } from '@/lib/utils';
+import { Clock, User, ArrowLeft } from 'lucide-react';
+import { BlogPost } from '@/types/api';
 
 interface BlogCardProps {
   post: BlogPost;
@@ -21,27 +20,23 @@ export function BlogCard({ post, index = 0, variant = 'default' }: BlogCardProps
         transition={{ delay: index * 0.05 }}
         className="group relative flex gap-4 p-4 rounded-xl glass hover:glass-hover transition-all"
       >
-        {/* Image */}
         <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 bg-gradient-to-br from-sky-500/20 to-blue-500/20 dark:from-blue-500/20 dark:to-cyan-500/20">
           <div className="absolute inset-0 flex items-center justify-center">
             <span className="text-3xl font-bold text-foreground/10">{post.title[0]}</span>
           </div>
         </div>
-
-        {/* Content */}
         <div className="flex-1 min-w-0">
-          <span className="text-xs text-sky-500 dark:text-cyan-400">{post.category}</span>
+          <span className="text-xs text-sky-500 dark:text-cyan-400">{post.categoryName || ''}</span>
           <h4 className="font-semibold mt-1 group-hover:text-gradient transition-all line-clamp-2">
             {post.title}
           </h4>
           <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
               <Clock className="w-3 h-3" />
-              {post.readTime}
+              {post.readTime || 5} دقیقه
             </span>
           </div>
         </div>
-
         <Link href={`/blog/${post.slug}`} className="absolute inset-0" />
       </motion.div>
     );
@@ -56,13 +51,13 @@ export function BlogCard({ post, index = 0, variant = 'default' }: BlogCardProps
         className="group relative"
       >
         <div className="p-4 rounded-xl glass hover:glass-hover transition-all">
-          <span className="text-xs text-sky-500 dark:text-cyan-400">{post.category}</span>
+          <span className="text-xs text-sky-500 dark:text-cyan-400">{post.categoryName || ''}</span>
           <h4 className="font-semibold mt-1 text-sm group-hover:text-gradient transition-all line-clamp-2">
             {post.title}
           </h4>
           <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
             <Clock className="w-3 h-3" />
-            <span>{post.readTime}</span>
+            <span>{post.readTime || 5} دقیقه</span>
           </div>
           <Link href={`/blog/${post.slug}`} className="absolute inset-0" />
         </div>
@@ -78,29 +73,27 @@ export function BlogCard({ post, index = 0, variant = 'default' }: BlogCardProps
       className="group relative"
     >
       <div className="relative overflow-hidden rounded-2xl glass transition-all duration-300 hover:shadow-glow">
-        {/* Image */}
         <div className="relative aspect-video overflow-hidden bg-gradient-to-br from-sky-500/20 to-blue-500/20 dark:from-blue-500/20 dark:to-cyan-500/20">
           <div className="absolute inset-0 flex items-center justify-center">
             <span className="text-6xl font-bold text-foreground/10">{post.title[0]}</span>
           </div>
-          {/* Category Badge */}
-          <div className="absolute top-4 right-4">
-            <span className="px-3 py-1 rounded-full text-xs font-medium bg-sky-500/20 dark:bg-cyan-500/20 text-sky-500 dark:text-cyan-400">
-              {post.category}
-            </span>
-          </div>
+          {post.categoryName && (
+            <div className="absolute top-4 right-4">
+              <span className="px-3 py-1 rounded-full text-xs font-medium bg-sky-500/20 dark:bg-cyan-500/20 text-sky-500 dark:text-cyan-400">
+                {post.categoryName}
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* Content */}
         <div className="p-6">
           <h3 className="text-lg font-semibold mb-2 group-hover:text-gradient transition-all line-clamp-2">
             {post.title}
           </h3>
           <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-            {post.excerpt}
+            {post.excerpt || ''}
           </p>
 
-          {/* CTA Button */}
           <Link href={`/blog/${post.slug}`}>
             <motion.span
               whileHover={{ x: -4 }}
@@ -111,15 +104,14 @@ export function BlogCard({ post, index = 0, variant = 'default' }: BlogCardProps
             </motion.span>
           </Link>
 
-          {/* Meta */}
           <div className="flex items-center justify-between pt-4 border-t border-border text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <User className="w-4 h-4" />
-              <span>{post.author}</span>
+              <span>{post.authorName || '-'}</span>
             </div>
             <div className="flex items-center gap-1">
               <Clock className="w-4 h-4" />
-              <span>{post.readTime}</span>
+              <span>{post.readTime || 5} دقیقه</span>
             </div>
           </div>
         </div>

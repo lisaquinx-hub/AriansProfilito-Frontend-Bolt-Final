@@ -1,0 +1,6 @@
+  const roleLabel = (() => {
+    const r = profile?.role;
+    if (r === 3) return 'مدیر';
+    if (r === 2) return 'کارمند';
+    return 'مشتری';
+  })();

@@ -1,29 +1,24 @@
-import { api } from './api';
+import { api, getApiErrorMessage } from './api';
+import { ApiResponse } from '@/lib/api-utils';
 
-export interface ContactRequest {
-  name: string;
+export interface CreateContactMessageDto {
+  fullName: string;
   email: string;
+  phoneNumber?: string;
   subject: string;
   message: string;
-}
-
-export interface ContactResponse {
-  success: boolean;
-  message: string;
-  ticketId?: string;
+  company?: string;
 }
 
 class ContactService {
-  private endpoint = '/contact';
+  private endpoint = '/contact-messages';
 
-  async sendMessage(data: ContactRequest): Promise<ContactResponse> {
-    const response = await api.post<ContactResponse>(this.endpoint, data);
-    return response.data;
-  }
-
-  async subscribeNewsletter(email: string): Promise<ContactResponse> {
-    const response = await api.post<ContactResponse>(`${this.endpoint}/newsletter`, { email });
-    return response.data;
+  async sendMessage(data: CreateContactMessageDto): Promise<void> {
+    try {
+      await api.post<ApiResponse<unknown>>(this.endpoint, data);
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
   }
 }
 

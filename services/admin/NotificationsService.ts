@@ -2,6 +2,14 @@ import { api, getApiErrorMessage } from '../api';
 import { ApiResponse } from '@/lib/api-utils';
 import { Notification } from '@/types/api';
 
+export interface CreateNotificationDto {
+  userId: string;
+  type: number;
+  title: string;
+  message: string;
+  isRead: boolean;
+}
+
 class AdminNotificationsService {
   private endpoint = '/admin/notifications';
 
@@ -24,18 +32,9 @@ class AdminNotificationsService {
     }
   }
 
-  async create(data: Partial<Notification>): Promise<Notification | null> {
+  async create(data: CreateNotificationDto): Promise<Notification | null> {
     try {
       const response = await api.post<ApiResponse<Notification>>(this.endpoint, data);
-      return response.data.data;
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error));
-    }
-  }
-
-  async update(id: string, data: Partial<Notification>): Promise<Notification | null> {
-    try {
-      const response = await api.put<ApiResponse<Notification>>(`${this.endpoint}/${id}`, data);
       return response.data.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error));

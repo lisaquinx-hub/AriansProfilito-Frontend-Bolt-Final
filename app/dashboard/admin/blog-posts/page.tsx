@@ -7,109 +7,115 @@ import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
 import { EntityFormModal, FormField } from '@/components/admin/EntityFormModal';
 import { adminBlogPostsService } from '@/services/admin/BlogPostsService';
-import { BlogPost } from '@/types/api';
+import { adminBlogCategoriesService } from '@/services/admin/BlogCategoriesService';
+import { BlogPost, BlogCategory } from '@/types/api';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/services/api';
 
 export default function AdminBlogPostsPage() {
-  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [items, setItems] = useState<BlogPost[]>([]);
+  const [categories, setCategories] = useState<BlogCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<BlogPost | null>(null);
 
-  const fetchPosts = async () => {
+  const fetchData = async () => {
     setIsLoading(true);
-    const data = await adminBlogPostsService.getAll();
-    setPosts(data);
+    const [posts, cats] = await Promise.all([
+      adminBlogPostsService.getAll(),
+      adminBlogCategoriesService.getAll(),
+    ]);
+    setItems(posts);
+    setCategories(cats);
     setIsLoading(false);
   };
 
-  useEffect(() => {
-    fetchPosts();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const handleDelete = async () => {
     if (!deleteId) return;
     setIsDeleting(true);
     try {
       await adminBlogPostsService.delete(deleteId);
-      setPosts(posts.filter(p => p.id !== deleteId));
+      setItems(prev => prev.filter(i => i.id !== deleteId));
       setDeleteId(null);
-      toast.success('مقاله با موفقیت حذف شد');
+      toast.success('پست با موفقیت حذف شد');
     } catch (error) {
       toast.error(getApiErrorMessage(error));
     }
     setIsDeleting(false);
   };
 
-  const handleEdit = (item: BlogPost) => {
-    setEditingItem(item);
-    setIsFormOpen(true);
-  };
-
-  const handleCreate = () => {
-    setEditingItem(null);
-    setIsFormOpen(true);
-  };
-
   const handleSubmit = async (data: Record<string, unknown>) => {
+    const payload = {
+      title: String(data.title || '').trim(),
+      slug: String(data.slug || '').trim(),
+      excerpt: String(data.excerpt || '').trim(),
+      content: String(data.content || '').trim(),
+      coverImage: String(data.coverImage || '').trim(),
+      readTime: Number(data.readTime) || 1,
+      isPublished: Boolean(data.isPublished),
+      publishedAt: data.publishedAt ? String(data.publishedAt) : undefined,
+      seoTitle: String(data.seoTitle || '') || undefined,
+      seoDescription: String(data.seoDescription || '') || undefined,
+      keywords: String(data.keywords || '') || undefined,
+      categoryId: String(data.categoryId || ''),
+    };
     try {
       if (editingItem) {
-        await adminBlogPostsService.update(editingItem.id, data as Partial<BlogPost>);
-        toast.success('مقاله با موفقیت ویرایش شد');
+        await adminBlogPostsService.update(editingItem.id, payload);
+        toast.success('پست با موفقیت ویرایش شد');
       } else {
-        await adminBlogPostsService.create(data as Partial<BlogPost>);
-        toast.success('مقاله با موفقیت ایجاد شد');
+        await adminBlogPostsService.create(payload);
+        toast.success('پست با موفقیت ایجاد شد');
       }
-      fetchPosts();
+      fetchData();
     } catch (error) {
-      throw new Error(getApiErrorMessage(error));
+      toast.error(getApiErrorMessage(error));
+      throw error;
     }
   };
 
   const fields: FormField[] = [
-    { key: 'title', label: 'عنوان', required: true },
-    { key: 'slug', label: 'اسلاگ', type: 'text' },
-    { key: 'excerpt', label: 'خلاصه', type: 'textarea' },
-    { key: 'content', label: 'محتوا', type: 'textarea', fullWidth: true, rows: 8 },
-    { key: 'coverImage', label: 'تصویر کاور', type: 'url' },
-    { key: 'author', label: 'نویسنده', type: 'text' },
+    { key: 'title', label: 'عنوان', required: true, fullWidth: true },
+    { key: 'slug', label: 'Slug', required: true },
+    {
+      key: 'categoryId',
+      label: 'دسته‌بندی',
+      type: 'select',
+      required: true,
+      options: categories.map(c => ({ value: c.id, label: c.name })),
+    },
+    { key: 'excerpt', label: 'خلاصه', type: 'textarea', fullWidth: true },
+    { key: 'content', label: 'متن', type: 'textarea', fullWidth: true, rows: 8 },
+    { key: 'coverImage', label: 'تصویر شاخص', type: 'url', fullWidth: true },
+    { key: 'readTime', label: 'زمان مطالعه (دقیقه)', type: 'number' },
+    { key: 'publishedAt', label: 'تاریخ انتشار', type: 'datetime-local' },
     { key: 'isPublished', label: 'منتشر شده', type: 'switch' },
-    { key: 'categoryId', label: 'شناسه دسته‌بندی', type: 'text' },
-    { key: 'seoTitle', label: 'عنوان سئو', type: 'text' },
-    { key: 'seoDescription', label: 'توضیحات سئو', type: 'textarea' },
-    { key: 'keywords', label: 'کلمات کلیدی', type: 'text' },
+    { key: 'seoTitle', label: 'عنوان SEO', fullWidth: true },
+    { key: 'seoDescription', label: 'توضیحات SEO', type: 'textarea', fullWidth: true },
+    { key: 'keywords', label: 'کلمات کلیدی', fullWidth: true },
   ];
 
   const columns = [
-    { key: 'title', label: 'عنوان' },
-    {
-      key: 'categoryName',
-      label: 'دسته‌بندی',
-      render: (post: BlogPost) => post.categoryName || '-',
-    },
+    { key: 'title', label: 'عنوان', render: (item: BlogPost) => <div className="max-w-xs truncate">{item.title}</div> },
+    { key: 'categoryName', label: 'دسته‌بندی', render: (item: BlogPost) => item.categoryName || '-' },
     {
       key: 'isPublished',
       label: 'وضعیت',
-      render: (post: BlogPost) => (
-        <span className={`px-2 py-1 rounded-full text-xs ${
-          post.isPublished ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'
-        }`}>
-          {post.isPublished ? 'منتشر شده' : 'پیش‌نویس'}
+      render: (item: BlogPost) => (
+        <span className={`px-2 py-1 rounded-full text-xs ${item.isPublished ? 'bg-green-500/10 text-green-500' : 'bg-gray-500/10 text-gray-400'}`}>
+          {item.isPublished ? 'منتشر شده' : 'پیش‌نویس'}
         </span>
       ),
     },
-    {
-      key: 'views',
-      label: 'بازدید',
-      render: (post: BlogPost) => post.views || 0,
-    },
+    { key: 'readTime', label: 'مطالعه', render: (item: BlogPost) => `${item.readTime || 0} دق` },
     {
       key: 'createdAt',
       label: 'تاریخ',
-      render: (post: BlogPost) => post.createdAt ? new Date(post.createdAt).toLocaleDateString('fa-IR') : '-',
+      render: (item: BlogPost) => item.createdAt ? new Date(item.createdAt).toLocaleDateString('fa-IR') : '-',
     },
   ];
 
@@ -118,55 +124,59 @@ export default function AdminBlogPostsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            <FileText className="w-6 h-6" />
-            مدیریت مقالات
+            <FileText className="w-6 h-6" />مدیریت پست‌های وبلاگ
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            {posts.length} مقاله
-          </p>
+          <p className="text-muted-foreground text-sm mt-1">{items.length} پست</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={fetchPosts}>
-            <RefreshCw className="w-4 h-4 ml-1" />
-            بروزرسانی
+          <Button variant="outline" size="sm" onClick={fetchData}>
+            <RefreshCw className={`w-4 h-4 ml-1 ${isLoading ? 'animate-spin' : ''}`} />بروزرسانی
           </Button>
-          <Button size="sm" className="btn-primary" onClick={handleCreate}>
-            <Plus className="w-4 h-4 ml-1" />
-            ایجاد مقاله
+          <Button size="sm" className="btn-primary" onClick={() => { setEditingItem(null); setIsFormOpen(true); }}>
+            <Plus className="w-4 h-4 ml-1" />پست جدید
           </Button>
         </div>
       </div>
-
       <Card className="glass">
         <CardContent className="p-6">
           <DataTable
-            data={posts}
+            data={items}
             columns={columns}
             loading={isLoading}
-            onEdit={handleEdit}
-            onDelete={(post) => setDeleteId(post.id)}
-            emptyMessage="مقاله‌ای یافت نشد"
+            onEdit={(item) => { setEditingItem(item); setIsFormOpen(true); }}
+            onDelete={(item) => setDeleteId(item.id)}
+            emptyMessage="پستی یافت نشد"
           />
         </CardContent>
       </Card>
-
       <ConfirmDialog
         open={!!deleteId}
         onOpenChange={(open) => !open && setDeleteId(null)}
-        title="حذف مقاله"
-        description="آیا از حذف این مقاله اطمینان دارید؟"
+        title="حذف پست"
+        description="آیا از حذف این پست اطمینان دارید؟"
         onConfirm={handleDelete}
         loading={isDeleting}
       />
-
       <EntityFormModal
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
-        title={editingItem ? 'ویرایش مقاله' : 'ایجاد مقاله جدید'}
+        title={editingItem ? 'ویرایش پست' : 'پست جدید'}
         fields={fields}
-        initialValues={editingItem ? { ...editingItem } as Record<string, unknown> : undefined}
+        initialValues={editingItem ? {
+          title: editingItem.title,
+          slug: editingItem.slug,
+          excerpt: editingItem.excerpt || '',
+          content: editingItem.content || '',
+          coverImage: editingItem.coverImage || '',
+          readTime: editingItem.readTime || 1,
+          isPublished: editingItem.isPublished,
+          publishedAt: editingItem.publishedAt ? editingItem.publishedAt.replace('Z','').slice(0,16) : '',
+          seoTitle: editingItem.seoTitle || '',
+          seoDescription: editingItem.seoDescription || '',
+          keywords: editingItem.keywords || '',
+          categoryId: editingItem.categoryId || '',
+        } : undefined}
         onSubmit={handleSubmit}
-        submitLabel={editingItem ? 'ذخیره تغییرات' : 'ایجاد مقاله'}
       />
     </div>
   );

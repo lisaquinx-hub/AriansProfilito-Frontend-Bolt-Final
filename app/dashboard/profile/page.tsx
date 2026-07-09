@@ -2,13 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Mail, Phone, Building, Edit2, Save, AlertCircle, KeyRound, X } from 'lucide-react';
+import { Camera, Mail, Phone, Edit2, Save, AlertCircle, KeyRound, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { userService, UserProfile } from '@/services/UserService';
-import { authService } from '@/services/AuthService';
+import { userService, UserProfile, UpdateProfileRequest } from '@/services/UserService';
 import { useAuth, emitAuthChanged } from '@/hooks/useAuth';
 import { getApiErrorMessage } from '@/services/api';
 import { setStoredUser } from '@/lib/auth';
@@ -21,11 +19,12 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    company: '',
-    bio: '',
+  const [formData, setFormData] = useState<UpdateProfileRequest>({
+    fullName: '',
+    email: '',
+    userName: '',
+    phoneNumber: '',
+    avatar: '',
   });
 
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -42,34 +41,14 @@ export default function ProfilePage() {
       setIsLoading(true);
       setError(null);
       try {
-        let data: UserProfile | null = null;
-
-        try {
-          data = await userService.getProfile();
-        } catch {
-          // Fallback to /Auth/me if /users/profile is not available
-        }
-
-        if (!data) {
-          const currentUser = await authService.getCurrentUser();
-          data = {
-            id: currentUser.id,
-            name: currentUser.name,
-            email: currentUser.email,
-            phone: currentUser.phone,
-            company: currentUser.company,
-            bio: currentUser.bio,
-            role: currentUser.role,
-            roles: currentUser.roles,
-          };
-        }
-
+        const data = await userService.getProfile();
         setProfile(data);
         setFormData({
-          name: data.name || '',
-          phone: data.phone || '',
-          company: data.company || '',
-          bio: data.bio || '',
+          fullName: data.fullName || '',
+          email: data.email || '',
+          userName: data.userName || '',
+          phoneNumber: data.phoneNumber || '',
+          avatar: data.avatar || '',
         });
       } catch (err) {
         setError(getApiErrorMessage(err));
@@ -81,23 +60,26 @@ export default function ProfilePage() {
   }, []);
 
   const handleSave = async () => {
+    if (!formData.fullName.trim() || !formData.email.trim()) {
+      setError('نام و ایمیل الزامی است');
+      return;
+    }
     setIsSaving(true);
     setError(null);
-    setSuccessMsg(null);
     try {
       const updated = await userService.updateProfile({
-        name: formData.name,
-        phone: formData.phone,
-        company: formData.company,
-        bio: formData.bio,
+        fullName: formData.fullName,
+        email: formData.email,
+        userName: formData.userName || undefined,
+        phoneNumber: formData.phoneNumber || undefined,
+        avatar: formData.avatar || undefined,
       });
       setProfile(updated);
-      if (user) {
-        setStoredUser({ ...user, name: updated.name });
-        emitAuthChanged();
-      }
-      setSuccessMsg('پروفایل با موفقیت ذخیره شد');
+      setStoredUser({ ...(user || {}), fullName: updated.fullName, email: updated.email, avatar: updated.avatar });
+      emitAuthChanged();
       setIsEditing(false);
+      setSuccessMsg('پروفایل با موفقیت به‌روزرسانی شد');
+      setTimeout(() => setSuccessMsg(null), 3000);
     } catch (err) {
       setError(getApiErrorMessage(err));
     } finally {
@@ -107,20 +89,25 @@ export default function ProfilePage() {
 
   const handleChangePassword = async () => {
     setPasswordError(null);
+    if (!passwordData.currentPassword || !passwordData.newPassword) {
+      setPasswordError('همه فیلدها الزامی است');
+      return;
+    }
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       setPasswordError('رمز عبور جدید و تکرار آن مطابقت ندارند');
       return;
     }
-    if (passwordData.newPassword.length < 8) {
-      setPasswordError('رمز عبور باید حداقل ۸ کاراکتر باشد');
+    if (passwordData.newPassword.length < 6) {
+      setPasswordError('رمز عبور جدید باید حداقل ۶ کاراکتر باشد');
       return;
     }
     setIsChangingPassword(true);
     try {
-      await authService.changePassword(passwordData.currentPassword, passwordData.newPassword);
+      await userService.changePassword({ currentPassword: passwordData.currentPassword, newPassword: passwordData.newPassword });
       setIsPasswordModalOpen(false);
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      setSuccessMsg('رمز عبور با موفقیت تغییر کرد');
+      setSuccessMsg('رمز عبور با موفقیت تغییر یافت');
+      setTimeout(() => setSuccessMsg(null), 3000);
     } catch (err) {
       setPasswordError(getApiErrorMessage(err));
     } finally {
@@ -128,287 +115,158 @@ export default function ProfilePage() {
     }
   };
 
-  const displayName = profile?.name || user?.name || '-';
-  const displayEmail = profile?.email || user?.email || '-';
-  const displayPhone = profile?.phone || '-';
-  const displayCompany = profile?.company || '-';
-  const displayBio = profile?.bio || '-';
+  const roleLabel = (() => {
+    const r = profile?.role;
+    if (r === 3) return 'مدیر';
+    if (r === 2) return 'کارمند';
+    return 'مشتری';
+  })();
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div>
-          <div className="h-8 bg-muted animate-pulse rounded w-32 mb-2" />
-          <div className="h-4 bg-muted animate-pulse rounded w-48" />
-        </div>
-        <div className="glass rounded-2xl p-8 animate-pulse">
-          <div className="flex items-center gap-6 mb-8 pb-8 border-b border-border">
-            <div className="w-24 h-24 rounded-full bg-muted" />
-            <div className="space-y-2">
-              <div className="h-6 bg-muted rounded w-40" />
-              <div className="h-4 bg-muted rounded w-52" />
-            </div>
-          </div>
-          <div className="grid md:grid-cols-2 gap-6">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-10 bg-muted rounded" />
-            ))}
-          </div>
-        </div>
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-sky-500" />
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      {/* Header */}
+    <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">پروفایل</h1>
-          <p className="text-muted-foreground mt-1">مدیریت اطلاعات شخصی</p>
-        </div>
-        <Button
-          onClick={() => {
-            if (isEditing) {
-              handleSave();
-            } else {
-              setIsEditing(true);
-            }
-          }}
-          variant={isEditing ? 'default' : 'outline'}
-          className="rounded-full"
-          disabled={isSaving}
-        >
-          {isEditing ? (
-            <>
-              <Save className="w-4 h-4 ml-2" />
-              {isSaving ? 'در حال ذخیره...' : 'ذخیره'}
-            </>
-          ) : (
-            <>
-              <Edit2 className="w-4 h-4 ml-2" />
-              ویرایش
-            </>
-          )}
-        </Button>
+        <h1 className="text-2xl font-bold">پروفایل من</h1>
+        {!isEditing && (
+          <Button variant="outline" className="rounded-full gap-2" onClick={() => setIsEditing(true)}>
+            <Edit2 className="w-4 h-4" />ویرایش
+          </Button>
+        )}
       </div>
 
-      {/* Error */}
-      {error && (
-        <div className="glass rounded-xl p-4 flex items-center gap-3 text-red-500">
-          <AlertCircle className="w-5 h-5 flex-shrink-0" />
-          <span className="text-sm">{error}</span>
-        </div>
-      )}
-
-      {/* Success */}
       {successMsg && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="glass rounded-xl p-4 flex items-center gap-3 text-green-500"
-        >
-          <span className="text-sm">{successMsg}</span>
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+          className="p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-500 text-sm flex items-center gap-2">
+          <AlertCircle className="w-4 h-4" />{successMsg}
         </motion.div>
       )}
 
-      {/* Profile Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="glass rounded-2xl p-8"
-      >
-        {/* Avatar Section */}
-        <div className="flex items-center gap-6 mb-8 pb-8 border-b border-border">
-          <div className="relative">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-sky-500 to-blue-600 dark:from-blue-500 dark:to-cyan-500 flex items-center justify-center text-4xl font-bold text-white">
-              {displayName !== '-' ? displayName[0] : '?'}
-            </div>
-            {isEditing && (
-              <button className="absolute bottom-0 left-0 w-8 h-8 rounded-full bg-card flex items-center justify-center ring-2 ring-background">
-                <Camera className="w-4 h-4" />
-              </button>
+      {error && (
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+          className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-sm flex items-center gap-2">
+          <AlertCircle className="w-4 h-4" />{error}
+        </motion.div>
+      )}
+
+      <div className="glass rounded-2xl p-6 flex items-center gap-6">
+        <div className="relative">
+          <div className="w-20 h-20 rounded-2xl bg-sky-500/20 flex items-center justify-center text-3xl font-bold text-sky-500 dark:text-cyan-400">
+            {profile?.fullName?.[0]?.toUpperCase() || '?'}
+          </div>
+          <button className="absolute -bottom-2 -right-2 w-7 h-7 rounded-full bg-sky-500 flex items-center justify-center text-white hover:bg-sky-600 transition-colors">
+            <Camera className="w-3.5 h-3.5" />
+          </button>
+        </div>
+        <div>
+          <h2 className="text-xl font-bold">{profile?.fullName || '-'}</h2>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-500 dark:text-cyan-400 border border-sky-500/20">{roleLabel}</span>
+            {profile?.isActive && (
+              <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 border border-green-500/20">فعال</span>
             )}
           </div>
-          <div>
-            <h2 className="text-2xl font-bold">{displayName}</h2>
-            <p className="text-muted-foreground">{displayEmail}</p>
+        </div>
+      </div>
+
+      <div className="glass rounded-2xl p-6 space-y-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="space-y-2">
+            <Label>نام و نام خانوادگی</Label>
+            {isEditing ? (
+              <Input value={formData.fullName} onChange={e => setFormData(p => ({ ...p, fullName: e.target.value }))} className="bg-muted/50 border-border" />
+            ) : (
+              <div className="flex items-center gap-2 h-10 px-3 rounded-md bg-muted/30 text-sm">{profile?.fullName || '-'}</div>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label>ایمیل</Label>
+            {isEditing ? (
+              <div className="relative">
+                <Mail className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input type="email" value={formData.email} onChange={e => setFormData(p => ({ ...p, email: e.target.value }))} className="bg-muted/50 border-border pr-9" />
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 h-10 px-3 rounded-md bg-muted/30 text-sm">
+                <Mail className="w-4 h-4 text-muted-foreground" />{profile?.email || '-'}
+              </div>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label>نام کاربری</Label>
+            {isEditing ? (
+              <Input value={formData.userName || ''} onChange={e => setFormData(p => ({ ...p, userName: e.target.value }))} className="bg-muted/50 border-border" />
+            ) : (
+              <div className="flex items-center gap-2 h-10 px-3 rounded-md bg-muted/30 text-sm">{profile?.userName || '-'}</div>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label>شماره تلفن</Label>
+            {isEditing ? (
+              <div className="relative">
+                <Phone className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input type="tel" value={formData.phoneNumber || ''} onChange={e => setFormData(p => ({ ...p, phoneNumber: e.target.value }))} className="bg-muted/50 border-border pr-9" />
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 h-10 px-3 rounded-md bg-muted/30 text-sm">
+                <Phone className="w-4 h-4 text-muted-foreground" />{profile?.phoneNumber || '-'}
+              </div>
+            )}
           </div>
         </div>
-
-        {/* Form */}
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <Label htmlFor="name">نام و نام خانوادگی</Label>
-            <Input
-              id="name"
-              value={isEditing ? formData.name : displayName}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              disabled={!isEditing}
-              className="bg-muted/50 border-border"
-            />
+        {isEditing && (
+          <div className="flex gap-3 pt-2">
+            <Button onClick={handleSave} className="btn-primary shadow-glow" disabled={isSaving}>
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : <Save className="w-4 h-4 ml-2" />}
+              ذخیره
+            </Button>
+            <Button variant="outline" className="rounded-full" onClick={() => { setIsEditing(false); setError(null); }}>انصراف</Button>
           </div>
+        )}
+      </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email">ایمیل</Label>
-            <div className="relative">
-              <Mail className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                id="email"
-                type="email"
-                value={displayEmail}
-                disabled
-                className="pr-10 bg-muted/50 border-border"
-              />
-            </div>
-          </div>
+      <div className="glass rounded-2xl p-6">
+        <h3 className="font-semibold mb-4">امنیت</h3>
+        <Button variant="outline" className="rounded-full gap-2" onClick={() => setIsPasswordModalOpen(true)}>
+          <KeyRound className="w-4 h-4" />تغییر رمز عبور
+        </Button>
+      </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="phone">شماره تماس</Label>
-            <div className="relative">
-              <Phone className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                id="phone"
-                value={isEditing ? formData.phone : displayPhone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                disabled={!isEditing}
-                className="pr-10 bg-muted/50 border-border"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="company">شرکت</Label>
-            <div className="relative">
-              <Building className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                id="company"
-                value={isEditing ? formData.company : displayCompany}
-                onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                disabled={!isEditing}
-                className="pr-10 bg-muted/50 border-border"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="bio">درباره من</Label>
-            <Textarea
-              id="bio"
-              value={isEditing ? formData.bio : displayBio}
-              onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-              disabled={!isEditing}
-              className="bg-muted/50 border-border resize-none"
-              rows={3}
-            />
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Security Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="glass rounded-2xl p-8"
-      >
-        <h2 className="text-xl font-semibold mb-6">امنیت</h2>
-        <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
-          <div>
-            <h3 className="font-medium">تغییر رمز عبور</h3>
-            <p className="text-sm text-muted-foreground">رمز عبور خود را به‌روز کنید</p>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-full"
-            onClick={() => setIsPasswordModalOpen(true)}
-          >
-            تغییر رمز
-          </Button>
-        </div>
-      </motion.div>
-
-      {/* Change Password Modal */}
       <AnimatePresence>
         {isPasswordModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50"
-              onClick={() => setIsPasswordModalOpen(false)}
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative glass rounded-2xl p-6 max-w-md w-full"
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <KeyRound className="w-5 h-5" />
-                  تغییر رمز عبور
-                </h3>
-                <button
-                  onClick={() => setIsPasswordModalOpen(false)}
-                  className="p-2 rounded-lg hover:bg-muted transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/50" onClick={() => setIsPasswordModalOpen(false)} />
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative glass rounded-2xl p-6 max-w-md w-full">
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="font-semibold">تغییر رمز عبور</h3>
+                <button onClick={() => setIsPasswordModalOpen(false)} className="p-2 rounded-lg hover:bg-muted transition-colors"><X className="w-4 h-4" /></button>
               </div>
-
-              {passwordError && (
-                <div className="mb-4 p-3 rounded-lg bg-red-500/10 text-red-500 text-sm">
-                  {passwordError}
-                </div>
-              )}
-
+              {passwordError && <div className="mb-4 p-3 rounded-lg bg-red-500/10 text-red-500 text-sm">{passwordError}</div>}
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="currentPassword">رمز عبور فعلی</Label>
-                  <Input
-                    id="currentPassword"
-                    type="password"
-                    value={passwordData.currentPassword}
-                    onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                    className="bg-muted/50 border-border"
-                  />
+                  <Label>رمز عبور فعلی</Label>
+                  <Input type="password" value={passwordData.currentPassword} onChange={e => setPasswordData(p => ({ ...p, currentPassword: e.target.value }))} className="bg-muted/50 border-border" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="newPassword">رمز عبور جدید</Label>
-                  <Input
-                    id="newPassword"
-                    type="password"
-                    value={passwordData.newPassword}
-                    onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                    className="bg-muted/50 border-border"
-                  />
+                  <Label>رمز عبور جدید</Label>
+                  <Input type="password" value={passwordData.newPassword} onChange={e => setPasswordData(p => ({ ...p, newPassword: e.target.value }))} className="bg-muted/50 border-border" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">تکرار رمز عبور جدید</Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    value={passwordData.confirmPassword}
-                    onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                    className="bg-muted/50 border-border"
-                  />
+                  <Label>تکرار رمز عبور جدید</Label>
+                  <Input type="password" value={passwordData.confirmPassword} onChange={e => setPasswordData(p => ({ ...p, confirmPassword: e.target.value }))} className="bg-muted/50 border-border" />
                 </div>
               </div>
-
-              <div className="flex gap-3 justify-end mt-6">
-                <Button variant="outline" onClick={() => setIsPasswordModalOpen(false)}>
-                  انصراف
+              <div className="flex gap-3 mt-5">
+                <Button onClick={handleChangePassword} className="btn-primary shadow-glow flex-1" disabled={isChangingPassword}>
+                  {isChangingPassword ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : null}تغییر رمز
                 </Button>
-                <Button
-                  className="btn-primary shadow-glow"
-                  onClick={handleChangePassword}
-                  disabled={isChangingPassword}
-                >
-                  {isChangingPassword ? 'در حال تغییر...' : 'تغییر رمز'}
-                </Button>
+                <Button variant="outline" className="rounded-full" onClick={() => setIsPasswordModalOpen(false)}>انصراف</Button>
               </div>
             </motion.div>
           </div>

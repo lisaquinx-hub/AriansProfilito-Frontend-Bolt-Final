@@ -1,8 +1,10 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check, Sparkles } from 'lucide-react';
-import { pricingPlans } from '@/lib/mock-data';
+import { Check, Sparkles, Loader2 } from 'lucide-react';
+import { pricingService } from '@/services/PricingService';
+import { PricingPlan } from '@/types/api';
 import { Button } from '@/components/ui/button';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -10,13 +12,22 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
 export default function PricingPage() {
+  const [plans, setPlans] = useState<PricingPlan[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    pricingService.getAll().then((data) => {
+      setPlans(data);
+      setIsLoading(false);
+    });
+  }, []);
+
   return (
     <main className="min-h-screen pt-24 pb-16 relative">
-      {/* Background */}
       <div className="absolute inset-0 bg-gradient-hero" />
+      <Navbar />
 
       <div className="container mx-auto px-6 relative">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -30,96 +41,83 @@ export default function PricingPage() {
           </p>
         </motion.div>
 
-        {/* Pricing Cards */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto"
-        >
-          {pricingPlans.map((plan, index) => (
-            <motion.div
-              key={plan.id}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className={cn(
-                'rounded-2xl p-8 relative',
-                plan.isPopular
-                  ? 'glass border-2 border-sky-500/50 dark:border-cyan-500/50 scale-105 shadow-glow'
-                  : 'glass'
-              )}
-            >
-              {/* Popular Badge */}
-              {plan.isPopular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <div className="px-4 py-1 rounded-full bg-gradient-to-l from-sky-500 to-blue-600 dark:from-blue-600 dark:to-cyan-600 text-sm font-medium flex items-center gap-1 text-white">
-                    <Sparkles className="w-3 h-3" />
-                    محبوب‌ترین
-                  </div>
-                </div>
-              )}
-
-              {/* Plan Name */}
-              <h3 className="text-xl font-semibold mb-2">{plan.name}</h3>
-              <p className="text-muted-foreground text-sm mb-6">{plan.description}</p>
-
-              {/* Price */}
-              <div className="mb-8">
-                <span className="text-4xl font-bold">{plan.price}</span>
-                <span className="text-muted-foreground text-sm mr-2">تومان</span>
-              </div>
-
-              {/* Features */}
-              <ul className="space-y-3 mb-8">
-                {plan.features.map((feature, i) => (
-                  <li key={i} className="flex items-center gap-3 text-sm">
-                    <div className="w-5 h-5 rounded-full bg-sky-500/20 dark:bg-cyan-500/20 flex items-center justify-center">
-                      <Check className="w-3 h-3 text-sky-500 dark:text-cyan-400" />
-                    </div>
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-
-              {/* CTA */}
-              <Link href="/register">
-                <Button
-                  className={cn(
-                    'w-full rounded-full',
-                    plan.isPopular
-                      ? 'btn-primary shadow-glow'
-                      : ''
-                  )}
-                  variant={plan.isPopular ? 'default' : 'outline'}
-                >
-                  شروع همکاری
-                </Button>
-              </Link>
-            </motion.div>
-          ))}
-        </motion.div>
-
-        {/* Custom Quote */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="text-center mt-16"
-        >
-          <div className="glass rounded-2xl p-8 max-w-xl mx-auto">
-            <h3 className="text-xl font-semibold mb-4">نیاز به پروژه سفارشی دارید؟</h3>
-            <p className="text-muted-foreground mb-6">
-              برای پروژه‌های خاص، درخواست خود را ثبت کنید تا کارشناسان ما با شما تماس بگیرند.
-            </p>
-            <Link href="/contact">
-              <Button variant="outline" className="rounded-full">
-                درخواست مشاوره رایگان
-              </Button>
-            </Link>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 animate-spin text-sky-500" />
           </div>
-        </motion.div>
+        ) : plans.length === 0 ? (
+          <div className="text-center py-20 text-muted-foreground">
+            پلن قیمت‌گذاری‌ای یافت نشد
+          </div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto"
+          >
+            {plans.map((plan, index) => (
+              <motion.div
+                key={plan.id}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className={cn(
+                  'rounded-2xl p-8 relative',
+                  plan.isPopular
+                    ? 'glass border-2 border-sky-500/50 dark:border-cyan-500/50 scale-105 shadow-glow'
+                    : 'glass'
+                )}
+              >
+                {plan.isPopular && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                    <div className="px-4 py-1 rounded-full bg-gradient-to-l from-sky-500 to-blue-600 dark:from-blue-600 dark:to-cyan-600 text-sm font-medium flex items-center gap-1 text-white whitespace-nowrap">
+                      <Sparkles className="w-3 h-3" />
+                      محبوب‌ترین
+                    </div>
+                  </div>
+                )}
+
+                <h3 className="text-xl font-semibold mb-2">{plan.title}</h3>
+                <p className="text-muted-foreground text-sm mb-6">{plan.description}</p>
+
+                <div className="mb-6">
+                  <span className="text-4xl font-bold">{plan.price.toLocaleString()}</span>
+                  <span className="text-muted-foreground text-sm mr-2">تومان</span>
+                  {plan.duration > 0 && (
+                    <div className="text-xs text-muted-foreground mt-1">مدت: {plan.duration} روز</div>
+                  )}
+                  {plan.deliveryDays > 0 && (
+                    <div className="text-xs text-muted-foreground">تحویل: {plan.deliveryDays} روز</div>
+                  )}
+                </div>
+
+                <ul className="space-y-3 mb-8">
+                  {(plan.features || []).map((f, i) => (
+                    <li key={i} className="flex items-center gap-3 text-sm">
+                      <div className="w-5 h-5 rounded-full bg-sky-500/20 dark:bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
+                        <Check className="w-3 h-3 text-sky-500 dark:text-cyan-400" />
+                      </div>
+                      <span>{f.feature}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <Link href="/register">
+                  <Button
+                    className={cn('w-full rounded-full', plan.isPopular ? 'btn-primary shadow-glow' : '')}
+                    variant={plan.isPopular ? 'default' : 'outline'}
+                  >
+                    شروع همکاری
+                  </Button>
+                </Link>
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
       </div>
+
+      <Footer />
     </main>
   );
 }

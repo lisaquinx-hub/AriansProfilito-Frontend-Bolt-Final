@@ -1,0 +1,10 @@
+  const { user } = useAuth();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const displayName = user?.fullName || user?.email || 'مدیر';
+  const displayEmail = user?.email || '-';
+
+  const handleLogout = async () => {
+    await authService.logout();
+    router.push('/login');

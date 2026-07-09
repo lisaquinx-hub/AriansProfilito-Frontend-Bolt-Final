@@ -1,39 +1,60 @@
+// Backend-aligned types based on DTOs
+
 export interface HeroSection {
   id: string;
   title: string;
-  subtitle?: string;
-  description?: string;
-  primaryButtonText?: string;
-  primaryButtonUrl?: string;
+  subtitle: string;
+  description: string;
+  primaryButtonText: string;
+  primaryButtonUrl: string;
   secondaryButtonText?: string;
   secondaryButtonUrl?: string;
   backgroundImage?: string;
   videoUrl?: string;
   isActive: boolean;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
+}
+
+export interface ServiceFeature {
+  id?: string;
+  title: string;
+  displayOrder?: number;
 }
 
 export interface Service {
   id: string;
   title: string;
+  slug: string;
+  thumbnail?: string;
+  coverImage?: string;
+  shortDescription?: string;
   description: string;
+  estimatedDeliveryDays?: number;
+  isFeatured?: boolean;
+  displayOrder?: number;
   icon?: string;
   isActive?: boolean;
-  displayOrder?: number;
+  features?: ServiceFeature[];
   createdAt?: string;
   updatedAt?: string;
 }
 
+export interface PlanFeature {
+  feature: string;
+}
+
 export interface PricingPlan {
   id: string;
-  name: string;
-  price: string;
-  description?: string;
-  features: string[];
-  isPopular?: boolean;
+  title: string;
+  description: string;
+  price: number;
+  duration: number;
+  deliveryDays: number;
+  isPopular: boolean;
+  displayOrder: number;
   isActive?: boolean;
-  displayOrder?: number;
+  features: PlanFeature[];
   createdAt?: string;
   updatedAt?: string;
 }
@@ -48,7 +69,7 @@ export interface FAQ {
   updatedAt?: string;
 }
 
-export interface Settings {
+export interface SiteSettings {
   id: string;
   siteName?: string;
   logo?: string;
@@ -56,10 +77,8 @@ export interface Settings {
   favicon?: string;
   email?: string;
   phone?: string;
-  phoneNumber?: string;
   address?: string;
   footerText?: string;
-  footerDescription?: string;
   copyright?: string;
   googleMap?: string;
   googleAnalytics?: string;
@@ -70,24 +89,18 @@ export interface Settings {
   updatedAt?: string;
 }
 
-export interface SiteSettings {
+export interface Settings {
   id: string;
   siteName?: string;
   logo?: string;
-  darkLogo?: string;
-  favicon?: string;
   email?: string;
-  phone?: string;
   phoneNumber?: string;
   address?: string;
-  footerText?: string;
+  telegram?: string;
+  instagram?: string;
+  linkedin?: string;
+  whatsApp?: string;
   footerDescription?: string;
-  copyright?: string;
-  googleMap?: string;
-  googleAnalytics?: string;
-  metaTitle?: string;
-  metaDescription?: string;
-  metaKeywords?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -99,8 +112,8 @@ export interface SocialMedia {
   icon?: string;
   displayOrder?: number;
   isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface BlogCategory {
@@ -108,8 +121,8 @@ export interface BlogCategory {
   name: string;
   slug: string;
   publishedPostCount?: number;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface BlogPost {
@@ -127,13 +140,10 @@ export interface BlogPost {
   keywords?: string;
   categoryId?: string;
   categoryName?: string;
-  author?: string;
+  authorName?: string;
   authorAvatar?: string;
-  views?: number;
-  likes?: number;
-  tags?: string[];
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Comment {
@@ -158,43 +168,46 @@ export interface Technology {
   icon?: string;
   color?: string;
   portfolioCount?: number;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-export interface Project {
+export interface ProjectDetailDto {
   id: string;
+  userId: string;
+  customerFullName?: string;
+  customerEmail?: string;
+  pricingPlanId: string;
+  pricingPlanTitle?: string;
+  projectCode?: string;
   title: string;
-  slug: string;
   description: string;
-  longDescription?: string;
-  metric?: string;
-  metricValue?: string;
-  image?: string;
-  category?: string;
-  featured?: boolean;
-  completionTime?: string;
-  startingPrice?: string;
-  technologies?: string[];
-  features?: string[];
-  gallery?: string[];
-  videoUrl?: string;
-  clientName?: string;
-  projectUrl?: string;
-  isActive?: boolean;
-  displayOrder?: number;
+  status: number;
+  progress: number;
+  price: number;
+  paidAmount: number;
+  estimatedDeliveryDate?: string;
+  startDate?: string;
+  endDate?: string;
+  adminNote?: string;
+  customerComment?: string;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
+
+export type Project = ProjectDetailDto;
 
 export interface User {
   id: string;
-  name: string;
+  fullName: string;
   email: string;
   userName?: string;
-  avatar?: string;
-  role?: string;
+  phoneNumber?: string;
+  role?: number | string;
   isActive?: boolean;
+  emailConfirmed?: boolean;
+  avatar?: string;
+  lastLoginAt?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -206,7 +219,7 @@ export interface EmailTemplate {
   body: string;
   isActive: boolean;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 export interface ActivityLog {
@@ -236,61 +249,83 @@ export interface AuditLog {
   createdAt: string;
 }
 
-export interface Invoice {
+export interface InvoiceDetailDto {
   id: string;
-  invoiceNumber: string;
+  invoiceNumber?: string;
   userId?: string;
-  userName?: string;
+  customerFullName?: string;
+  customerEmail?: string;
   projectId?: string;
-  projectName?: string;
+  projectTitle?: string;
   amount: number;
-  tax?: number;
-  totalAmount: number;
-  status: string;
+  discountAmount?: number;
+  taxAmount?: number;
+  totalAmount?: number;
+  status: number;
+  description?: string;
   dueDate?: string;
   paidAt?: string;
-  notes?: string;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
-export interface Payment {
+export type Invoice = InvoiceDetailDto;
+
+export interface PaymentDetailDto {
   id: string;
   invoiceId?: string;
-  userId?: string;
-  userName?: string;
+  invoiceNumber?: string;
   amount: number;
-  method: string;
-  transactionId?: string;
-  status: string;
+  gateway?: string;
+  authority?: string;
+  refId?: string;
+  status: number;
+  cardPan?: string;
+  trackingCode?: string;
   paidAt?: string;
-  notes?: string;
+  createdAt: string;
+}
+
+export type Payment = PaymentDetailDto;
+
+export interface TicketMessageDto {
+  id: string;
+  ticketId: string;
+  userId: string;
+  userFullName?: string;
+  message: string;
   createdAt: string;
 }
 
 export interface SupportTicket {
   id: string;
+  ticketNumber?: string;
   userId?: string;
-  userName?: string;
-  subject: string;
+  customerFullName?: string;
+  customerEmail?: string;
+  title: string;
   description: string;
-  status: string;
-  priority?: string;
-  assignedTo?: string;
+  status: number;
+  priority: number;
+  assignedToUserId?: string;
+  assignedToFullName?: string;
   closedAt?: string;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
+  messages?: TicketMessageDto[];
 }
 
 export interface Notification {
   id: string;
   userId?: string;
+  userFullName?: string;
+  userEmail?: string;
+  type?: number;
   title: string;
   message: string;
-  type?: string;
   isRead: boolean;
-  link?: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface AdminDashboardStats {
@@ -309,4 +344,69 @@ export interface CreateCommentRequest {
   fullName: string;
   email: string;
   message: string;
+}
+
+export interface PortfolioListItem {
+  id: string;
+  title: string;
+  slug: string;
+  shortDescription?: string;
+  thumbnail: string;
+  clientName: string;
+  projectDate: string;
+  isFeatured: boolean;
+  displayOrder: number;
+  categoryName?: string;
+  categorySlug?: string;
+  technologies?: PortfolioTechnology[];
+}
+
+export interface PortfolioDetail {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  shortDescription?: string;
+  clientName: string;
+  projectDate: string;
+  thumbnail: string;
+  websiteUrl: string;
+  githubUrl?: string;
+  isFeatured: boolean;
+  displayOrder: number;
+  categoryId: string;
+  categoryName: string;
+  categorySlug: string;
+  images?: PortfolioImage[];
+  technologies?: PortfolioTechnology[];
+}
+
+export interface PortfolioImage {
+  id: string;
+  imageUrl: string;
+  isCover: boolean;
+  displayOrder: number;
+}
+
+export interface PortfolioTechnology {
+  id: string;
+  name: string;
+  icon?: string;
+  color?: string;
+}
+
+export interface PortfolioCategory {
+  id: string;
+  name: string;
+  slug: string;
+  displayOrder?: number;
+  portfolioCount?: number;
+}
+
+export interface PagedResult<T> {
+  items: T[];
+  totalCount: number;
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
 }

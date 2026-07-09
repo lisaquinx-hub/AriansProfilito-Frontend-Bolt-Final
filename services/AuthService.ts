@@ -8,69 +8,56 @@ export interface LoginRequest {
 }
 
 export interface RegisterRequest {
-  name: string;
+  fullName: string;
   email: string;
+  userName: string;
   password: string;
-  confirmPassword: string;
+  phoneNumber?: string;
 }
 
 export interface AuthUser {
   id: string;
-  name: string;
+  fullName: string;
   email: string;
-  userName?: string;
+  userName: string;
+  role: number;
   avatar?: string;
-  role?: string;
-  roles?: string[];
-  createdAt?: string;
+  isActive: boolean;
+  emailConfirmed: boolean;
 }
 
-export interface LoginResponseData {
-  token: string;
-  user?: AuthUser;
-  accessToken?: string;
-}
-
-export interface RegisterResponseData {
-  userId?: string;
-  message?: string;
-}
-
-export interface CurrentUserData {
-  id: string;
-  name: string;
-  email: string;
-  userName?: string;
-  avatar?: string;
-  role?: string;
-  roles?: string[];
-  phone?: string;
-  company?: string;
-  bio?: string;
+export interface AuthResponse {
+  accessToken: string;
+  refreshToken: string;
+  accessTokenExpiresAt: string;
+  refreshTokenExpiresAt: string;
+  user: AuthUser;
 }
 
 class AuthService {
   private endpoint = '/Auth';
 
-  async login(data: LoginRequest): Promise<LoginResponseData> {
+  async login(data: LoginRequest): Promise<AuthResponse> {
     try {
-      const response = await api.post<ApiResponse<LoginResponseData>>(`${this.endpoint}/login`, data);
-
+      const response = await api.post<ApiResponse<AuthResponse>>(`${this.endpoint}/login`, data);
       const responseData = response.data.data;
 
       if (!responseData) {
         throw new Error('Invalid response from server');
       }
 
-      if (responseData.token) {
-        setAccessToken(responseData.token);
-      } else if (responseData.accessToken) {
-        setAccessToken(responseData.accessToken);
-      }
+      setAccessToken(responseData.accessToken);
 
-      if (responseData.user) {
-        setStoredUser(responseData.user);
-      }
+      const storedUser = {
+        id: responseData.user.id,
+        fullName: responseData.user.fullName,
+        email: responseData.user.email,
+        userName: responseData.user.userName,
+        role: responseData.user.role,
+        avatar: responseData.user.avatar,
+        isActive: responseData.user.isActive,
+      };
+      setStoredUser(storedUser);
 
       return responseData;
     } catch (error) {
@@ -78,10 +65,29 @@ class AuthService {
     }
   }
 
-  async register(data: RegisterRequest): Promise<RegisterResponseData> {
+  async register(data: RegisterRequest): Promise<AuthResponse> {
     try {
-      const response = await api.post<ApiResponse<RegisterResponseData>>(`${this.endpoint}/register`, data);
-      return response.data.data || {};
+      const response = await api.post<ApiResponse<AuthResponse>>(`${this.endpoint}/register`, data);
+      const responseData = response.data.data;
+
+      if (!responseData) {
+        throw new Error('Invalid response from server');
+      }
+
+      setAccessToken(responseData.accessToken);
+
+      const storedUser = {
+        id: responseData.user.id,
+        fullName: responseData.user.fullName,
+        email: responseData.user.email,
+        userName: responseData.user.userName,
+        role: responseData.user.role,
+        avatar: responseData.user.avatar,
+        isActive: responseData.user.isActive,
+      };
+      setStoredUser(storedUser);
+
+      return responseData;
     } catch (error) {
       throw new Error(getApiErrorMessage(error));
     }
@@ -91,37 +97,9 @@ class AuthService {
     try {
       await api.post(`${this.endpoint}/logout`);
     } catch {
-      // Ignore logout API errors
+      // ignore
     } finally {
       removeAccessToken();
-    }
-  }
-
-  async getCurrentUser(): Promise<CurrentUserData> {
-    try {
-      const response = await api.get<ApiResponse<CurrentUserData>>(`${this.endpoint}/me`);
-      const data = response.data.data;
-      if (!data) throw new Error('User data not found');
-      return data;
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error));
-    }
-  }
-
-  async updateProfile(data: Partial<CurrentUserData>): Promise<CurrentUserData> {
-    try {
-      const response = await api.put<ApiResponse<CurrentUserData>>(`${this.endpoint}/profile`, data);
-      return response.data.data!;
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error));
-    }
-  }
-
-  async changePassword(oldPassword: string, newPassword: string): Promise<void> {
-    try {
-      await api.put(`${this.endpoint}/password`, { oldPassword, newPassword });
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error));
     }
   }
 

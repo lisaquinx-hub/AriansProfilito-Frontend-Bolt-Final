@@ -1,64 +1,59 @@
-import { api } from './api';
-import { Project, projects as mockProjects, getProjectBySlug, getProjectsByCategory, getFeaturedProjects } from '@/lib/mock-data';
-
-export interface ProjectListResponse {
-  projects: Project[];
-  total: number;
-  page: number;
-  limit: number;
-}
-
-export type SortOption = 'newest' | 'oldest' | 'featured';
+import { api, getApiErrorMessage } from './api';
+import { ApiResponse } from '@/lib/api-utils';
+import { PortfolioListItem, PortfolioDetail, PortfolioCategory, PagedResult } from '@/types/api';
 
 class PortfolioService {
-  private endpoint = '/portfolio';
+  private baseEndpoint = '/portfolio';
 
-  async getProjects(
-    page: number = 1,
-    limit: number = 10,
-    category?: string,
-    sort: SortOption = 'featured'
-  ): Promise<ProjectListResponse> {
-    // TODO: Replace with actual API call
-    let filtered = category && category !== 'all'
-      ? getProjectsByCategory(category)
-      : mockProjects;
-
-    // Sort
-    if (sort === 'newest') {
-      filtered = [...filtered].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-    } else if (sort === 'oldest') {
-      filtered = [...filtered].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
-    } else if (sort === 'featured') {
-      filtered = [...filtered].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+  async getItems(params?: {
+    pageNumber?: number;
+    pageSize?: number;
+    search?: string;
+    categorySlug?: string;
+    isFeatured?: boolean;
+  }): Promise<PagedResult<PortfolioListItem>> {
+    try {
+      const response = await api.get<ApiResponse<PagedResult<PortfolioListItem>>>(
+        `${this.baseEndpoint}/items`,
+        { params }
+      );
+      return (
+        response.data.data || {
+          items: [],
+          totalCount: 0,
+          pageNumber: 1,
+          pageSize: 10,
+          totalPages: 0,
+        }
+      );
+    } catch (error) {
+      console.error('Failed to fetch portfolio items:', getApiErrorMessage(error));
+      return { items: [], totalCount: 0, pageNumber: 1, pageSize: 10, totalPages: 0 };
     }
-
-    const start = (page - 1) * limit;
-    const paginated = filtered.slice(start, start + limit);
-    return {
-      projects: paginated,
-      total: filtered.length,
-      page,
-      limit,
-    };
   }
 
-  async getProject(slug: string): Promise<Project | undefined> {
-    return getProjectBySlug(slug);
+  async getBySlug(slug: string): Promise<PortfolioDetail | null> {
+    try {
+      const response = await api.get<ApiResponse<PortfolioDetail>>(
+        `${this.baseEndpoint}/items/${slug}`
+      );
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to fetch portfolio item:', getApiErrorMessage(error));
+      return null;
+    }
   }
 
-  async getFeatured(): Promise<Project[]> {
-    return getFeaturedProjects();
-  }
-
-  async searchProjects(query: string): Promise<Project[]> {
-    const q = query.toLowerCase();
-    return mockProjects.filter(
-      (p) =>
-        p.title.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q)
-    );
+  async getCategories(): Promise<PortfolioCategory[]> {
+    try {
+      const response = await api.get<ApiResponse<PortfolioCategory[]>>(
+        `${this.baseEndpoint}/categories`
+      );
+      return response.data.data || [];
+    } catch (error) {
+      console.error('Failed to fetch portfolio categories:', getApiErrorMessage(error));
+      return [];
+    }
   }
 }
 

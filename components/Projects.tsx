@@ -1,19 +1,18 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { projects } from '@/lib/mock-data';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { portfolioService } from '@/services/PortfolioService';
+import { PortfolioListItem } from '@/types/api';
 
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.2,
-    },
+    transition: { staggerChildren: 0.2 },
   },
 };
 
@@ -23,13 +22,24 @@ const itemVariants = {
 };
 
 export default function Projects() {
-  // Show only first 3 projects on homepage
-  const displayedProjects = projects.slice(0, 3);
+  const [items, setItems] = useState<PortfolioListItem[]>([]);
+
+  useEffect(() => {
+    portfolioService.getItems({ pageSize: 3, isFeatured: true }).then((result) => {
+      const data = result.items || [];
+      if (data.length === 0) {
+        portfolioService.getItems({ pageSize: 3 }).then((r) => setItems(r.items || []));
+      } else {
+        setItems(data);
+      }
+    });
+  }, []);
+
+  if (items.length === 0) return null;
 
   return (
     <section id="projects" className="py-24 relative">
       <div className="container mx-auto px-6">
-        {/* View All Button Above */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -47,7 +57,6 @@ export default function Projects() {
           </Link>
         </motion.div>
 
-        {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -61,7 +70,6 @@ export default function Projects() {
           </h3>
         </motion.div>
 
-        {/* Projects Grid */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -69,43 +77,39 @@ export default function Projects() {
           viewport={{ once: true }}
           className="grid md:grid-cols-3 gap-8"
         >
-          {displayedProjects.map((project) => (
-            <motion.div
-              key={project.id}
-              variants={itemVariants}
-              className="group relative"
-            >
-              <Link href={`/portfolio/${project.slug}`}>
+          {items.map((item) => (
+            <motion.div key={item.id} variants={itemVariants} className="group relative">
+              <Link href={`/portfolio/${item.slug}`}>
                 <div className="relative overflow-hidden rounded-2xl glass transition-all duration-300 hover:shadow-glow">
-                  {/* Project Image */}
                   <div className="relative h-48 overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-sky-500/30 to-blue-500/30 dark:from-blue-600/30 dark:to-cyan-600/30" />
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-4xl font-bold text-white/20 dark:text-white/20">{project.title[0]}</div>
+                      <div className="text-4xl font-bold text-white/20">{item.title[0]}</div>
                     </div>
+                    {item.categoryName && (
+                      <div className="absolute top-3 left-3">
+                        <span className="text-xs px-2 py-1 rounded-full bg-black/30 text-white backdrop-blur-sm">
+                          {item.categoryName}
+                        </span>
+                      </div>
+                    )}
                   </div>
-
-                  {/* Project Info */}
                   <div className="p-6">
                     <h4 className="text-xl font-semibold mb-3 group-hover:text-gradient transition-all">
-                      {project.title}
+                      {item.title}
                     </h4>
                     <p className="text-muted-foreground text-sm mb-4 leading-relaxed line-clamp-2">
-                      {project.description}
+                      {item.shortDescription || ''}
                     </p>
-
-                    {/* CTA Button */}
                     <div className="mb-4">
                       <span className="inline-flex items-center text-sm text-sky-500 dark:text-cyan-400 group-hover:text-gradient transition-all">
                         مشاهده پروژه
                         <ArrowLeft className="mr-1 h-4 w-4 transition-transform group-hover:-translate-x-1" />
                       </span>
                     </div>
-
-                    {/* Metric */}
                     <div className="flex items-center justify-between pt-4 border-t border-border">
-                      <span className="text-sm text-muted-foreground">{project.metric}</span>
-                      <span className="text-lg font-bold text-gradient">{project.metricValue}</span>
+                      <span className="text-sm text-muted-foreground">{item.clientName}</span>
+                      <span className="text-sm text-muted-foreground">{new Date(item.projectDate).getFullYear()}</span>
                     </div>
                   </div>
                 </div>
@@ -114,7 +118,6 @@ export default function Projects() {
           ))}
         </motion.div>
 
-        {/* View All Button Below */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}

@@ -5,13 +5,25 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { adminNotificationsService } from '@/services/admin/NotificationsService';
+import { api } from '@/services/api';
+import { ApiResponse } from '@/lib/api-utils';
 import { Notification } from '@/types/api';
 
 interface NotificationDropdownProps {
   isAdmin?: boolean;
 }
 
-export function NotificationDropdown({ isAdmin: _isAdmin = false }: NotificationDropdownProps) {
+// NotificationType: Info=1, Success=2, Warning=3, Error=4
+function getNotificationIcon(type?: number) {
+  switch (type) {
+    case 2: return <CheckCircle2 className="w-4 h-4 text-green-500" />;
+    case 3: return <AlertCircle className="w-4 h-4 text-yellow-500" />;
+    case 4: return <AlertCircle className="w-4 h-4 text-red-500" />;
+    default: return <Info className="w-4 h-4 text-sky-500 dark:text-cyan-400" />;
+  }
+}
+
+export function NotificationDropdown({ isAdmin = false }: NotificationDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -22,11 +34,16 @@ export function NotificationDropdown({ isAdmin: _isAdmin = false }: Notification
     setIsLoading(true);
     setError(null);
     try {
-      const data = await adminNotificationsService.getAll();
+      let data: Notification[] = [];
+      if (isAdmin) {
+        data = await adminNotificationsService.getAll();
+      } else {
+        const res = await api.get<ApiResponse<Notification[]>>('/notifications/my');
+        data = res.data.data || [];
+      }
       setNotifications(data);
-    } catch (err) {
+    } catch {
       setError('خطا در دریافت اعلان‌ها');
-      console.error('Notification fetch error:', err);
     } finally {
       setIsLoading(false);
     }
@@ -51,25 +68,6 @@ export function NotificationDropdown({ isAdmin: _isAdmin = false }: Notification
   }, [isOpen]);
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
-
-  const getIcon = (type?: string) => {
-    switch (type) {
-      case 'success':
-        return <CheckCircle2 className="w-4 h-4 text-green-500" />;
-      case 'warning':
-        return <AlertCircle className="w-4 h-4 text-yellow-500" />;
-      case 'error':
-        return <AlertCircle className="w-4 h-4 text-red-500" />;
-      default:
-        return <Info className="w-4 h-4 text-sky-500 dark:text-cyan-400" />;
-    }
-  };
-
-  const handleClickNotification = (notification: Notification) => {
-    if (notification.link) {
-      window.location.href = notification.link;
-    }
-  };
 
   return (
     <div ref={ref} className="relative">
@@ -96,25 +94,18 @@ export function NotificationDropdown({ isAdmin: _isAdmin = false }: Notification
             className="absolute left-0 mt-2 w-80 sm:w-96 z-50"
           >
             <div className="glass rounded-2xl shadow-xl border border-border dark:border-white/5 overflow-hidden">
-              {/* Header */}
               <div className="flex items-center justify-between p-4 border-b border-border dark:border-white/5">
                 <h3 className="text-sm font-semibold">اعلان‌ها</h3>
                 <div className="flex items-center gap-2">
                   {unreadCount > 0 && (
-                    <span className="text-xs text-muted-foreground">
-                      {unreadCount} خوانده‌نشده
-                    </span>
+                    <span className="text-xs text-muted-foreground">{unreadCount} خوانده‌نشده</span>
                   )}
-                  <button
-                    onClick={() => setIsOpen(false)}
-                    className="p-1 rounded-lg hover:bg-muted transition-colors"
-                  >
+                  <button onClick={() => setIsOpen(false)} className="p-1 rounded-lg hover:bg-muted transition-colors">
                     <X className="w-4 h-4" />
                   </button>
                 </div>
               </div>
 
-              {/* Body */}
               <div className="max-h-[400px] overflow-y-auto">
                 {isLoading && (
                   <div className="p-4 space-y-3">
@@ -134,12 +125,7 @@ export function NotificationDropdown({ isAdmin: _isAdmin = false }: Notification
                   <div className="p-8 text-center">
                     <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-3" />
                     <p className="text-sm text-muted-foreground">{error}</p>
-                    <button
-                      onClick={fetchNotifications}
-                      className="mt-3 text-xs text-sky-500 dark:text-cyan-400 hover:underline"
-                    >
-                      تلاش مجدد
-                    </button>
+                    <button onClick={fetchNotifications} className="mt-3 text-xs text-sky-500 dark:text-cyan-400 hover:underline">تلاش مجدد</button>
                   </div>
                 )}
 
@@ -153,23 +139,19 @@ export function NotificationDropdown({ isAdmin: _isAdmin = false }: Notification
                 {!isLoading && !error && notifications.length > 0 && (
                   <div className="divide-y divide-border dark:divide-white/5">
                     {notifications.map((notification) => (
-                      <button
+                      <div
                         key={notification.id}
-                        onClick={() => handleClickNotification(notification)}
                         className={cn(
-                          'w-full flex gap-3 p-4 text-right hover:bg-muted/50 transition-colors',
+                          'flex gap-3 p-4',
                           !notification.isRead && 'bg-sky-500/5 dark:bg-cyan-500/5'
                         )}
                       >
                         <div className="flex-shrink-0 mt-1">
-                          {getIcon(notification.type)}
+                          {getNotificationIcon(notification.type)}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2">
-                            <span className={cn(
-                              'text-sm truncate',
-                              !notification.isRead ? 'font-semibold' : 'font-medium'
-                            )}>
+                            <span className={cn('text-sm truncate', !notification.isRead ? 'font-semibold' : 'font-medium')}>
                               {notification.title || '-'}
                             </span>
                             {!notification.isRead && (
@@ -177,31 +159,19 @@ export function NotificationDropdown({ isAdmin: _isAdmin = false }: Notification
                             )}
                           </div>
                           {notification.message && (
-                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                              {notification.message}
-                            </p>
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{notification.message}</p>
                           )}
                           {notification.createdAt && (
-                            <p className="text-[10px] text-muted-foreground mt-1">
+                            <p className="text-xs text-muted-foreground/60 mt-1">
                               {new Date(notification.createdAt).toLocaleDateString('fa-IR')}
                             </p>
                           )}
                         </div>
-                      </button>
+                      </div>
                     ))}
                   </div>
                 )}
               </div>
-
-              {/* Footer */}
-              {!isLoading && !error && notifications.length > 0 && (
-                <div className="p-3 border-t border-border dark:border-white/5 text-center">
-                  {/* TODO: mark-as-read endpoint — implement when backend supports it */}
-                  <span className="text-xs text-muted-foreground">
-                    {notifications.length} اعلان
-                  </span>
-                </div>
-              )}
             </div>
           </motion.div>
         )}

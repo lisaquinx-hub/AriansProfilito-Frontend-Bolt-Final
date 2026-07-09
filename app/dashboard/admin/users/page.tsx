@@ -1,15 +1,22 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Users, RefreshCw } from 'lucide-react';
+import { Users, RefreshCw, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
 import { EntityFormModal, FormField } from '@/components/admin/EntityFormModal';
-import { adminUsersService } from '@/services/admin/index';
+import { adminUsersService, CreateUserDto, UpdateUserDto } from '@/services/admin/index';
 import { User } from '@/types/api';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/services/api';
+
+// UserRole: Customer=1, Employee=2, Admin=3
+const ROLE_OPTIONS = [
+  { value: '1', label: 'مشتری' },
+  { value: '2', label: 'کارمند' },
+  { value: '3', label: 'مدیر' },
+];
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -26,16 +33,14 @@ export default function AdminUsersPage() {
     setIsLoading(false);
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  useEffect(() => { fetchUsers(); }, []);
 
   const handleDelete = async () => {
     if (!deleteId) return;
     setIsDeleting(true);
     try {
       await adminUsersService.delete(deleteId);
-      setUsers(users.filter(u => u.id !== deleteId));
+      setUsers(prev => prev.filter(u => u.id !== deleteId));
       setDeleteId(null);
       toast.success('کاربر با موفقیت حذف شد');
     } catch (error) {
@@ -44,123 +49,87 @@ export default function AdminUsersPage() {
     setIsDeleting(false);
   };
 
-  const handleEdit = (item: User) => {
-    setEditingItem(item);
-    setIsFormOpen(true);
-  };
-
   const handleSubmit = async (data: Record<string, unknown>) => {
-    try {
-      if (!editingItem) {
-        throw new Error('کاربر قابل ایجاد نیست');
-      }
-      await adminUsersService.update(editingItem.id, data as Partial<User>);
+    if (editingItem) {
+      const payload: UpdateUserDto = {
+        fullName: String(data.fullName || '').trim(),
+        email: String(data.email || '').trim(),
+        userName: String(data.userName || '') || undefined,
+        phoneNumber: String(data.phoneNumber || '') || undefined,
+        role: Number(data.role) || 1,
+        isActive: Boolean(data.isActive ?? true),
+        emailConfirmed: Boolean(data.emailConfirmed ?? false),
+        avatar: String(data.avatar || '') || undefined,
+      };
+      await adminUsersService.update(editingItem.id, payload);
       toast.success('کاربر با موفقیت ویرایش شد');
-      fetchUsers();
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error));
+    } else {
+      const payload: CreateUserDto = {
+        fullName: String(data.fullName || '').trim(),
+        email: String(data.email || '').trim(),
+        userName: String(data.userName || '') || undefined,
+        password: String(data.password || ''),
+        phoneNumber: String(data.phoneNumber || '') || undefined,
+        role: Number(data.role) || 1,
+        isActive: Boolean(data.isActive ?? true),
+        emailConfirmed: Boolean(data.emailConfirmed ?? false),
+        avatar: String(data.avatar || '') || undefined,
+      };
+      await adminUsersService.create(payload);
+      toast.success('کاربر با موفقیت ایجاد شد');
     }
+    fetchUsers();
   };
 
-  const fields: FormField[] = [
-    { key: 'name', label: 'نام', required: true },
+  const editFields: FormField[] = [
+    { key: 'fullName', label: 'نام کامل', required: true },
     { key: 'email', label: 'ایمیل', type: 'email', required: true },
-    { key: 'userName', label: 'نام کاربری', type: 'text' },
-    {
-      key: 'role',
-      label: 'نقش',
-      type: 'select',
-      options: [
-        { value: 'Admin', label: 'مدیر' },
-        { value: 'User', label: 'کاربر' },
-      ],
-    },
+    { key: 'userName', label: 'نام کاربری' },
+    { key: 'phoneNumber', label: 'شماره تلفن' },
+    { key: 'role', label: 'نقش', type: 'select', required: true, options: ROLE_OPTIONS },
     { key: 'isActive', label: 'فعال', type: 'switch' },
+    { key: 'emailConfirmed', label: 'ایمیل تأیید شده', type: 'switch' },
+  ];
+
+  const createFields: FormField[] = [
+    ...editFields.slice(0, 4),
+    { key: 'password', label: 'رمز عبور', type: 'password', required: true },
+    ...editFields.slice(4),
   ];
 
   const columns = [
-    { key: 'name', label: 'نام' },
+    { key: 'fullName', label: 'نام' },
     { key: 'email', label: 'ایمیل' },
-    {
-      key: 'role',
-      label: 'نقش',
-      render: (user: User) => (
-        <span className={`px-2 py-1 rounded-full text-xs ${
-          user.role === 'Admin' ? 'bg-purple-500/10 text-purple-500' : 'bg-sky-500/10 text-sky-500'
-        }`}>
-          {user.role || 'کاربر'}
-        </span>
-      ),
-    },
-    {
-      key: 'isActive',
-      label: 'وضعیت',
-      render: (user: User) => (
-        <span className={`px-2 py-1 rounded-full text-xs ${
-          user.isActive ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
-        }`}>
-          {user.isActive ? 'فعال' : 'غیرفعال'}
-        </span>
-      ),
-    },
-    {
-      key: 'createdAt',
-      label: 'تاریخ ثبت',
-      render: (user: User) => user.createdAt ? new Date(user.createdAt).toLocaleDateString('fa-IR') : '-',
-    },
+    { key: 'userName', label: 'نام کاربری', render: (i: User) => i.userName || '-' },
+    { key: 'role', label: 'نقش', render: (i: User) => ROLE_OPTIONS.find(o => o.value === String(i.role))?.label || String(i.role) },
+    { key: 'isActive', label: 'وضعیت', render: (i: User) => (
+      <span className={`px-2 py-1 rounded-full text-xs ${i.isActive ? 'bg-green-500/10 text-green-500' : 'bg-gray-500/10 text-gray-400'}`}>
+        {i.isActive ? 'فعال' : 'غیرفعال'}
+      </span>
+    )},
+    { key: 'createdAt', label: 'تاریخ', render: (i: User) => i.createdAt ? new Date(i.createdAt).toLocaleDateString('fa-IR') : '-' },
   ];
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Users className="w-6 h-6" />
-            مدیریت کاربران
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            {users.length} کاربر ثبت شده
-          </p>
+          <h1 className="text-2xl font-bold flex items-center gap-2"><Users className="w-6 h-6" />مدیریت کاربران</h1>
+          <p className="text-muted-foreground text-sm mt-1">{users.length} کاربر</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={fetchUsers}>
-            <RefreshCw className="w-4 h-4 ml-1" />
-            بروزرسانی
-          </Button>
+          <Button variant="outline" size="sm" onClick={fetchUsers}><RefreshCw className={`w-4 h-4 ml-1 ${isLoading ? 'animate-spin' : ''}`} />بروزرسانی</Button>
+          <Button size="sm" className="btn-primary" onClick={() => { setEditingItem(null); setIsFormOpen(true); }}><Plus className="w-4 h-4 ml-1" />کاربر جدید</Button>
         </div>
       </div>
-
-      <Card className="glass">
-        <CardContent className="p-6">
-          <DataTable
-            data={users}
-            columns={columns}
-            loading={isLoading}
-            onEdit={handleEdit}
-            onDelete={(user) => setDeleteId(user.id)}
-            emptyMessage="کاربری یافت نشد"
-          />
-        </CardContent>
-      </Card>
-
-      <ConfirmDialog
-        open={!!deleteId}
-        onOpenChange={(open) => !open && setDeleteId(null)}
-        title="حذف کاربر"
-        description="آیا از حذف این کاربر اطمینان دارید؟ این عمل قابل بازگشت نیست."
-        onConfirm={handleDelete}
-        loading={isDeleting}
-      />
-
-      <EntityFormModal
-        open={isFormOpen}
-        onOpenChange={setIsFormOpen}
-        title={editingItem ? 'ویرایش کاربر' : 'ایجاد کاربر جدید'}
-        fields={fields}
-        initialValues={editingItem ? { ...editingItem } as Record<string, unknown> : undefined}
-        onSubmit={handleSubmit}
-        submitLabel={editingItem ? 'ذخیره تغییرات' : 'ایجاد کاربر'}
-      />
+      <Card className="glass"><CardContent className="p-6">
+        <DataTable data={users} columns={columns} loading={isLoading} onEdit={(i) => { setEditingItem(i); setIsFormOpen(true); }} onDelete={(i) => setDeleteId(i.id)} emptyMessage="کاربری یافت نشد" />
+      </CardContent></Card>
+      <ConfirmDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)} title="حذف کاربر" description="آیا از حذف این کاربر اطمینان دارید؟" onConfirm={handleDelete} loading={isDeleting} />
+      <EntityFormModal open={isFormOpen} onOpenChange={setIsFormOpen} title={editingItem ? 'ویرایش کاربر' : 'کاربر جدید'}
+        fields={editingItem ? editFields : createFields}
+        initialValues={editingItem ? { fullName: editingItem.fullName, email: editingItem.email, userName: editingItem.userName || '', phoneNumber: editingItem.phoneNumber || '', role: String(editingItem.role || '1'), isActive: editingItem.isActive ?? true, emailConfirmed: editingItem.emailConfirmed ?? false } : undefined}
+        onSubmit={handleSubmit} />
     </div>
   );
 }

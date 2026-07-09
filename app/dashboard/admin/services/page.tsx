@@ -5,7 +5,7 @@ import { Briefcase, RefreshCw, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
-import { adminServicesService } from '@/services/admin/ServicesService';
+import { adminServicesService, CreateServiceDto, UpdateServiceDto } from '@/services/admin/ServicesService';
 import { Service } from '@/types/api';
 import { EntityFormModal, FormField } from '@/components/admin/EntityFormModal';
 import { toast } from 'sonner';
@@ -26,44 +26,45 @@ export default function AdminServicesPage() {
     setIsLoading(false);
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const handleDelete = async () => {
     if (!deleteId) return;
     setIsDeleting(true);
     try {
       await adminServicesService.delete(deleteId);
-      setItems(items.filter(i => i.id !== deleteId));
+      setItems(prev => prev.filter(i => i.id !== deleteId));
       setDeleteId(null);
+      toast.success('سرویس با موفقیت حذف شد');
     } catch (error) {
-      console.error('Failed to delete:', error);
+      toast.error(getApiErrorMessage(error));
     }
     setIsDeleting(false);
   };
 
-  const handleEdit = (item: Service) => {
-    setEditingItem(item);
-    setIsFormOpen(true);
-  };
-
-  const handleCreate = () => {
-    setEditingItem(null);
-    setIsFormOpen(true);
-  };
-
   const handleSubmit = async (data: Record<string, unknown>) => {
-    const submitData = {
-      ...data,
-      displayOrder: data.displayOrder ? Number(data.displayOrder) : undefined,
+    const featuresText = String(data.featuresText || '');
+    const features = featuresText.split('\n').map((s, i) => ({ title: s.trim(), displayOrder: i })).filter(f => f.title);
+    const payload: CreateServiceDto = {
+      title: String(data.title || '').trim(),
+      slug: String(data.slug || '') || undefined,
+      thumbnail: String(data.thumbnail || '').trim(),
+      coverImage: String(data.coverImage || '').trim(),
+      shortDescription: String(data.shortDescription || '') || undefined,
+      description: String(data.description || '').trim(),
+      estimatedDeliveryDays: Number(data.estimatedDeliveryDays) || 0,
+      isFeatured: Boolean(data.isFeatured),
+      displayOrder: Number(data.displayOrder) || 0,
+      icon: String(data.icon || '') || undefined,
+      isActive: Boolean(data.isActive ?? true),
+      features,
     };
     try {
       if (editingItem) {
-        await adminServicesService.update(editingItem.id, submitData as Partial<Service>);
+        await adminServicesService.update(editingItem.id, payload);
         toast.success('سرویس با موفقیت ویرایش شد');
       } else {
-        await adminServicesService.create(submitData as Partial<Service>);
+        await adminServicesService.create(payload);
         toast.success('سرویس با موفقیت ایجاد شد');
       }
       fetchData();
@@ -74,84 +75,50 @@ export default function AdminServicesPage() {
   };
 
   const fields: FormField[] = [
-    { key: 'title', label: 'عنوان', required: true },
-    { key: 'description', label: 'توضیحات', type: 'textarea', required: true, fullWidth: true },
-    { key: 'icon', label: 'آیکون' },
-    { key: 'isActive', label: 'فعال', type: 'switch' },
+    { key: 'title', label: 'عنوان', required: true, fullWidth: true },
+    { key: 'slug', label: 'Slug' },
+    { key: 'thumbnail', label: 'تصویر کوچک (URL)', type: 'url' },
+    { key: 'coverImage', label: 'تصویر اصلی (URL)', type: 'url' },
+    { key: 'shortDescription', label: 'توضیح کوتاه', type: 'textarea', fullWidth: true },
+    { key: 'description', label: 'توضیحات کامل', type: 'textarea', required: true, fullWidth: true, rows: 5 },
+    { key: 'estimatedDeliveryDays', label: 'روزهای تحویل', type: 'number' },
     { key: 'displayOrder', label: 'ترتیب نمایش', type: 'number' },
+    { key: 'icon', label: 'آیکون' },
+    { key: 'isFeatured', label: 'ویژه', type: 'switch' },
+    { key: 'isActive', label: 'فعال', type: 'switch' },
+    { key: 'featuresText', label: 'ویژگی‌ها (هر خط یک ویژگی)', type: 'textarea', fullWidth: true, rows: 4, placeholder: 'ویژگی اول\nویژگی دوم' },
   ];
 
   const columns = [
     { key: 'title', label: 'عنوان' },
-    { key: 'description', label: 'توضیحات', render: (item: Service) => (
-      <div className="max-w-xs truncate text-sm">{item.description}</div>
+    { key: 'description', label: 'توضیحات', render: (i: Service) => <div className="max-w-xs truncate text-sm">{i.shortDescription || i.description}</div> },
+    { key: 'isActive', label: 'وضعیت', render: (i: Service) => (
+      <span className={`px-2 py-1 rounded-full text-xs ${i.isActive ? 'bg-green-500/10 text-green-500' : 'bg-gray-500/10 text-gray-400'}`}>
+        {i.isActive ? 'فعال' : 'غیرفعال'}
+      </span>
     )},
-    {
-      key: 'isActive',
-      label: 'وضعیت',
-      render: (item: Service) => (
-        <span className={`px-2 py-1 rounded-full text-xs ${
-          item.isActive ? 'bg-green-500/10 text-green-500' : 'bg-gray-500/10 text-gray-500'
-        }`}>
-          {item.isActive ? 'فعال' : 'غیرفعال'}
-        </span>
-      ),
-    },
+    { key: 'isFeatured', label: 'ویژه', render: (i: Service) => i.isFeatured ? 'بله' : 'خیر' },
   ];
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Briefcase className="w-6 h-6" />
-            مدیریت خدمات
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">{items.length} رکورد</p>
+          <h1 className="text-2xl font-bold flex items-center gap-2"><Briefcase className="w-6 h-6" />مدیریت خدمات</h1>
+          <p className="text-muted-foreground text-sm mt-1">{items.length} خدمت</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={fetchData}>
-            <RefreshCw className="w-4 h-4 ml-1" />
-            بروزرسانی
-          </Button>
-          <Button size="sm" className="btn-primary" onClick={handleCreate}>
-            <Plus className="w-4 h-4 ml-1" />
-            ایجاد
-          </Button>
+          <Button variant="outline" size="sm" onClick={fetchData}><RefreshCw className={`w-4 h-4 ml-1 ${isLoading ? 'animate-spin' : ''}`} />بروزرسانی</Button>
+          <Button size="sm" className="btn-primary" onClick={() => { setEditingItem(null); setIsFormOpen(true); }}><Plus className="w-4 h-4 ml-1" />ایجاد</Button>
         </div>
       </div>
-
-      <Card className="glass">
-        <CardContent className="p-6">
-          <DataTable
-            data={items}
-            columns={columns}
-            loading={isLoading}
-            onEdit={handleEdit}
-            onDelete={(item) => setDeleteId(item.id)}
-            emptyMessage="رکوردی یافت نشد"
-          />
-        </CardContent>
-      </Card>
-
-      <ConfirmDialog
-        open={!!deleteId}
-        onOpenChange={(open) => !open && setDeleteId(null)}
-        title="حذف رکورد"
-        description="آیا از حذف این سرویس اطمینان دارید؟"
-        onConfirm={handleDelete}
-        loading={isDeleting}
-      />
-
-      <EntityFormModal
-        open={isFormOpen}
-        onOpenChange={setIsFormOpen}
-        title={editingItem ? 'ویرایش سرویس' : 'ایجاد سرویس جدید'}
-        fields={fields}
-        initialValues={editingItem ? { ...editingItem } as Record<string, unknown> : undefined}
-        onSubmit={handleSubmit}
-        submitLabel={editingItem ? 'ذخیره تغییرات' : 'ایجاد'}
-      />
+      <Card className="glass"><CardContent className="p-6">
+        <DataTable data={items} columns={columns} loading={isLoading} onEdit={(i) => { setEditingItem(i); setIsFormOpen(true); }} onDelete={(i) => setDeleteId(i.id)} emptyMessage="خدمتی یافت نشد" />
+      </CardContent></Card>
+      <ConfirmDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)} title="حذف خدمت" description="آیا از حذف این خدمت اطمینان دارید؟" onConfirm={handleDelete} loading={isDeleting} />
+      <EntityFormModal open={isFormOpen} onOpenChange={setIsFormOpen} title={editingItem ? 'ویرایش خدمت' : 'خدمت جدید'} fields={fields}
+        initialValues={editingItem ? { title: editingItem.title, slug: editingItem.slug || '', thumbnail: editingItem.thumbnail || '', coverImage: editingItem.coverImage || '', shortDescription: editingItem.shortDescription || '', description: editingItem.description, estimatedDeliveryDays: editingItem.estimatedDeliveryDays || 0, displayOrder: editingItem.displayOrder || 0, icon: editingItem.icon || '', isFeatured: editingItem.isFeatured || false, isActive: editingItem.isActive ?? true, featuresText: (editingItem.features || []).map(f => f.title).join('\n') } : undefined}
+        onSubmit={handleSubmit} />
     </div>
   );
 }

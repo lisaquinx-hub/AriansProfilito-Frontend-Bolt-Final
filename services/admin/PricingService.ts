@@ -1,6 +1,20 @@
 import { api, getApiErrorMessage } from '../api';
 import { ApiResponse } from '@/lib/api-utils';
-import { PricingPlan } from '@/types/api';
+import { PricingPlan, PlanFeature } from '@/types/api';
+
+export interface CreatePricingPlanDto {
+  title: string;
+  description: string;
+  price: number;
+  duration: number;
+  deliveryDays: number;
+  isPopular: boolean;
+  displayOrder: number;
+  isActive: boolean;
+  features: Array<{ feature: string }>;
+}
+
+export type UpdatePricingPlanDto = CreatePricingPlanDto;
 
 class AdminPricingService {
   private endpoint = '/admin/pricing/plans';
@@ -24,7 +38,7 @@ class AdminPricingService {
     }
   }
 
-  async create(data: Partial<PricingPlan>): Promise<PricingPlan | null> {
+  async create(data: CreatePricingPlanDto): Promise<PricingPlan | null> {
     try {
       const response = await api.post<ApiResponse<PricingPlan>>(this.endpoint, data);
       return response.data.data;
@@ -33,7 +47,7 @@ class AdminPricingService {
     }
   }
 
-  async update(id: string, data: Partial<PricingPlan>): Promise<PricingPlan | null> {
+  async update(id: string, data: UpdatePricingPlanDto): Promise<PricingPlan | null> {
     try {
       const response = await api.put<ApiResponse<PricingPlan>>(`${this.endpoint}/${id}`, data);
       return response.data.data;

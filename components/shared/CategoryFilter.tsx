@@ -2,7 +2,11 @@
 
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { Category } from '@/lib/mock-data';
+interface Category {
+  id: string;
+  name: string;
+  count: number;
+}
 
 interface CategoryFilterProps {
   categories: Category[];

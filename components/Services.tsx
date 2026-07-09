@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { services as mockServices, products as mockProducts } from '@/lib/mock-data';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { servicesService } from '@/services/ServicesService';
@@ -45,16 +44,8 @@ export default function Services() {
         setServices(data.map(s => ({
           id: s.id,
           title: s.title,
-          description: s.description,
-          slug: s.id,
-        })));
-      } else {
-        // Fallback to mock products if no services from API
-        setServices(mockProducts.slice(0, 3).map(p => ({
-          id: p.id,
-          title: p.title,
-          description: p.shortDescription,
-          slug: p.slug,
+          description: s.shortDescription || s.description,
+          slug: s.slug || s.id,
         })));
       }
       setIsLoading(false);

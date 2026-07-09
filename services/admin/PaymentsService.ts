@@ -2,6 +2,32 @@ import { api, getApiErrorMessage } from '../api';
 import { ApiResponse } from '@/lib/api-utils';
 import { Payment } from '@/types/api';
 
+export interface CreatePaymentDto {
+  invoiceId: string;
+  amount: number;
+  gateway: string;
+  authority?: string;
+  refId?: string;
+  status: number;
+  cardPan?: string;
+  trackingCode?: string;
+  gatewayResponse?: string;
+  paidAt?: string | null;
+}
+
+export interface UpdatePaymentDto {
+  invoiceId: string;
+  amount: number;
+  gateway: string;
+  authority?: string;
+  refId?: string;
+  status: number;
+  cardPan?: string;
+  trackingCode?: string;
+  gatewayResponse?: string;
+  paidAt?: string | null;
+}
+
 class AdminPaymentsService {
   private endpoint = '/admin/payments';
 
@@ -24,7 +50,7 @@ class AdminPaymentsService {
     }
   }
 
-  async create(data: Partial<Payment>): Promise<Payment | null> {
+  async create(data: CreatePaymentDto): Promise<Payment | null> {
     try {
       const response = await api.post<ApiResponse<Payment>>(this.endpoint, data);
       return response.data.data;
@@ -33,7 +59,7 @@ class AdminPaymentsService {
     }
   }
 
-  async update(id: string, data: Partial<Payment>): Promise<Payment | null> {
+  async update(id: string, data: UpdatePaymentDto): Promise<Payment | null> {
     try {
       const response = await api.put<ApiResponse<Payment>>(`${this.endpoint}/${id}`, data);
       return response.data.data;

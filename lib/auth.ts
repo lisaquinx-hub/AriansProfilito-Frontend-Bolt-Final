@@ -43,26 +43,28 @@ export function setStoredUser<T>(user: T): void {
 
 export interface StoredUser {
   id?: string;
-  name?: string;
+  fullName?: string;
   email?: string;
   userName?: string;
   avatar?: string;
   role?: unknown;
-  roles?: unknown;
+  isActive?: boolean;
 }
 
-const ADMIN_ROLES = new Set(['admin', 'administrator']);
+// UserRole enum values from backend: Customer=1, Employee=2, Admin=3
+const ADMIN_ROLE_VALUE = 3;
+const ADMIN_ROLE_NAMES = new Set(['admin', 'administrator', '3']);
 
 function normalizeRoleValues(value: unknown): string[] {
   if (value == null) return [];
 
+  if (typeof value === 'number') {
+    return [String(value)];
+  }
+
   if (typeof value === 'string') {
     const trimmed = value.trim().toLowerCase();
     return trimmed ? [trimmed] : [];
-  }
-
-  if (typeof value === 'number' || typeof value === 'boolean') {
-    return [String(value).toLowerCase()];
   }
 
   if (Array.isArray(value)) {
@@ -71,8 +73,7 @@ function normalizeRoleValues(value: unknown): string[] {
 
   if (typeof value === 'object') {
     const obj = value as Record<string, unknown>;
-    const nameKeys = ['name', 'roleName', 'normalizedName', 'title', 'value', 'key'];
-    for (const key of nameKeys) {
+    for (const key of ['name', 'roleName', 'normalizedName', 'title', 'value', 'key']) {
       if (key in obj) {
         const result = normalizeRoleValues(obj[key]);
         if (result.length > 0) return result;
@@ -89,12 +90,15 @@ export function hasAdminRole(user: unknown): boolean {
   if (!user || typeof user !== 'object') return false;
   const u = user as Record<string, unknown>;
 
+  // Direct numeric check (UserRole.Admin = 3)
+  if (typeof u.role === 'number' && u.role === ADMIN_ROLE_VALUE) return true;
+
   const allRoles = [
     ...normalizeRoleValues(u.role),
     ...normalizeRoleValues(u.roles),
   ];
 
-  return allRoles.some(r => ADMIN_ROLES.has(r));
+  return allRoles.some(r => ADMIN_ROLE_NAMES.has(r));
 }
 
 export function isAdmin(): boolean {

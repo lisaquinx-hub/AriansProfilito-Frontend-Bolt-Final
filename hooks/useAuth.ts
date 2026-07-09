@@ -1,8 +1,15 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { getAccessToken, getStoredUser, removeAccessToken, setStoredUser, isAdmin, type StoredUser } from '@/lib/auth';
-import { authService } from '@/services/AuthService';
+import {
+  getAccessToken,
+  getStoredUser,
+  removeAccessToken,
+  setStoredUser,
+  isAdmin,
+  hasAdminRole,
+  type StoredUser,
+} from '@/lib/auth';
 
 export interface AuthState {
   isAuthenticated: boolean;
@@ -24,43 +31,18 @@ export function useAuth(): AuthState & {
 } {
   const [state, setState] = useState<AuthState>(initialState);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(() => {
     if (typeof window === 'undefined') return;
     const token = getAccessToken();
-    const storedUser = getStoredUser<StoredUser>();
 
     if (!token) {
       setState({ isAuthenticated: false, user: null, isAdmin: false, isLoading: false });
       return;
     }
 
-    if (storedUser) {
-      setState({ isAuthenticated: true, user: storedUser, isAdmin: isAdmin(), isLoading: false });
-    } else {
-      setState({ isAuthenticated: true, user: null, isAdmin: false, isLoading: false });
-    }
-
-    try {
-      const currentUser = await authService.getCurrentUser();
-      if (currentUser) {
-        const user: StoredUser = {
-          id: currentUser.id,
-          name: currentUser.name,
-          email: currentUser.email,
-          userName: currentUser.userName,
-          avatar: currentUser.avatar,
-          role: currentUser.role,
-          roles: currentUser.roles,
-        };
-        setStoredUser(user);
-        setState({ isAuthenticated: true, user, isAdmin: isAdmin(), isLoading: false });
-      }
-    } catch {
-      const stored = getStoredUser<StoredUser>();
-      if (!stored) {
-        setState({ isAuthenticated: true, user: null, isAdmin: false, isLoading: false });
-      }
-    }
+    const storedUser = getStoredUser<StoredUser>();
+    const adminFlag = storedUser ? hasAdminRole(storedUser) : false;
+    setState({ isAuthenticated: true, user: storedUser, isAdmin: adminFlag, isLoading: false });
   }, []);
 
   useEffect(() => {
@@ -76,7 +58,7 @@ export function useAuth(): AuthState & {
     };
   }, [refresh]);
 
-  const logout = useCallback(() => {
+  const logoutFn = useCallback(() => {
     removeAccessToken();
     setState({ isAuthenticated: false, user: null, isAdmin: false, isLoading: false });
     if (typeof window !== 'undefined') {
@@ -87,7 +69,7 @@ export function useAuth(): AuthState & {
   return {
     ...state,
     refreshUser: refresh,
-    logout,
+    logout: logoutFn,
   };
 }
 

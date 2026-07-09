@@ -2,6 +2,12 @@ import { api, getApiErrorMessage } from '../api';
 import { ApiResponse } from '@/lib/api-utils';
 import { SupportTicket } from '@/types/api';
 
+export interface UpdateTicketStatusDto {
+  status: number;
+  priority: number;
+  assignedToUserId?: string | null;
+}
+
 class AdminSupportTicketsService {
   private endpoint = '/admin/support-tickets';
 
@@ -24,10 +30,34 @@ class AdminSupportTicketsService {
     }
   }
 
-  async update(id: string, data: Partial<SupportTicket>): Promise<SupportTicket | null> {
+  async updateStatus(id: string, data: UpdateTicketStatusDto): Promise<SupportTicket | null> {
     try {
-      const response = await api.put<ApiResponse<SupportTicket>>(`${this.endpoint}/${id}`, data);
+      const response = await api.patch<ApiResponse<SupportTicket>>(`${this.endpoint}/${id}/status`, data);
       return response.data.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
+  }
+
+  async close(id: string): Promise<void> {
+    try {
+      await api.post(`${this.endpoint}/${id}/close`);
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
+  }
+
+  async reply(id: string, message: string): Promise<void> {
+    try {
+      await api.post(`${this.endpoint}/${id}/messages`, { message });
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
+  }
+
+  async delete(id: string): Promise<void> {
+    try {
+      await api.delete(`${this.endpoint}/${id}`);
     } catch (error) {
       throw new Error(getApiErrorMessage(error));
     }
