@@ -32,8 +32,8 @@ export default function AdminBlogPostsPage() {
       adminBlogPostsService.getAll(),
       adminBlogCategoriesService.getAll(),
     ]);
-    setItems(posts);
-    setCategories(cats);
+    setItems(Array.isArray(posts) ? posts : []);
+    setCategories(Array.isArray(cats) ? cats : []);
     setIsLoading(false);
   };
 
@@ -44,7 +44,7 @@ export default function AdminBlogPostsPage() {
     setIsDeleting(true);
     try {
       await adminBlogPostsService.delete(deleteId);
-      setItems(prev => prev.filter(i => i.id !== deleteId));
+      setItems(prev => (Array.isArray(prev) ? prev : []).filter(i => i.id !== deleteId));
       setDeleteId(null);
       toast.success('پست با موفقیت حذف شد');
     } catch (error) {

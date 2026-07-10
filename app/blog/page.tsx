@@ -28,15 +28,16 @@ export default function BlogPage() {
         blogPostService.getAll(),
         blogCategoryService.getAll(),
       ]);
-      setPosts(postsData);
-      setCategories(categoriesData);
+      setPosts(Array.isArray(postsData) ? postsData : []);
+      setCategories(Array.isArray(categoriesData) ? categoriesData : []);
       setIsLoading(false);
     };
     fetchData();
   }, []);
 
   const filteredPosts = useMemo(() => {
-    let result = [...posts];
+    const safePosts = Array.isArray(posts) ? posts : [];
+    let result = [...safePosts];
     if (selectedCategory !== 'all') {
       result = result.filter(
         (p) => p.categoryId === selectedCategory || p.categoryName === selectedCategory

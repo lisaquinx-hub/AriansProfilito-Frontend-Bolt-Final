@@ -5,7 +5,7 @@ import { Code, RefreshCw, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
-import { adminTechnologiesService } from '@/services/admin/TechnologiesService';
+import { adminTechnologiesService, CreateTechnologyDto } from '@/services/admin/TechnologiesService';
 import { Technology } from '@/types/api';
 import { EntityFormModal, FormField } from '@/components/admin/EntityFormModal';
 import { ViewDetailModal } from '@/components/admin/ViewDetailModal';
@@ -73,12 +73,17 @@ export default function AdminTechnologiesPage() {
   };
 
   const handleSubmit = async (data: Record<string, unknown>) => {
+    const payload: CreateTechnologyDto = {
+      name: String(data.name || '').trim(),
+      icon: String(data.icon || '') || null,
+      color: String(data.color || '') || null,
+    };
     try {
       if (editingItem) {
-        await adminTechnologiesService.update(editingItem.id, data as Partial<Technology>);
+        await adminTechnologiesService.update(editingItem.id, payload);
         toast.success('تکنولوژی با موفقیت ویرایش شد');
       } else {
-        await adminTechnologiesService.create(data as Partial<Technology>);
+        await adminTechnologiesService.create(payload);
         toast.success('تکنولوژی با موفقیت ایجاد شد');
       }
       fetchData();

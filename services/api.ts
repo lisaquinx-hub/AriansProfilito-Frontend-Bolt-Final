@@ -13,9 +13,7 @@ const isBrowser = () => typeof window !== 'undefined';
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  headers: { 'Content-Type': 'application/json' },
   withCredentials: false,
 });
 
@@ -48,33 +46,40 @@ api.interceptors.response.use(
 
 export function getApiErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
-    const apiError = error.response?.data as ApiError | undefined;
-    if (apiError?.message) {
-      return apiError.message;
+    const data = error.response?.data as Record<string, unknown> | undefined;
+    if (data) {
+      // nested errors object — extract useful message, hide stackTrace
+      if (data.errors && typeof data.errors === 'object' && !Array.isArray(data.errors)) {
+        const errs = data.errors as Record<string, unknown>;
+        if (typeof errs.message === 'string' && errs.message && !errs.message.startsWith('   at ')) {
+          return errs.message;
+        }
+        const msgs = Object.entries(errs)
+          .filter(([k]) => k !== 'stackTrace' && k !== 'StackTrace' && k !== 'exceptionType')
+          .flatMap(([, v]) => (Array.isArray(v) ? v.map(String) : typeof v === 'string' ? [v] : []))
+          .filter(Boolean);
+        if (msgs.length > 0) return msgs.join(' | ');
+      }
+      if (Array.isArray(data.errors)) {
+        const msgs = (data.errors as unknown[]).map(String).filter(Boolean);
+        if (msgs.length > 0) return msgs.join(' | ');
+      }
+      if (typeof data.message === 'string' && data.message) {
+        if (data.message === 'An unexpected error occurred.' && data.errors) {
+          // fall through to status code fallback
+        } else {
+          return data.message;
+        }
+      }
     }
-    if (apiError?.errors) {
-      const errorMessages = Object.values(apiError.errors).flat();
-      return errorMessages.join(' ');
-    }
-    if (error.response?.status === 401) {
-      return 'Unauthorized - Please log in again';
-    }
-    if (error.response?.status === 403) {
-      return 'You do not have permission to perform this action';
-    }
-    if (error.response?.status === 404) {
-      return 'Resource not found';
-    }
-    if (error.response?.status === 500) {
-      return 'Server error - Please try again later';
-    }
-    if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
-      return 'Network error - Please check your connection';
-    }
-    return error.message || 'An unexpected error occurred';
+    if (error.response?.status === 400) return 'اطلاعات ارسالی نامعتبر است';
+    if (error.response?.status === 401) return 'لطفا دوباره وارد شوید';
+    if (error.response?.status === 403) return 'دسترسی غیرمجاز';
+    if (error.response?.status === 404) return 'مورد یافت نشد';
+    if (error.response?.status === 500) return 'خطای سرور - لطفا دوباره تلاش کنید';
+    if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') return 'خطای شبکه - اتصال خود را بررسی کنید';
+    return error.message || 'خطای غیرمنتظره';
   }
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return 'An unexpected error occurred';
+  if (error instanceof Error) return error.message;
+  return 'خطای غیرمنتظره';
 }

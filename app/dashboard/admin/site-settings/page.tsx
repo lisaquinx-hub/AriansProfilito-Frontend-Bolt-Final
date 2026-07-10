@@ -62,30 +62,35 @@ export default function AdminSiteSettingsPage() {
   };
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    const payload: Partial<SiteSettings> = {
-      siteName: String(data.siteName || ''),
+    const payload = {
+      siteName: String(data.siteName || '').trim(),
       logo: String(data.logo || '') || undefined,
       darkLogo: String(data.darkLogo || '') || undefined,
       favicon: String(data.favicon || '') || undefined,
-      email: String(data.email || ''),
-      phone: String(data.phone || ''),
-      address: String(data.address || ''),
-      footerText: String(data.footerText || ''),
-      copyright: String(data.copyright || ''),
+      email: String(data.email || '').trim(),
+      phone: String(data.phone || '').trim(),
+      address: String(data.address || '').trim(),
+      footerText: String(data.footerText || '').trim(),
+      copyright: String(data.copyright || '').trim(),
       googleMap: String(data.googleMap || '') || undefined,
       googleAnalytics: String(data.googleAnalytics || '') || undefined,
-      metaTitle: String(data.metaTitle || ''),
-      metaDescription: String(data.metaDescription || ''),
-      metaKeywords: String(data.metaKeywords || ''),
+      metaTitle: String(data.metaTitle || '').trim(),
+      metaDescription: String(data.metaDescription || '').trim(),
+      metaKeywords: String(data.metaKeywords || '').trim(),
     };
-    if (editingItem) {
-      await adminSiteSettingsService.update(editingItem.id, payload);
-      toast.success('تنظیمات با موفقیت ویرایش شد');
-    } else {
-      await adminSiteSettingsService.create(payload);
-      toast.success('تنظیمات با موفقیت ایجاد شد');
+    try {
+      if (editingItem) {
+        await adminSiteSettingsService.update(editingItem.id, payload);
+        toast.success('تنظیمات با موفقیت ویرایش شد');
+      } else {
+        await adminSiteSettingsService.create(payload);
+        toast.success('تنظیمات با موفقیت ایجاد شد');
+      }
+      fetchData();
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
+      throw error;
     }
-    fetchData();
   };
 
   const fields: FormField[] = [

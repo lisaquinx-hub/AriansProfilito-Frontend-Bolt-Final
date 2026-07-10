@@ -9,6 +9,8 @@ import {
   User,
   FolderKanban,
   LifeBuoy,
+  FileText,
+  CreditCard,
   LogOut,
   Menu,
   X,
@@ -26,6 +28,8 @@ import { cn } from '@/lib/utils';
 const sidebarLinks = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'داشبورد' },
   { href: '/dashboard/projects', icon: FolderKanban, label: 'پروژه‌ها' },
+  { href: '/dashboard/invoices', icon: FileText, label: 'فاکتورها' },
+  { href: '/dashboard/payments', icon: CreditCard, label: 'پرداخت‌ها' },
   { href: '/dashboard/support', icon: LifeBuoy, label: 'پشتیبانی' },
 ];
 

@@ -2,6 +2,14 @@ import { api, getApiErrorMessage } from '../api';
 import { ApiResponse } from '@/lib/api-utils';
 import { Technology } from '@/types/api';
 
+export interface CreateTechnologyDto {
+  name: string;
+  icon?: string | null;
+  color?: string | null;
+}
+
+export type UpdateTechnologyDto = CreateTechnologyDto;
+
 class AdminTechnologiesService {
   private endpoint = '/admin/technologies';
 
@@ -24,7 +32,7 @@ class AdminTechnologiesService {
     }
   }
 
-  async create(data: Partial<Technology>): Promise<Technology | null> {
+  async create(data: CreateTechnologyDto): Promise<Technology | null> {
     try {
       const response = await api.post<ApiResponse<Technology>>(this.endpoint, data);
       return response.data.data;
@@ -33,7 +41,7 @@ class AdminTechnologiesService {
     }
   }
 
-  async update(id: string, data: Partial<Technology>): Promise<Technology | null> {
+  async update(id: string, data: UpdateTechnologyDto): Promise<Technology | null> {
     try {
       const response = await api.put<ApiResponse<Technology>>(`${this.endpoint}/${id}`, data);
       return response.data.data;

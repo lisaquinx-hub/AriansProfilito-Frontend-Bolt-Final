@@ -202,14 +202,20 @@ export default function AdminProjectsPage() {
       return s ? s : null;
     };
 
+    const userId = String(data.userId || '').trim();
+    const pricingPlanId = String(data.pricingPlanId || '').trim();
+    if (!userId) { toast.error('انتخاب کاربر الزامی است'); throw new Error('userId required'); }
+    if (!pricingPlanId) { toast.error('انتخاب پلن الزامی است'); throw new Error('pricingPlanId required'); }
+    if (!String(data.title || '').trim()) { toast.error('عنوان الزامی است'); throw new Error('title required'); }
+    const progress = Math.min(100, Math.max(0, Number(data.progress) || 0));
+
     if (editingItem) {
       const payload = {
-        userId: String(data.userId),
-        pricingPlanId: String(data.pricingPlanId),
+        userId, pricingPlanId,
         title: String(data.title || '').trim(),
         description: String(data.description || '').trim(),
         status: Number(data.status) || 1,
-        progress: Number(data.progress) || 0,
+        progress,
         price: Number(data.price) || 0,
         paidAmount: Number(data.paidAmount) || 0,
         estimatedDeliveryDate: toNullableDate(data.estimatedDeliveryDate),
@@ -218,19 +224,18 @@ export default function AdminProjectsPage() {
         adminNote: String(data.adminNote || '') || undefined,
         customerComment: String(data.customerComment || '') || undefined,
       };
-      const updated = await adminProjectsService.update(editingItem.id, payload);
-      if (updated) {
-        setItems(prev => prev.map(i => (i.id === editingItem.id ? updated : i)));
+      try {
+        const updated = await adminProjectsService.update(editingItem.id, payload);
+        if (updated) { setItems(prev => (Array.isArray(prev) ? prev : []).map(i => (i.id === editingItem.id ? updated : i))); }
         toast.success('پروژه با موفقیت ویرایش شد');
-      }
+      } catch (error) { toast.error(getApiErrorMessage(error)); throw error; }
     } else {
       const payload = {
-        userId: String(data.userId),
-        pricingPlanId: String(data.pricingPlanId),
+        userId, pricingPlanId,
         title: String(data.title || '').trim(),
         description: String(data.description || '').trim(),
         status: Number(data.status) || 1,
-        progress: Number(data.progress) || 0,
+        progress,
         price: Number(data.price) || 0,
         paidAmount: Number(data.paidAmount) || 0,
         estimatedDeliveryDate: toNullableDate(data.estimatedDeliveryDate),
@@ -239,11 +244,11 @@ export default function AdminProjectsPage() {
         adminNote: String(data.adminNote || '') || undefined,
         customerComment: String(data.customerComment || '') || undefined,
       };
-      const created = await adminProjectsService.create(payload);
-      if (created) {
-        setItems(prev => [...prev, created]);
+      try {
+        const created = await adminProjectsService.create(payload);
+        if (created) { setItems(prev => [...(Array.isArray(prev) ? prev : []), created]); }
         toast.success('پروژه با موفقیت ایجاد شد');
-      }
+      } catch (error) { toast.error(getApiErrorMessage(error)); throw error; }
     }
   };
 
