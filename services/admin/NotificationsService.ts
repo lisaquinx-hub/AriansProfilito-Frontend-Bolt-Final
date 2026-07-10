@@ -41,6 +41,23 @@ class AdminNotificationsService {
     }
   }
 
+  async update(id: string, data: CreateNotificationDto): Promise<Notification | null> {
+    try {
+      const response = await api.put<ApiResponse<Notification>>(`${this.endpoint}/${id}`, data);
+      return response.data.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
+  }
+
+  async updateReadStatus(id: string, isRead: boolean): Promise<void> {
+    try {
+      await api.patch(`${this.endpoint}/${id}/read-status`, { isRead });
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
+  }
+
   async delete(id: string): Promise<void> {
     try {
       await api.delete(`${this.endpoint}/${id}`);

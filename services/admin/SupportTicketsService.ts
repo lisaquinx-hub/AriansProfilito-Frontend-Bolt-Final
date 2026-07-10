@@ -41,7 +41,15 @@ class AdminSupportTicketsService {
 
   async close(id: string): Promise<void> {
     try {
-      await api.post(`${this.endpoint}/${id}/close`);
+      await api.patch(`${this.endpoint}/${id}/close`);
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
+  }
+
+  async assign(id: string, assignedToUserId: string): Promise<void> {
+    try {
+      await api.patch(`${this.endpoint}/${id}/assign`, { assignedToUserId });
     } catch (error) {
       throw new Error(getApiErrorMessage(error));
     }

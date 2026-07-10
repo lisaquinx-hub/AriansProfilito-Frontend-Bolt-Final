@@ -3,7 +3,7 @@ import { ApiResponse } from '@/lib/api-utils';
 import { BlogPost } from '@/types/api';
 
 class AdminBlogPostsService {
-  private endpoint = '/admin/blog-posts';
+  private endpoint = '/admin/blog/posts';
 
   async getAll(): Promise<BlogPost[]> {
     try {

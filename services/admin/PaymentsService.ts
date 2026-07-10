@@ -68,6 +68,15 @@ class AdminPaymentsService {
     }
   }
 
+  async updateStatus(id: string, status: number): Promise<Payment | null> {
+    try {
+      const response = await api.patch<ApiResponse<Payment>>(`${this.endpoint}/${id}/status`, { status });
+      return response.data.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
+  }
+
   async delete(id: string): Promise<void> {
     try {
       await api.delete(`${this.endpoint}/${id}`);

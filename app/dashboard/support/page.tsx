@@ -10,27 +10,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { supportService, SupportTicket, CreateTicketRequest } from '@/services/SupportService';
 import { getApiErrorMessage } from '@/services/api';
 
-const statusLabels: { [key: string]: string } = {
-  open: 'باز',
-  in_progress: 'در حال بررسی',
-  resolved: 'حل شده',
-  closed: 'بسته شده',
+const STATUS_LABELS: Record<number, string> = { 1: 'باز', 2: 'پاسخ داده شده', 3: 'بسته' };
+const STATUS_COLORS: Record<number, string> = {
+  1: 'bg-sky-500/20 text-sky-500 dark:bg-blue-500/20 dark:text-blue-400',
+  2: 'bg-yellow-500/20 text-yellow-500',
+  3: 'bg-gray-500/20 text-gray-500',
 };
-
-const statusColors: { [key: string]: string } = {
-  open: 'bg-sky-500/20 text-sky-500 dark:bg-blue-500/20 dark:text-blue-400',
-  in_progress: 'bg-yellow-500/20 text-yellow-500',
-  resolved: 'bg-green-500/20 text-green-500',
-  closed: 'bg-gray-500/20 text-gray-500',
-};
-
-function getStatusInfo(status: string) {
-  const key = status.toLowerCase();
-  return {
-    label: statusLabels[key] || status,
-    color: statusColors[key] || 'bg-muted text-muted-foreground',
-  };
-}
+const PRIORITY_LABELS: Record<number, string> = { 1: 'کم', 2: 'متوسط', 3: 'زیاد', 4: 'بحرانی' };
 
 export default function SupportPage() {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
@@ -40,11 +26,7 @@ export default function SupportPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
-  const [formData, setFormData] = useState<CreateTicketRequest>({
-    subject: '',
-    message: '',
-    priority: 'normal',
-  });
+  const [formData, setFormData] = useState<CreateTicketRequest>({ title: '', description: '', priority: 2 });
 
   const fetchTickets = async () => {
     setIsLoading(true);
@@ -59,12 +41,10 @@ export default function SupportPage() {
     }
   };
 
-  useEffect(() => {
-    fetchTickets();
-  }, []);
+  useEffect(() => { fetchTickets(); }, []);
 
   const handleCreate = async () => {
-    if (!formData.subject || !formData.message) {
+    if (!formData.title || !formData.description) {
       setSubmitError('موضوع و پیام الزامی است');
       return;
     }
@@ -74,7 +54,7 @@ export default function SupportPage() {
       await supportService.createTicket(formData);
       setSuccessMsg('تیکت با موفقیت ایجاد شد');
       setIsModalOpen(false);
-      setFormData({ subject: '', message: '', priority: 'normal' });
+      setFormData({ title: '', description: '', priority: 2 });
       fetchTickets();
     } catch (err) {
       setSubmitError(getApiErrorMessage(err));
@@ -85,7 +65,6 @@ export default function SupportPage() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">پشتیبانی</h1>
@@ -97,7 +76,6 @@ export default function SupportPage() {
         </Button>
       </div>
 
-      {/* Success Message */}
       {successMsg && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -108,7 +86,6 @@ export default function SupportPage() {
         </motion.div>
       )}
 
-      {/* Error State */}
       {error && !isLoading && (
         <div className="glass rounded-xl p-6 text-center">
           <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-3" />
@@ -119,7 +96,6 @@ export default function SupportPage() {
         </div>
       )}
 
-      {/* Loading State */}
       {isLoading && (
         <div className="space-y-4">
           {Array.from({ length: 3 }).map((_, i) => (
@@ -138,7 +114,6 @@ export default function SupportPage() {
         </div>
       )}
 
-      {/* Empty State */}
       {!isLoading && !error && tickets.length === 0 && (
         <div className="glass rounded-2xl p-12 text-center">
           <LifeBuoy className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
@@ -153,49 +128,49 @@ export default function SupportPage() {
         </div>
       )}
 
-      {/* Tickets List */}
       {!isLoading && !error && tickets.length > 0 && (
         <div className="space-y-4">
-          {tickets.map((ticket, index) => {
-            const statusInfo = getStatusInfo(ticket.status);
-            return (
-              <motion.div
-                key={ticket.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="glass rounded-xl p-6 hover:bg-muted/30 transition-colors"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-4 flex-1 min-w-0">
-                    <div className="w-10 h-10 rounded-xl bg-sky-500/10 dark:bg-sky-500/20 flex items-center justify-center flex-shrink-0">
-                      <MessageSquare className="w-5 h-5 text-sky-500 dark:text-cyan-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold truncate">{ticket.subject}</h3>
-                      {ticket.description && (
-                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                          {ticket.description}
-                        </p>
+          {tickets.map((ticket, index) => (
+            <motion.div
+              key={ticket.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="glass rounded-xl p-6 hover:bg-muted/30 transition-colors"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-4 flex-1 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-sky-500/10 dark:bg-sky-500/20 flex items-center justify-center flex-shrink-0">
+                    <MessageSquare className="w-5 h-5 text-sky-500 dark:text-cyan-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold truncate">{ticket.title}</h3>
+                    {ticket.description && (
+                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                        {ticket.description}
+                      </p>
+                    )}
+                    <div className="flex items-center gap-3 mt-3">
+                      <span className={`text-xs px-2 py-1 rounded-full ${STATUS_COLORS[ticket.status] || 'bg-muted text-muted-foreground'}`}>
+                        {STATUS_LABELS[ticket.status] || String(ticket.status)}
+                      </span>
+                      {ticket.priority && (
+                        <span className="text-xs px-2 py-1 rounded-full bg-muted/30 text-muted-foreground">
+                          {PRIORITY_LABELS[ticket.priority] || String(ticket.priority)}
+                        </span>
                       )}
-                      <div className="flex items-center gap-3 mt-3">
-                        <span className={`text-xs px-2 py-1 rounded-full ${statusInfo.color}`}>
-                          {statusInfo.label}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('fa-IR') : '-'}
-                        </span>
-                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('fa-IR') : '-'}
+                      </span>
                     </div>
                   </div>
                 </div>
-              </motion.div>
-            );
-          })}
+              </div>
+            </motion.div>
+          ))}
         </div>
       )}
 
-      {/* Create Ticket Modal */}
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -230,25 +205,39 @@ export default function SupportPage() {
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="subject">موضوع *</Label>
+                  <Label htmlFor="title">موضوع *</Label>
                   <Input
-                    id="subject"
-                    value={formData.subject}
-                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                    id="title"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     className="bg-muted/50 border-border"
                     placeholder="موضوع تیکت را وارد کنید"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="message">پیام *</Label>
+                  <Label htmlFor="description">پیام *</Label>
                   <Textarea
-                    id="message"
-                    value={formData.message}
-                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     className="bg-muted/50 border-border resize-none"
                     rows={4}
                     placeholder="پیام خود را شرح دهید"
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="priority">اولویت</Label>
+                  <select
+                    id="priority"
+                    value={formData.priority}
+                    onChange={(e) => setFormData({ ...formData, priority: Number(e.target.value) })}
+                    className="w-full h-10 px-3 rounded-md bg-muted/50 border border-border text-foreground text-sm"
+                  >
+                    <option value={1}>کم</option>
+                    <option value={2}>متوسط</option>
+                    <option value={3}>زیاد</option>
+                    <option value={4}>بحرانی</option>
+                  </select>
                 </div>
               </div>
 

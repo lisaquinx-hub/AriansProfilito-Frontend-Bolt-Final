@@ -67,7 +67,15 @@ class AdminUsersService {
 
   async resetPassword(id: string, newPassword: string): Promise<void> {
     try {
-      await api.post(`${this.endpoint}/${id}/reset-password`, { newPassword });
+      await api.patch(`${this.endpoint}/${id}/reset-password`, { newPassword });
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
+  }
+
+  async activate(id: string): Promise<void> {
+    try {
+      await api.patch(`${this.endpoint}/${id}/activate`);
     } catch (error) {
       throw new Error(getApiErrorMessage(error));
     }

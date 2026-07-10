@@ -65,6 +65,15 @@ class AdminInvoicesService {
     }
   }
 
+  async updateStatus(id: string, status: number): Promise<Invoice | null> {
+    try {
+      const response = await api.patch<ApiResponse<Invoice>>(`${this.endpoint}/${id}/status`, { status });
+      return response.data.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
+  }
+
   async delete(id: string): Promise<void> {
     try {
       await api.delete(`${this.endpoint}/${id}`);

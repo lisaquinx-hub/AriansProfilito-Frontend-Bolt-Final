@@ -42,6 +42,14 @@ class AdminHeroSectionsService {
     }
   }
 
+  async updateActiveStatus(id: string, isActive: boolean): Promise<void> {
+    try {
+      await api.patch(`${this.endpoint}/${id}/active-status`, { isActive });
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
+  }
+
   async delete(id: string): Promise<void> {
     try {
       await api.delete(`${this.endpoint}/${id}`);

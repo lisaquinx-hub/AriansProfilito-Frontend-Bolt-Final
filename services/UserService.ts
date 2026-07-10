@@ -41,7 +41,7 @@ class UserService {
   }
 
   async changePassword(data: ChangePasswordRequest): Promise<void> {
-    await api.put('/profile/change-password', data);
+    await api.patch('/profile/change-password', data);
   }
 }
 
