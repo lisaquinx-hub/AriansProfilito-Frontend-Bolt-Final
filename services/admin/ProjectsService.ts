@@ -5,7 +5,7 @@ import { Project } from '@/types/api';
 export interface CreateProjectDto {
   userId: string;
   pricingPlanId: string;
-  projectCode?: string;
+  projectCode?: string | null;
   estimatedDeliveryDate?: string | null;
   title: string;
   description: string;
@@ -15,8 +15,8 @@ export interface CreateProjectDto {
   paidAmount: number;
   startDate?: string | null;
   endDate?: string | null;
-  adminNote?: string;
-  customerComment?: string;
+  adminNote?: string | null;
+  customerComment?: string | null;
 }
 
 export interface UpdateProjectDto {
@@ -31,8 +31,14 @@ export interface UpdateProjectDto {
   paidAmount: number;
   startDate?: string | null;
   endDate?: string | null;
-  adminNote?: string;
-  customerComment?: string;
+  adminNote?: string | null;
+  customerComment?: string | null;
+}
+
+export interface UpdateProjectStatusDto {
+  status: number;
+  progress: number;
+  adminNote?: string | null;
 }
 
 class AdminProjectsService {
@@ -41,7 +47,7 @@ class AdminProjectsService {
   async getAll(): Promise<Project[]> {
     try {
       const response = await api.get<ApiResponse<Project[]>>(this.endpoint);
-      return response.data.data || [];
+      return Array.isArray(response.data.data) ? response.data.data : [];
     } catch (error) {
       console.error('Failed to fetch projects:', getApiErrorMessage(error));
       return [];
@@ -83,9 +89,9 @@ class AdminProjectsService {
     }
   }
 
-  async updateStatus(id: string, status: number): Promise<Project | null> {
+  async updateStatus(id: string, data: UpdateProjectStatusDto): Promise<Project | null> {
     try {
-      const response = await api.patch<ApiResponse<Project>>(`${this.endpoint}/${id}/status`, { status });
+      const response = await api.patch<ApiResponse<Project>>(`${this.endpoint}/${id}/status`, data);
       return response.data.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error));
