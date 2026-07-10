@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { MessageSquare, RefreshCw, Check, X } from 'lucide-react';
+import { MessageSquare, RefreshCw, ToggleLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,13 +9,13 @@ import { ViewDetailModal } from '@/components/admin/ViewDetailModal';
 import { adminCommentsService } from '@/services/admin/CommentsService';
 import { Comment } from '@/types/api';
 import { getApiErrorMessage } from '@/services/api';
+import { toast } from 'sonner';
 
 export default function AdminCommentsPage() {
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
 
   const [viewItem, setViewItem] = useState<Comment | null>(null);
   const [viewLoading, setViewLoading] = useState(false);
@@ -37,25 +37,25 @@ export default function AdminCommentsPage() {
     setIsDeleting(true);
     try {
       await adminCommentsService.delete(deleteId);
-      setComments(comments.filter(c => c.id !== deleteId));
+      setComments(prev => prev.filter(c => c.id !== deleteId));
       setDeleteId(null);
+      toast.success('نظر با موفقیت حذف شد');
     } catch (error) {
-      console.error('Failed to delete comment:', error);
+      toast.error(getApiErrorMessage(error));
     }
     setIsDeleting(false);
   };
 
-  const handleApproval = async (comment: Comment, approve: boolean) => {
-    setIsUpdating(true);
+  const handleApproval = async (comment: Comment) => {
     try {
-      await adminCommentsService.updateApproval(comment.id, approve);
-      setComments(comments.map(c =>
-        c.id === comment.id ? { ...c, isApproved: approve } : c
+      await adminCommentsService.updateApproval(comment.id, !comment.isApproved);
+      setComments(prev => prev.map(c =>
+        c.id === comment.id ? { ...c, isApproved: !c.isApproved } : c
       ));
+      toast.success(!comment.isApproved ? 'نظر تأیید شد' : 'نظر رد شد');
     } catch (error) {
-      console.error('Failed to update approval:', error);
+      toast.error(getApiErrorMessage(error));
     }
-    setIsUpdating(false);
   };
 
   const handleView = async (item: Comment) => {
@@ -99,21 +99,29 @@ export default function AdminCommentsPage() {
       key: 'isApproved',
       label: 'وضعیت',
       render: (comment: Comment) => (
-        <button
-          onClick={() => handleApproval(comment, !comment.isApproved)}
-          disabled={isUpdating}
-          className={`px-2 py-1 rounded-full text-xs ${
-            comment.isApproved ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'
-          }`}
-        >
+        <span className={`px-2 py-1 rounded-full text-xs ${
+          comment.isApproved
+            ? 'bg-green-500/10 text-green-500'
+            : 'bg-yellow-500/10 text-yellow-500'
+        }`}>
           {comment.isApproved ? 'تأیید شده' : 'در انتظار'}
-        </button>
+        </span>
       ),
     },
     {
       key: 'createdAt',
       label: 'تاریخ',
-      render: (comment: Comment) => new Date(comment.createdAt).toLocaleDateString('fa-IR'),
+      render: (comment: Comment) =>
+        comment.createdAt ? new Date(comment.createdAt).toLocaleDateString('fa-IR') : '-',
+    },
+  ];
+
+  const extraActions = [
+    {
+      label: 'تغییر تأیید',
+      icon: <ToggleLeft className="w-4 h-4" />,
+      onClick: (comment: Comment) => handleApproval(comment),
+      className: 'text-amber-500 hover:text-amber-400',
     },
   ];
 
@@ -143,6 +151,7 @@ export default function AdminCommentsPage() {
             loading={isLoading}
             onView={handleView}
             onDelete={(comment) => setDeleteId(comment.id)}
+            extraActions={extraActions}
             emptyMessage="نظری یافت نشد"
           />
         </CardContent>

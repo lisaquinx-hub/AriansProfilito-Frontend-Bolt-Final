@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Image, RefreshCw, Plus } from 'lucide-react';
+import { Image, RefreshCw, Plus, ToggleLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
@@ -106,6 +106,16 @@ export default function AdminHeroSectionsPage() {
     { key: 'displayOrder', label: 'ترتیب نمایش', type: 'number' },
   ];
 
+  const handleToggleActive = async (item: HeroSection) => {
+    try {
+      await adminHeroSectionsService.updateActiveStatus(item.id, !item.isActive);
+      setItems(prev => prev.map(i => i.id === item.id ? { ...i, isActive: !i.isActive } : i));
+      toast.success(item.isActive ? 'غیرفعال شد' : 'فعال شد');
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
+    }
+  };
+
   const columns = [
     { key: 'title', label: 'عنوان' },
     { key: 'subtitle', label: 'زیرعنوان', render: (item: HeroSection) => item.subtitle || '-' },
@@ -124,6 +134,15 @@ export default function AdminHeroSectionsPage() {
       key: 'createdAt',
       label: 'تاریخ',
       render: (item: HeroSection) => item.createdAt ? new Date(item.createdAt).toLocaleDateString('fa-IR') : '-',
+    },
+  ];
+
+  const extraActions = [
+    {
+      label: 'تغییر وضعیت فعال',
+      icon: <ToggleLeft className="w-4 h-4" />,
+      onClick: (item: HeroSection) => handleToggleActive(item),
+      className: 'text-emerald-500 hover:text-emerald-400',
     },
   ];
 
@@ -158,6 +177,7 @@ export default function AdminHeroSectionsPage() {
             onView={handleView}
             onEdit={handleEdit}
             onDelete={(item) => setDeleteId(item.id)}
+            extraActions={extraActions}
             emptyMessage="رکوردی یافت نشد"
           />
         </CardContent>

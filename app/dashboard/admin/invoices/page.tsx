@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Receipt, RefreshCw, Plus } from 'lucide-react';
+import { Receipt, RefreshCw, Plus, ToggleLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,6 +11,7 @@ import { adminInvoicesService, CreateInvoiceDto, UpdateInvoiceDto } from '@/serv
 import { Invoice } from '@/types/api';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/services/api';
+import { AnimatePresence, motion } from 'framer-motion';
 
 // PaymentStatus: Pending=1, Paid=2, Failed=3, Refunded=4
 const PAYMENT_STATUS_OPTIONS = [
@@ -31,6 +32,12 @@ export default function AdminInvoicesPage() {
   const [viewItem, setViewItem] = useState<Invoice | null>(null);
   const [viewLoading, setViewLoading] = useState(false);
   const [viewError, setViewError] = useState<string | null>(null);
+
+  // Status change modal state
+  const [statusItem, setStatusItem] = useState<Invoice | null>(null);
+  const [statusValue, setStatusValue] = useState(1);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateError, setUpdateError] = useState<string | null>(null);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -102,6 +109,22 @@ export default function AdminInvoicesPage() {
     fetchData();
   };
 
+  const handleStatusUpdate = async () => {
+    if (!statusItem) return;
+    setIsUpdating(true);
+    setUpdateError(null);
+    try {
+      await adminInvoicesService.updateStatus(statusItem.id, statusValue);
+      setStatusItem(null);
+      toast.success('وضعیت فاکتور با موفقیت به‌روز شد');
+      fetchData();
+    } catch (err) {
+      setUpdateError(getApiErrorMessage(err));
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   const fields: FormField[] = [
     { key: 'userId', label: 'شناسه کاربر (UUID)', type: 'text', required: true },
     { key: 'projectId', label: 'شناسه پروژه (UUID)', type: 'text', required: true },
@@ -123,6 +146,19 @@ export default function AdminInvoicesPage() {
     { key: 'createdAt', label: 'تاریخ', render: (i: Invoice) => i.createdAt ? new Date(i.createdAt).toLocaleDateString('fa-IR') : '-' },
   ];
 
+  const extraActions = [
+    {
+      label: 'تغییر وضعیت',
+      icon: <ToggleLeft className="w-4 h-4" />,
+      onClick: (item: Invoice) => {
+        setStatusValue(item.status ?? 1);
+        setUpdateError(null);
+        setStatusItem(item);
+      },
+      className: 'text-amber-500 hover:text-amber-400',
+    },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -136,7 +172,16 @@ export default function AdminInvoicesPage() {
         </div>
       </div>
       <Card className="glass"><CardContent className="p-6">
-        <DataTable data={items} columns={columns} loading={isLoading} onView={handleView} onEdit={(i) => { setEditingItem(i); setIsFormOpen(true); }} onDelete={(i) => setDeleteId(i.id)} emptyMessage="فاکتوری یافت نشد" />
+        <DataTable
+          data={items}
+          columns={columns}
+          loading={isLoading}
+          onView={handleView}
+          onEdit={(i) => { setEditingItem(i); setIsFormOpen(true); }}
+          onDelete={(i) => setDeleteId(i.id)}
+          extraActions={extraActions}
+          emptyMessage="فاکتوری یافت نشد"
+        />
       </CardContent></Card>
       <ConfirmDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)} title="حذف فاکتور" description="آیا از حذف این فاکتور اطمینان دارید؟" onConfirm={handleDelete} loading={isDeleting} />
       <EntityFormModal open={isFormOpen} onOpenChange={setIsFormOpen} title={editingItem ? 'ویرایش فاکتور' : 'فاکتور جدید'} fields={fields}
@@ -165,6 +210,49 @@ export default function AdminInvoicesPage() {
           { label: 'تاریخ ایجاد', value: viewItem.createdAt ? new Date(viewItem.createdAt).toLocaleString('fa-IR') : '-' },
         ] : []}
       />
+
+      {/* Status Change Modal */}
+      <AnimatePresence>
+        {statusItem && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50"
+              onClick={() => { if (!isUpdating) setStatusItem(null); }}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+              className="relative glass rounded-2xl p-6 max-w-sm w-full"
+            >
+              <h3 className="text-lg font-semibold mb-4">تغییر وضعیت فاکتور</h3>
+              <p className="text-sm text-muted-foreground mb-4">فاکتور: {statusItem.invoiceNumber || statusItem.id}</p>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">وضعیت</label>
+                  <select
+                    value={statusValue}
+                    onChange={e => setStatusValue(Number(e.target.value))}
+                    className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  >
+                    {PAYMENT_STATUS_OPTIONS.map(o => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
+                {updateError && (
+                  <p className="text-sm text-red-400">{updateError}</p>
+                )}
+                <div className="flex gap-2 justify-end">
+                  <Button variant="outline" size="sm" onClick={() => setStatusItem(null)} disabled={isUpdating}>انصراف</Button>
+                  <Button size="sm" className="btn-primary" onClick={handleStatusUpdate} disabled={isUpdating}>
+                    {isUpdating ? 'در حال ذخیره...' : 'ذخیره'}
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

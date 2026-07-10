@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Users, RefreshCw, Plus } from 'lucide-react';
+import { Users, RefreshCw, Plus, Key, ToggleLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,6 +11,7 @@ import { adminUsersService, CreateUserDto, UpdateUserDto } from '@/services/admi
 import { User } from '@/types/api';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/services/api';
+import { AnimatePresence, motion } from 'framer-motion';
 
 // UserRole: Customer=1, Employee=2, Admin=3
 const ROLE_OPTIONS = [
@@ -30,6 +31,12 @@ export default function AdminUsersPage() {
   const [viewItem, setViewItem] = useState<User | null>(null);
   const [viewLoading, setViewLoading] = useState(false);
   const [viewError, setViewError] = useState<string | null>(null);
+
+  // Reset password modal state
+  const [resetItem, setResetItem] = useState<User | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -65,6 +72,32 @@ export default function AdminUsersPage() {
       setViewError(getApiErrorMessage(err));
     } finally {
       setViewLoading(false);
+    }
+  };
+
+  const handleToggleActivate = async (item: User) => {
+    try {
+      await adminUsersService.activate(item.id);
+      setUsers(prev => prev.map(u => u.id === item.id ? { ...u, isActive: !u.isActive } : u));
+      toast.success(item.isActive ? 'کاربر غیرفعال شد' : 'کاربر فعال شد');
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!resetItem || !newPassword.trim()) return;
+    setIsResetting(true);
+    setResetError(null);
+    try {
+      await adminUsersService.resetPassword(resetItem.id, newPassword.trim());
+      setResetItem(null);
+      setNewPassword('');
+      toast.success('رمز عبور با موفقیت بازنشانی شد');
+    } catch (err) {
+      setResetError(getApiErrorMessage(err));
+    } finally {
+      setIsResetting(false);
     }
   };
 
@@ -121,12 +154,33 @@ export default function AdminUsersPage() {
     { key: 'email', label: 'ایمیل' },
     { key: 'userName', label: 'نام کاربری', render: (i: User) => i.userName || '-' },
     { key: 'role', label: 'نقش', render: (i: User) => ROLE_OPTIONS.find(o => o.value === String(i.role))?.label || String(i.role) },
-    { key: 'isActive', label: 'وضعیت', render: (i: User) => (
-      <span className={`px-2 py-1 rounded-full text-xs ${i.isActive ? 'bg-green-500/10 text-green-500' : 'bg-gray-500/10 text-gray-400'}`}>
-        {i.isActive ? 'فعال' : 'غیرفعال'}
-      </span>
-    )},
+    {
+      key: 'isActive', label: 'وضعیت', render: (i: User) => (
+        <span className={`px-2 py-1 rounded-full text-xs ${i.isActive ? 'bg-green-500/10 text-green-500' : 'bg-gray-500/10 text-gray-400'}`}>
+          {i.isActive ? 'فعال' : 'غیرفعال'}
+        </span>
+      ),
+    },
     { key: 'createdAt', label: 'تاریخ', render: (i: User) => i.createdAt ? new Date(i.createdAt).toLocaleDateString('fa-IR') : '-' },
+  ];
+
+  const extraActions = [
+    {
+      label: 'بازنشانی رمز عبور',
+      icon: <Key className="w-4 h-4" />,
+      onClick: (item: User) => {
+        setNewPassword('');
+        setResetError(null);
+        setResetItem(item);
+      },
+      className: 'text-amber-500 hover:text-amber-400',
+    },
+    {
+      label: 'فعال/غیرفعال',
+      icon: <ToggleLeft className="w-4 h-4" />,
+      onClick: (item: User) => handleToggleActivate(item),
+      className: 'text-emerald-500 hover:text-emerald-400',
+    },
   ];
 
   return (
@@ -142,7 +196,16 @@ export default function AdminUsersPage() {
         </div>
       </div>
       <Card className="glass"><CardContent className="p-6">
-        <DataTable data={users} columns={columns} loading={isLoading} onView={handleView} onEdit={(i) => { setEditingItem(i); setIsFormOpen(true); }} onDelete={(i) => setDeleteId(i.id)} emptyMessage="کاربری یافت نشد" />
+        <DataTable
+          data={users}
+          columns={columns}
+          loading={isLoading}
+          onView={handleView}
+          onEdit={(i) => { setEditingItem(i); setIsFormOpen(true); }}
+          onDelete={(i) => setDeleteId(i.id)}
+          extraActions={extraActions}
+          emptyMessage="کاربری یافت نشد"
+        />
       </CardContent></Card>
       <ConfirmDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)} title="حذف کاربر" description="آیا از حذف این کاربر اطمینان دارید؟" onConfirm={handleDelete} loading={isDeleting} />
       <EntityFormModal open={isFormOpen} onOpenChange={setIsFormOpen} title={editingItem ? 'ویرایش کاربر' : 'کاربر جدید'}
@@ -168,6 +231,48 @@ export default function AdminUsersPage() {
           { label: 'تاریخ ایجاد', value: viewItem.createdAt ? new Date(viewItem.createdAt).toLocaleString('fa-IR') : '-' },
         ] : []}
       />
+
+      {/* Reset Password Modal */}
+      <AnimatePresence>
+        {resetItem && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50"
+              onClick={() => { if (!isResetting) setResetItem(null); }}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+              className="relative glass rounded-2xl p-6 max-w-sm w-full"
+            >
+              <h3 className="text-lg font-semibold mb-2">بازنشانی رمز عبور</h3>
+              <p className="text-sm text-muted-foreground mb-4">کاربر: {resetItem.fullName} ({resetItem.email})</p>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">رمز عبور جدید</label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={e => setNewPassword(e.target.value)}
+                    className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    placeholder="رمز عبور جدید را وارد کنید"
+                    onKeyDown={e => e.key === 'Enter' && handleResetPassword()}
+                  />
+                </div>
+                {resetError && (
+                  <p className="text-sm text-red-400">{resetError}</p>
+                )}
+                <div className="flex gap-2 justify-end">
+                  <Button variant="outline" size="sm" onClick={() => setResetItem(null)} disabled={isResetting}>انصراف</Button>
+                  <Button size="sm" className="btn-primary" onClick={handleResetPassword} disabled={isResetting || !newPassword.trim()}>
+                    {isResetting ? 'در حال ذخیره...' : 'بازنشانی'}
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

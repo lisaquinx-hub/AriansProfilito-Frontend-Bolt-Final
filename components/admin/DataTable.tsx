@@ -19,28 +19,49 @@ interface Column<T> {
   className?: string;
 }
 
+type ExtraAction<T> = {
+  label: string;
+  icon?: React.ReactNode;
+  onClick: (item: T) => void;
+  className?: string;
+};
+
 interface DataTableProps<T> {
-  data: T[];
+  data: T[] | unknown;
   columns: Column<T>[];
   loading?: boolean;
   onView?: (item: T) => void;
   onEdit?: (item: T) => void;
   onDelete?: (item: T) => void;
+  extraActions?: ExtraAction<T>[];
   emptyMessage?: string;
   pageSize?: number;
 }
 
+function normalizeData<T>(raw: T[] | unknown): T[] {
+  if (Array.isArray(raw)) return raw;
+  const r = raw as Record<string, unknown>;
+  if (r && Array.isArray(r.items)) return r.items as T[];
+  if (r && Array.isArray(r.data)) return r.data as T[];
+  if (r && r.data && Array.isArray((r.data as Record<string, unknown>).items)) {
+    return (r.data as Record<string, unknown>).items as T[];
+  }
+  return [];
+}
+
 export function DataTable<T extends { id: string }>({
-  data,
+  data: rawData,
   columns,
   loading = false,
   onView,
   onEdit,
   onDelete,
+  extraActions,
   emptyMessage = 'داده‌ای یافت نشد',
   pageSize = 10,
 }: DataTableProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
+  const data = normalizeData<T>(rawData);
   const totalPages = Math.ceil(data.length / pageSize);
   const paginatedData = data.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
@@ -62,7 +83,7 @@ export function DataTable<T extends { id: string }>({
     );
   }
 
-  const hasActions = onView || onEdit || onDelete;
+  const hasActions = onView || onEdit || onDelete || (extraActions && extraActions.length > 0);
 
   return (
     <div className="space-y-4">
@@ -128,6 +149,16 @@ export function DataTable<T extends { id: string }>({
                             ویرایش
                           </DropdownMenuItem>
                         )}
+                        {extraActions?.map((action, i) => (
+                          <DropdownMenuItem
+                            key={i}
+                            onClick={() => action.onClick(item)}
+                            className={action.className}
+                          >
+                            {action.icon}
+                            {action.label}
+                          </DropdownMenuItem>
+                        ))}
                         {onDelete && (
                           <DropdownMenuItem
                             onClick={() => onDelete(item)}

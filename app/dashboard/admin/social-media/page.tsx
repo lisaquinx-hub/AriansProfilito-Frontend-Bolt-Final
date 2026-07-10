@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Share2, RefreshCw, Plus } from 'lucide-react';
+import { Share2, RefreshCw, Plus, ToggleLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
@@ -133,6 +133,15 @@ export default function AdminSocialMediaPage() {
     { key: 'displayOrder', label: 'ترتیب', render: (item: SocialMedia) => item.displayOrder || 0 },
   ];
 
+  const extraActions = [
+    {
+      label: 'تغییر وضعیت فعال',
+      icon: <ToggleLeft className="w-4 h-4" />,
+      onClick: (item: SocialMedia) => handleToggleActive(item),
+      className: 'text-emerald-500 hover:text-emerald-400',
+    },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -164,6 +173,7 @@ export default function AdminSocialMediaPage() {
             onView={handleView}
             onEdit={handleEdit}
             onDelete={(item) => setDeleteId(item.id)}
+            extraActions={extraActions}
             emptyMessage="رکوردی یافت نشد"
           />
         </CardContent>

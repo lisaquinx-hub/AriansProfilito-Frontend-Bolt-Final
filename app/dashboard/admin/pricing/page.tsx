@@ -34,8 +34,10 @@ export default function AdminPricingPage() {
     fetchData();
   }, []);
 
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
   const handleDelete = async (id: string) => {
-    if (!window.confirm('آیا از حذف این پلن مطمئن هستید؟')) return;
     setDeleteId(id);
     setIsDeleting(true);
     try {

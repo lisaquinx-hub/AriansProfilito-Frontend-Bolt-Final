@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Bell, RefreshCw, Plus } from 'lucide-react';
+import { Bell, RefreshCw, Plus, ToggleLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
@@ -69,6 +69,16 @@ export default function AdminNotificationsPage() {
     }
   };
 
+  const handleToggleRead = async (item: Notification) => {
+    try {
+      await adminNotificationsService.updateReadStatus(item.id, !item.isRead);
+      setItems(prev => prev.map(i => i.id === item.id ? { ...i, isRead: !i.isRead } : i));
+      toast.success(item.isRead ? 'به حالت خوانده‌نشده تغییر یافت' : 'به حالت خوانده‌شده تغییر یافت');
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
+    }
+  };
+
   const handleSubmit = async (data: Record<string, unknown>) => {
     const payload: CreateNotificationDto = {
       userId: String(data.userId || ''),
@@ -130,6 +140,15 @@ export default function AdminNotificationsPage() {
     },
   ];
 
+  const extraActions = [
+    {
+      label: 'تغییر وضعیت خوانده شدن',
+      icon: <ToggleLeft className="w-4 h-4" />,
+      onClick: (item: Notification) => handleToggleRead(item),
+      className: 'text-blue-500 hover:text-blue-400',
+    },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -160,6 +179,7 @@ export default function AdminNotificationsPage() {
             loading={isLoading}
             onView={handleView}
             onDelete={(item) => setDeleteId(item.id)}
+            extraActions={extraActions}
             emptyMessage="اعلانی یافت نشد"
           />
         </CardContent>

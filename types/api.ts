@@ -291,9 +291,15 @@ export type Payment = PaymentDetailDto;
 export interface TicketMessageDto {
   id: string;
   ticketId: string;
-  userId: string;
-  userFullName?: string;
+  senderId: string;
+  senderFullName: string;
+  senderEmail?: string;
+  senderRole?: number;
   message: string;
+  attachment?: string;
+  fileName?: string;
+  isRead: boolean;
+  isAdminMessage: boolean;
   createdAt: string;
 }
 
@@ -309,10 +315,27 @@ export interface SupportTicket {
   priority: number;
   assignedToUserId?: string;
   assignedToFullName?: string;
+  closedByUserId?: string;
+  closedByFullName?: string;
   closedAt?: string;
   createdAt: string;
   updatedAt?: string;
   messages?: TicketMessageDto[];
+}
+
+export interface ContactMessage {
+  id: string;
+  fullName: string;
+  email: string;
+  phoneNumber?: string;
+  subject: string;
+  message: string;
+  company?: string;
+  isRead: boolean;
+  adminReply?: string;
+  repliedAt?: string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export interface Notification {

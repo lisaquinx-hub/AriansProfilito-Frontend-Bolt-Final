@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Mail, RefreshCw, Plus } from 'lucide-react';
+import { Mail, RefreshCw, Plus, ToggleLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
@@ -42,8 +42,9 @@ export default function AdminEmailTemplatesPage() {
       await adminEmailTemplatesService.delete(deleteId);
       setItems(items.filter(i => i.id !== deleteId));
       setDeleteId(null);
+      toast.success('قالب با موفقیت حذف شد');
     } catch (error) {
-      console.error('Failed to delete:', error);
+      toast.error(getApiErrorMessage(error));
     }
     setIsDeleting(false);
   };
@@ -51,9 +52,10 @@ export default function AdminEmailTemplatesPage() {
   const handleToggleActive = async (item: EmailTemplate) => {
     try {
       await adminEmailTemplatesService.updateActiveStatus(item.id, !item.isActive);
-      setItems(items.map(i => i.id === item.id ? { ...i, isActive: !i.isActive } : i));
+      setItems(prev => prev.map(i => i.id === item.id ? { ...i, isActive: !i.isActive } : i));
+      toast.success(item.isActive ? 'غیرفعال شد' : 'فعال شد');
     } catch (error) {
-      console.error('Failed to toggle:', error);
+      toast.error(getApiErrorMessage(error));
     }
   };
 
@@ -111,20 +113,26 @@ export default function AdminEmailTemplatesPage() {
       key: 'isActive',
       label: 'وضعیت',
       render: (item: EmailTemplate) => (
-        <button
-          onClick={() => handleToggleActive(item)}
-          className={`px-2 py-1 rounded-full text-xs ${
-            item.isActive ? 'bg-green-500/10 text-green-500' : 'bg-gray-500/10 text-gray-500'
-          }`}
-        >
+        <span className={`px-2 py-1 rounded-full text-xs ${
+          item.isActive ? 'bg-green-500/10 text-green-500' : 'bg-gray-500/10 text-gray-500'
+        }`}>
           {item.isActive ? 'فعال' : 'غیرفعال'}
-        </button>
+        </span>
       ),
     },
     {
       key: 'createdAt',
       label: 'تاریخ',
       render: (item: EmailTemplate) => item.createdAt ? new Date(item.createdAt).toLocaleDateString('fa-IR') : '-',
+    },
+  ];
+
+  const extraActions = [
+    {
+      label: 'تغییر وضعیت فعال',
+      icon: <ToggleLeft className="w-4 h-4" />,
+      onClick: (item: EmailTemplate) => handleToggleActive(item),
+      className: 'text-emerald-500 hover:text-emerald-400',
     },
   ];
 
@@ -159,6 +167,7 @@ export default function AdminEmailTemplatesPage() {
             onView={handleView}
             onEdit={handleEdit}
             onDelete={(item) => setDeleteId(item.id)}
+            extraActions={extraActions}
             emptyMessage="قالبی یافت نشد"
           />
         </CardContent>

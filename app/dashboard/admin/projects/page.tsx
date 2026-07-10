@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Briefcase, RefreshCw, Plus, Loader2 } from 'lucide-react';
+import { Briefcase, RefreshCw, Plus, Loader2, ToggleLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,12 +9,11 @@ import { EntityFormModal, FormField } from '@/components/admin/EntityFormModal';
 import { ViewDetailModal } from '@/components/admin/ViewDetailModal';
 import { adminProjectsService } from '@/services/admin/ProjectsService';
 import { adminPricingService } from '@/services/admin/PricingService';
-import { Project, PricingPlan } from '@/types/api';
+import { Project, PricingPlan, User } from '@/types/api';
 import { toast } from 'sonner';
-import { getApiErrorMessage } from '@/services/api';
-import { api } from '@/services/api';
+import { api, getApiErrorMessage } from '@/services/api';
 import { ApiResponse } from '@/lib/api-utils';
-import { User } from '@/types/api';
+import { AnimatePresence, motion } from 'framer-motion';
 
 // ProjectStatus enum: Pending=1, InProgress=2, Completed=3, Cancelled=4
 const PROJECT_STATUS_OPTIONS = [
@@ -48,6 +47,14 @@ export default function AdminProjectsPage() {
   const [viewItem, setViewItem] = useState<Project | null>(null);
   const [viewLoading, setViewLoading] = useState(false);
   const [viewError, setViewError] = useState<string | null>(null);
+
+  // Status change modal state
+  const [statusItem, setStatusItem] = useState<Project | null>(null);
+  const [statusValue, setStatusValue] = useState(1);
+  const [statusProgress, setStatusProgress] = useState(0);
+  const [statusAdminNote, setStatusAdminNote] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateError, setUpdateError] = useState<string | null>(null);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -101,6 +108,22 @@ export default function AdminProjectsPage() {
       setViewError(getApiErrorMessage(err));
     } finally {
       setViewLoading(false);
+    }
+  };
+
+  const handleStatusUpdate = async () => {
+    if (!statusItem) return;
+    setIsUpdating(true);
+    setUpdateError(null);
+    try {
+      await adminProjectsService.updateStatus(statusItem.id, statusValue);
+      setStatusItem(null);
+      toast.success('وضعیت پروژه با موفقیت به‌روز شد');
+      fetchData();
+    } catch (err) {
+      setUpdateError(getApiErrorMessage(err));
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -263,6 +286,21 @@ export default function AdminProjectsPage() {
     },
   ];
 
+  const extraActions = [
+    {
+      label: 'تغییر وضعیت',
+      icon: <ToggleLeft className="w-4 h-4" />,
+      onClick: (item: Project) => {
+        setStatusValue(item.status ?? 1);
+        setStatusProgress(item.progress ?? 0);
+        setStatusAdminNote(item.adminNote || '');
+        setUpdateError(null);
+        setStatusItem(item);
+      },
+      className: 'text-amber-500 hover:text-amber-400',
+    },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -299,6 +337,7 @@ export default function AdminProjectsPage() {
               onView={handleView}
               onEdit={handleEdit}
               onDelete={(item) => setDeleteId(item.id)}
+              extraActions={extraActions}
               emptyMessage="پروژه‌ای یافت نشد"
             />
           </CardContent>
@@ -333,7 +372,6 @@ export default function AdminProjectsPage() {
         fields={viewItem ? [
           { label: 'شناسه', value: viewItem.id },
           { label: 'عنوان', value: viewItem.title },
-          { label: 'کد پروژه', value: (viewItem as Project & { projectCode?: string }).projectCode || '-' },
           { label: 'مشتری', value: viewItem.customerFullName || '-' },
           { label: 'ایمیل مشتری', value: viewItem.customerEmail || '-' },
           { label: 'پلن قیمت‌گذاری', value: viewItem.pricingPlanTitle || '-' },
@@ -349,6 +387,70 @@ export default function AdminProjectsPage() {
           { label: 'تاریخ ایجاد', value: viewItem.createdAt ? new Date(viewItem.createdAt).toLocaleString('fa-IR') : '-' },
         ] : []}
       />
+
+      {/* Status Change Modal */}
+      <AnimatePresence>
+        {statusItem && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50"
+              onClick={() => { if (!isUpdating) setStatusItem(null); }}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+              className="relative glass rounded-2xl p-6 max-w-sm w-full"
+            >
+              <h3 className="text-lg font-semibold mb-4">تغییر وضعیت پروژه</h3>
+              <p className="text-sm text-muted-foreground mb-4">پروژه: {statusItem.title}</p>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">وضعیت</label>
+                  <select
+                    value={statusValue}
+                    onChange={e => setStatusValue(Number(e.target.value))}
+                    className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  >
+                    {PROJECT_STATUS_OPTIONS.map(o => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">پیشرفت (۰-۱۰۰)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={statusProgress}
+                    onChange={e => setStatusProgress(Number(e.target.value))}
+                    className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">یادداشت مدیر</label>
+                  <textarea
+                    value={statusAdminNote}
+                    onChange={e => setStatusAdminNote(e.target.value)}
+                    rows={3}
+                    className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 resize-none"
+                    placeholder="اختیاری"
+                  />
+                </div>
+                {updateError && (
+                  <p className="text-sm text-red-400">{updateError}</p>
+                )}
+                <div className="flex gap-2 justify-end">
+                  <Button variant="outline" size="sm" onClick={() => setStatusItem(null)} disabled={isUpdating}>انصراف</Button>
+                  <Button size="sm" className="btn-primary" onClick={handleStatusUpdate} disabled={isUpdating}>
+                    {isUpdating ? 'در حال ذخیره...' : 'ذخیره'}
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
