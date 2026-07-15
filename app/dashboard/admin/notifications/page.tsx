@@ -180,6 +180,10 @@ export default function AdminNotificationsPage() {
             onView={handleView}
             onDelete={(item) => setDeleteId(item.id)}
             extraActions={extraActions}
+            idLookup={{
+              entityLabel: 'اعلان',
+              getById: (id) => adminNotificationsService.getById(id),
+            }}
             emptyMessage="اعلانی یافت نشد"
           />
         </CardContent>

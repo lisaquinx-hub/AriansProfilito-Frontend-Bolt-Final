@@ -178,6 +178,10 @@ export default function AdminSocialMediaPage() {
             onEdit={handleEdit}
             onDelete={(item) => setDeleteId(item.id)}
             extraActions={extraActions}
+            idLookup={{
+              entityLabel: 'شبکه اجتماعی',
+              getById: (id) => adminSocialMediaService.getById(id),
+            }}
             emptyMessage="رکوردی یافت نشد"
           />
         </CardContent>

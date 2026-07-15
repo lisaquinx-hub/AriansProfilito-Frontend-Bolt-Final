@@ -14,6 +14,15 @@ class SocialMediaService {
       return [];
     }
   }
+
+  async getById(id: string): Promise<SocialMedia | null> {
+    try {
+      const response = await api.get<ApiResponse<SocialMedia>>(`${this.endpoint}/${id}`);
+      return response.data.data || null;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
+  }
 }
 
 export const socialMediaService = new SocialMediaService();

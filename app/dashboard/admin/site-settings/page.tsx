@@ -129,7 +129,19 @@ export default function AdminSiteSettingsPage() {
         </div>
       </div>
       <Card className="glass"><CardContent className="p-6">
-        <DataTable data={items} columns={columns} loading={isLoading} onView={handleView} onEdit={(i) => { setEditingItem(i); setIsFormOpen(true); }} onDelete={(i) => setDeleteId(i.id)} emptyMessage="تنظیماتی یافت نشد" />
+        <DataTable
+          data={items}
+          columns={columns}
+          loading={isLoading}
+          onView={handleView}
+          onEdit={(i) => { setEditingItem(i); setIsFormOpen(true); }}
+          onDelete={(i) => setDeleteId(i.id)}
+          idLookup={{
+            entityLabel: 'تنظیمات سایت',
+            getById: (id) => adminSiteSettingsService.getById(id),
+          }}
+          emptyMessage="تنظیماتی یافت نشد"
+        />
       </CardContent></Card>
       <ConfirmDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)} title="حذف تنظیمات" description="آیا از حذف اطمینان دارید؟" onConfirm={handleDelete} loading={isDeleting} />
       <EntityFormModal open={isFormOpen} onOpenChange={setIsFormOpen} title={editingItem ? 'ویرایش تنظیمات سایت' : 'تنظیمات جدید'} fields={fields}

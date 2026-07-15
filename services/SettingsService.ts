@@ -14,6 +14,15 @@ class SettingsService {
       return null;
     }
   }
+
+  async getById(id: string): Promise<Settings | null> {
+    try {
+      const response = await api.get<ApiResponse<Settings>>(`${this.endpoint}/${id}`);
+      return response.data.data || null;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
+  }
 }
 
 class SiteSettingsService {
@@ -26,6 +35,15 @@ class SiteSettingsService {
     } catch (error) {
       console.error('Failed to fetch site settings:', getApiErrorMessage(error));
       return null;
+    }
+  }
+
+  async getById(id: string): Promise<SiteSettings | null> {
+    try {
+      const response = await api.get<ApiResponse<SiteSettings>>(`${this.endpoint}/${id}`);
+      return response.data.data || null;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
     }
   }
 }

@@ -29,6 +29,18 @@ class BlogCategoryService {
       return null;
     }
   }
+
+  async getById(id: string): Promise<BlogCategory | null> {
+    try {
+      const response = await api.get<ApiResponse<BlogCategory>>(`${this.detailEndpoint}/${id}`);
+      return normalizeObject<BlogCategory>(response.data);
+    } catch (error) {
+      if (getApiStatus(error) !== 404) {
+        console.error('Failed to fetch blog category by id:', getApiErrorMessage(error));
+      }
+      return null;
+    }
+  }
 }
 
 export const blogCategoryService = new BlogCategoryService();

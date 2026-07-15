@@ -177,6 +177,10 @@ export default function AdminContactMessagesPage() {
             onView={handleView}
             onDelete={(item) => setDeleteId(item.id)}
             extraActions={extraActions}
+            idLookup={{
+              entityLabel: 'پیام تماس',
+              getById: (id) => adminContactMessagesService.getById(id),
+            }}
             emptyMessage="پیامی یافت نشد"
           />
         </CardContent>

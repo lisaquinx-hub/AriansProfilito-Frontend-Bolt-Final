@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, MoreHorizontal, Pencil, Trash2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { EntityIdLookup } from '@/components/admin/EntityIdLookup';
 
 interface Column<T> {
   key: keyof T | string;
@@ -36,6 +37,10 @@ interface DataTableProps<T> {
   extraActions?: ExtraAction<T>[];
   emptyMessage?: string;
   pageSize?: number;
+  idLookup?: {
+    entityLabel: string;
+    getById: (id: string) => Promise<T | null>;
+  };
 }
 
 function normalizeData<T>(raw: T[] | unknown): T[] {
@@ -59,15 +64,45 @@ export function DataTable<T extends { id: string }>({
   extraActions,
   emptyMessage = 'داده‌ای یافت نشد',
   pageSize = 10,
+  idLookup,
 }: DataTableProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
-  const data = normalizeData<T>(rawData);
+  const [idLookupActive, setIdLookupActive] = useState(false);
+  const [idLookupResult, setIdLookupResult] = useState<T | null>(null);
+  const sourceData = normalizeData<T>(rawData);
+  const data = idLookupActive
+    ? (idLookupResult ? [idLookupResult] : [])
+    : sourceData;
   const totalPages = Math.ceil(data.length / pageSize);
   const paginatedData = data.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  useEffect(() => {
+    setIdLookupResult(null);
+    setIdLookupActive(false);
+    setCurrentPage(1);
+  }, [rawData]);
+
+  const idLookupControl = idLookup ? (
+    <EntityIdLookup<T>
+      entityLabel={idLookup.entityLabel}
+      getById={idLookup.getById}
+      onResult={(item) => {
+        setIdLookupResult(item);
+        setIdLookupActive(true);
+        setCurrentPage(1);
+      }}
+      onClear={() => {
+        setIdLookupResult(null);
+        setIdLookupActive(false);
+        setCurrentPage(1);
+      }}
+    />
+  ) : null;
 
   if (loading) {
     return (
       <div className="space-y-4">
+        {idLookupControl}
         {Array.from({ length: 5 }).map((_, i) => (
           <div key={i} className="h-12 bg-muted animate-pulse rounded-lg" />
         ))}
@@ -77,8 +112,11 @@ export function DataTable<T extends { id: string }>({
 
   if (data.length === 0) {
     return (
-      <div className="text-center py-12 text-muted-foreground">
-        {emptyMessage}
+      <div>
+        {idLookupControl}
+        <div className="text-center py-12 text-muted-foreground">
+          {idLookupActive ? 'موردی با این شناسه یافت نشد' : emptyMessage}
+        </div>
       </div>
     );
   }
@@ -87,6 +125,7 @@ export function DataTable<T extends { id: string }>({
 
   return (
     <div className="space-y-4">
+      {idLookupControl}
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>

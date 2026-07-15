@@ -155,6 +155,10 @@ export default function AdminServicesPage() {
           onView={handleView}
           onEdit={(i) => { setEditingItem(i); setIsFormOpen(true); }}
           onDelete={(i) => setDeleteId(i.id)}
+          idLookup={{
+            entityLabel: 'خدمت',
+            getById: (id) => adminServicesService.getById(id),
+          }}
           emptyMessage="خدمتی یافت نشد"
         />
       </CardContent></Card>

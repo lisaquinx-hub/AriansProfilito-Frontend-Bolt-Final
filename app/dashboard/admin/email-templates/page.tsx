@@ -168,6 +168,10 @@ export default function AdminEmailTemplatesPage() {
             onEdit={handleEdit}
             onDelete={(item) => setDeleteId(item.id)}
             extraActions={extraActions}
+            idLookup={{
+              entityLabel: 'قالب ایمیل',
+              getById: (id) => adminEmailTemplatesService.getById(id),
+            }}
             emptyMessage="قالبی یافت نشد"
           />
         </CardContent>

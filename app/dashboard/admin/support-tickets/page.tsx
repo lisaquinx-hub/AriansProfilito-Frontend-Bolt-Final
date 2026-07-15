@@ -265,6 +265,10 @@ export default function AdminSupportTicketsPage() {
           onView={handleView}
           extraActions={extraActions}
           onDelete={(t) => setDeleteId(t.id)}
+          idLookup={{
+            entityLabel: 'تیکت پشتیبانی',
+            getById: (id) => adminSupportTicketsService.getById(id),
+          }}
           emptyMessage="تیکتی یافت نشد"
         />
       </CardContent></Card>

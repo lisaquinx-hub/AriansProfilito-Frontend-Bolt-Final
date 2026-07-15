@@ -165,6 +165,10 @@ export default function AdminBlogPostsPage() {
             onView={handleView}
             onEdit={(item) => { setEditingItem(item); setIsFormOpen(true); }}
             onDelete={(item) => setDeleteId(item.id)}
+            idLookup={{
+              entityLabel: 'پست وبلاگ',
+              getById: (id) => adminBlogPostsService.getById(id),
+            }}
             emptyMessage="پستی یافت نشد"
           />
         </CardContent>

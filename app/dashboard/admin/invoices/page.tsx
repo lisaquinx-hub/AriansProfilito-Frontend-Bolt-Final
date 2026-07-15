@@ -180,6 +180,10 @@ export default function AdminInvoicesPage() {
           onEdit={(i) => { setEditingItem(i); setIsFormOpen(true); }}
           onDelete={(i) => setDeleteId(i.id)}
           extraActions={extraActions}
+          idLookup={{
+            entityLabel: 'فاکتور',
+            getById: (id) => adminInvoicesService.getById(id),
+          }}
           emptyMessage="فاکتوری یافت نشد"
         />
       </CardContent></Card>

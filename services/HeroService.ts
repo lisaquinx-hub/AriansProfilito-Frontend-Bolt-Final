@@ -14,6 +14,15 @@ class HeroService {
       return null;
     }
   }
+
+  async getById(id: string): Promise<HeroSection | null> {
+    try {
+      const response = await api.get<ApiResponse<HeroSection>>(`${this.endpoint}/${id}`);
+      return response.data.data || null;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
+  }
 }
 
 export const heroService = new HeroService();

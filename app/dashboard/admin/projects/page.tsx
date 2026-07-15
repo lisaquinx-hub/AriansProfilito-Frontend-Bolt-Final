@@ -315,7 +315,12 @@ export default function AdminProjectsPage() {
             <DataTable
               data={items} columns={columns} loading={false}
               onView={openView} onEdit={openEdit} onDelete={(item) => setDeleteId(item.id)}
-              extraActions={extraActions} emptyMessage="پروژه‌ای یافت نشد"
+              extraActions={extraActions}
+              idLookup={{
+                entityLabel: 'پروژه',
+                getById: (id) => adminProjectsService.getById(id),
+              }}
+              emptyMessage="پروژه‌ای یافت نشد"
             />
           </CardContent>
         </Card>

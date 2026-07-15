@@ -180,6 +180,10 @@ export default function AdminPaymentsPage() {
           onEdit={(i) => { setEditingItem(i); setIsFormOpen(true); }}
           onDelete={(i) => setDeleteId(i.id)}
           extraActions={extraActions}
+          idLookup={{
+            entityLabel: 'پرداخت',
+            getById: (id) => adminPaymentsService.getById(id),
+          }}
           emptyMessage="پرداختی یافت نشد"
         />
       </CardContent></Card>

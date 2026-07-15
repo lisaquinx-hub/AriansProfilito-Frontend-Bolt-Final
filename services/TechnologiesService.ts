@@ -14,6 +14,15 @@ class TechnologiesService {
       return [];
     }
   }
+
+  async getById(id: string): Promise<Technology | null> {
+    try {
+      const response = await api.get<ApiResponse<Technology>>(`${this.endpoint}/${id}`);
+      return response.data.data || null;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
+  }
 }
 
 export const technologiesService = new TechnologiesService();

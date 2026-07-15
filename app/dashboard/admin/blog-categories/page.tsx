@@ -145,6 +145,10 @@ export default function AdminBlogCategoriesPage() {
             onView={handleView}
             onEdit={handleEdit}
             onDelete={(item) => setDeleteId(item.id)}
+            idLookup={{
+              entityLabel: 'دسته‌بندی وبلاگ',
+              getById: (id) => adminBlogCategoriesService.getById(id),
+            }}
             emptyMessage="دسته‌بندی یافت نشد"
           />
         </CardContent>

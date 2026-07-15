@@ -159,6 +159,10 @@ export default function AdminActivityLogsPage() {
             columns={columns}
             loading={isLoading}
             onView={handleView}
+            idLookup={{
+              entityLabel: 'لاگ فعالیت',
+              getById: (id) => adminActivityLogsService.getById(id),
+            }}
             emptyMessage="لاگی یافت نشد"
           />
         </CardContent>

@@ -1,12 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { adminNotificationsService } from '@/services/admin/NotificationsService';
-import { api } from '@/services/api';
-import { ApiResponse } from '@/lib/api-utils';
+import { notificationsService } from '@/services/NotificationsService';
 import { Notification } from '@/types/api';
 
 interface NotificationDropdownProps {
@@ -38,8 +38,7 @@ export function NotificationDropdown({ isAdmin = false }: NotificationDropdownPr
       if (isAdmin) {
         data = await adminNotificationsService.getAll();
       } else {
-        const res = await api.get<ApiResponse<Notification[]>>('/notifications/my');
-        data = res.data.data || [];
+        data = await notificationsService.getAll();
       }
       setNotifications(data);
     } catch {
@@ -171,6 +170,13 @@ export function NotificationDropdown({ isAdmin = false }: NotificationDropdownPr
                   </div>
                 )}
               </div>
+              <Link
+                href={isAdmin ? '/dashboard/admin/notifications' : '/dashboard/notifications'}
+                onClick={() => setIsOpen(false)}
+                className="block p-3 text-center text-sm text-sky-500 dark:text-cyan-400 border-t border-border hover:bg-muted/30 transition-colors"
+              >
+                مشاهده همه اعلان‌ها
+              </Link>
             </div>
           </motion.div>
         )}

@@ -91,3 +91,6 @@ class AdminUsersService {
 }
 
 export const adminUsersService = new AdminUsersService();
+
+export { adminFileAttachmentsService } from './FileAttachmentsService';
+export { adminProjectFilesService } from './ProjectFilesService';

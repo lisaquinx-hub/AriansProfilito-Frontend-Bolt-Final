@@ -15,6 +15,15 @@ class CommentsService {
     }
   }
 
+  async getById(id: string): Promise<Comment | null> {
+    try {
+      const response = await api.get<ApiResponse<Comment>>(`${this.endpoint}/${id}`);
+      return normalizeObject<Comment>(response.data);
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
+  }
+
   async create(data: CreateCommentRequest): Promise<Comment | null> {
     try {
       const response = await api.post<ApiResponse<Comment>>(this.endpoint, data);

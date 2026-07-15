@@ -178,6 +178,10 @@ export default function AdminHeroSectionsPage() {
             onEdit={handleEdit}
             onDelete={(item) => setDeleteId(item.id)}
             extraActions={extraActions}
+            idLookup={{
+              entityLabel: 'هیرو سکشن',
+              getById: (id) => adminHeroSectionsService.getById(id),
+            }}
             emptyMessage="رکوردی یافت نشد"
           />
         </CardContent>

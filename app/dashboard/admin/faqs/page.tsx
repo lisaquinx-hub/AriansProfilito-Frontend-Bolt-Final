@@ -144,6 +144,10 @@ export default function AdminFaqsPage() {
             onView={handleView}
             onEdit={handleEdit}
             onDelete={(item) => setDeleteId(item.id)}
+            idLookup={{
+              entityLabel: 'سوال متداول',
+              getById: (id) => adminFaqService.getById(id),
+            }}
             emptyMessage="سوالی یافت نشد"
           />
         </CardContent>

@@ -356,6 +356,37 @@ export interface Notification {
   updatedAt?: string;
 }
 
+export interface FileAttachment {
+  id: string;
+  fileName: string;
+  originalFileName: string;
+  filePath: string;
+  extension: string;
+  contentType: string;
+  size: number;
+  uploadedByUserId: string;
+  uploadedByFullName?: string;
+  uploadedByEmail?: string;
+  module: string;
+  referenceId: string;
+  isPublic: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface ProjectFile {
+  id: string;
+  projectId: string;
+  projectTitle?: string;
+  projectCode?: string;
+  fileName: string;
+  filePath: string;
+  fileSize: number;
+  contentType: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
 export interface AdminDashboardStats {
   usersCount: number;
   projectsCount: number;

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { EntityFormModal, FormField } from '@/components/admin/EntityFormModal';
 import { ViewDetailModal } from '@/components/admin/ViewDetailModal';
+import { EntityIdLookup } from '@/components/admin/EntityIdLookup';
 import { adminPricingService } from '@/services/admin/PricingService';
 import { PricingPlan } from '@/types/api';
 import { toast } from 'sonner';
@@ -171,6 +172,13 @@ export default function AdminPricingPage() {
           </Button>
         </div>
       </div>
+
+      <EntityIdLookup<PricingPlan>
+        entityLabel="پلن قیمت‌گذاری"
+        getById={(id) => adminPricingService.getById(id)}
+        onResult={(item) => setItems(item ? [item] : [])}
+        onClear={() => void fetchData()}
+      />
 
       {isLoading ? (
         <div className="flex items-center justify-center py-20">

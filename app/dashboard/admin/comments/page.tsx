@@ -152,6 +152,10 @@ export default function AdminCommentsPage() {
             onView={handleView}
             onDelete={(comment) => setDeleteId(comment.id)}
             extraActions={extraActions}
+            idLookup={{
+              entityLabel: 'نظر',
+              getById: (id) => adminCommentsService.getById(id),
+            }}
             emptyMessage="نظری یافت نشد"
           />
         </CardContent>

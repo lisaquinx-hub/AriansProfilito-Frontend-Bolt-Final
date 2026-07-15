@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Users, Image, Briefcase, DollarSign, HelpCircle,
   Settings, Share2, FolderOpen, FileText, MessageSquare, Code,
   Mail, Activity, ClipboardList, Receipt, CreditCard, HeadphonesIcon,
-  Bell, Menu, X, ChevronLeft, LogOut,
+  Bell, Menu, X, ChevronLeft, LogOut, Files, Paperclip,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { authService } from '@/services/AuthService';
@@ -32,6 +32,8 @@ const adminLinks = [
   { href: '/dashboard/admin/activity-logs', icon: Activity, label: 'لاگ فعالیت‌ها' },
   { href: '/dashboard/admin/audit-logs', icon: ClipboardList, label: 'لاگ ممیزی' },
   { href: '/dashboard/admin/projects', icon: Briefcase, label: 'پروژه‌ها' },
+  { href: '/dashboard/admin/project-files', icon: Files, label: 'فایل‌های پروژه' },
+  { href: '/dashboard/admin/file-attachments', icon: Paperclip, label: 'پیوست‌ها' },
   { href: '/dashboard/admin/invoices', icon: Receipt, label: 'فاکتورها' },
   { href: '/dashboard/admin/payments', icon: CreditCard, label: 'پرداخت‌ها' },
   { href: '/dashboard/admin/support-tickets', icon: HeadphonesIcon, label: 'تیکت‌های پشتیبانی' },

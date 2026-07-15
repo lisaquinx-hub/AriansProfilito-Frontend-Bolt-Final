@@ -15,6 +15,8 @@ import {
   Menu,
   X,
   ChevronLeft,
+  Files,
+  Bell,
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { AuthGuard } from '@/components/auth/AuthGuard';
@@ -29,6 +31,8 @@ const sidebarLinks = [
   { href: '/dashboard/projects', icon: FolderKanban, label: 'پروژه‌ها' },
   { href: '/dashboard/invoices', icon: FileText, label: 'فاکتورها' },
   { href: '/dashboard/payments', icon: CreditCard, label: 'پرداخت‌ها' },
+  { href: '/dashboard/files', icon: Files, label: 'فایل‌ها' },
+  { href: '/dashboard/notifications', icon: Bell, label: 'اعلان‌ها' },
   { href: '/dashboard/support', icon: LifeBuoy, label: 'پشتیبانی' },
 ];
 

@@ -137,6 +137,10 @@ export default function AdminTechnologiesPage() {
             onView={handleView}
             onEdit={handleEdit}
             onDelete={(item) => setDeleteId(item.id)}
+            idLookup={{
+              entityLabel: 'تکنولوژی',
+              getById: (id) => adminTechnologiesService.getById(id),
+            }}
             emptyMessage="تکنولوژی یافت نشد"
           />
         </CardContent>

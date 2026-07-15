@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { EntityIdLookup } from '@/components/admin/EntityIdLookup';
 import { supportService, SupportTicket, CreateTicketRequest } from '@/services/SupportService';
 import { getApiErrorMessage } from '@/services/api';
 
@@ -147,6 +148,13 @@ export default function SupportPage() {
           تیکت جدید
         </Button>
       </div>
+
+      <EntityIdLookup<SupportTicket>
+        entityLabel="تیکت شما"
+        getById={(id) => supportService.getTicket(id)}
+        onResult={(item) => setTickets(item ? [item] : [])}
+        onClear={() => void fetchTickets()}
+      />
 
       {error && !isLoading && (
         <div className="glass rounded-xl p-6 text-center">

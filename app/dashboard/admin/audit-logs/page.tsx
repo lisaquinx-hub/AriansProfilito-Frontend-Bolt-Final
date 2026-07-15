@@ -145,6 +145,10 @@ export default function AdminAuditLogsPage() {
             columns={columns}
             loading={isLoading}
             onView={handleView}
+            idLookup={{
+              entityLabel: 'لاگ ممیزی',
+              getById: (id) => adminAuditLogsService.getById(id),
+            }}
             emptyMessage="رکوردی یافت نشد"
           />
         </CardContent>
