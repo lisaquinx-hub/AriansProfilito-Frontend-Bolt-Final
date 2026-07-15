@@ -11,12 +11,17 @@ interface AuditLogsFilter extends PaginationParams {
 }
 
 class AdminAuditLogsService {
-  private endpoint = '/admin/audit-logs';
+  private readonly endpoint = '/admin/audit-logs';
 
   async getAll(params?: AuditLogsFilter): Promise<AuditLog[]> {
     try {
-      const response = await api.get<ApiResponse<AuditLog[]>>(this.endpoint, { params });
-      return response.data.data || [];
+      const response = await api.get<ApiResponse<AuditLog[]>>(this.endpoint, {
+        params,
+      });
+
+      const data = response.data?.data;
+
+      return Array.isArray(data) ? data : [];
     } catch (error) {
       console.error('Failed to fetch audit logs:', getApiErrorMessage(error));
       return [];
@@ -25,8 +30,11 @@ class AdminAuditLogsService {
 
   async getById(id: string): Promise<AuditLog | null> {
     try {
-      const response = await api.get<ApiResponse<AuditLog>>(`${this.endpoint}/${id}`);
-      return response.data.data;
+      const response = await api.get<ApiResponse<AuditLog>>(
+        `${this.endpoint}/${id}`
+      );
+
+      return response.data?.data ?? null;
     } catch (error) {
       throw new Error(getApiErrorMessage(error));
     }
@@ -34,3 +42,4 @@ class AdminAuditLogsService {
 }
 
 export const adminAuditLogsService = new AdminAuditLogsService();
+export default adminAuditLogsService;

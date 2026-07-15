@@ -1,41 +1,29 @@
-// There is no backend Products controller or /api/products endpoint.
-// Products pages are backed by ServicesController (/api/services).
-import { api, getApiErrorMessage } from './api';
-import { ApiResponse } from '@/lib/api-utils';
-import { Service } from '@/types/api';
+import { servicesService } from './ServicesService';
+import type { Service } from '@/types/api';
+
+export type Product = Service;
 
 class ProductService {
-  private endpoint = '/services';
-
-  async getProducts(): Promise<Service[]> {
-    try {
-      const response = await api.get<ApiResponse<Service[]>>(this.endpoint);
-      return response.data.data || [];
-    } catch (error) {
-      console.error('Failed to fetch products:', getApiErrorMessage(error));
-      return [];
-    }
+  async getAll(): Promise<Product[]> {
+    return servicesService.getAll();
   }
 
-  async getFeaturedProducts(): Promise<Service[]> {
-    try {
-      const response = await api.get<ApiResponse<Service[]>>(`${this.endpoint}/featured`);
-      return response.data.data || [];
-    } catch (error) {
-      console.error('Failed to fetch featured products:', getApiErrorMessage(error));
-      return [];
-    }
+  async getFeatured(): Promise<Product[]> {
+    return servicesService.getFeatured();
   }
 
-  async getProduct(slug: string): Promise<Service | null> {
-    try {
-      const response = await api.get<ApiResponse<Service>>(`${this.endpoint}/${slug}`);
-      return response.data.data;
-    } catch (error) {
-      console.error('Failed to fetch product:', getApiErrorMessage(error));
-      return null;
-    }
+  async getBySlug(slug: string): Promise<Product | null> {
+    return servicesService.getBySlug(slug);
+  }
+
+  /**
+   * Compatibility alias.
+   * Do not use /api/products because backend has no ProductsController.
+   */
+  async getById(slug: string): Promise<Product | null> {
+    return servicesService.getBySlug(slug);
   }
 }
 
 export const productService = new ProductService();
+export default productService;

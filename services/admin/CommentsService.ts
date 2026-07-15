@@ -1,5 +1,5 @@
 import { api, getApiErrorMessage } from '../api';
-import { ApiResponse } from '@/lib/api-utils';
+import { ApiResponse, normalizeArray, normalizeObject } from '@/lib/api-utils';
 import { Comment } from '@/types/api';
 
 class AdminCommentsService {
@@ -8,7 +8,7 @@ class AdminCommentsService {
   async getAll(): Promise<Comment[]> {
     try {
       const response = await api.get<ApiResponse<Comment[]>>(this.endpoint);
-      return response.data.data || [];
+      return normalizeArray<Comment>(response.data);
     } catch (error) {
       console.error('Failed to fetch comments:', getApiErrorMessage(error));
       return [];
@@ -17,8 +17,11 @@ class AdminCommentsService {
 
   async getById(id: string): Promise<Comment | null> {
     try {
-      const response = await api.get<ApiResponse<Comment>>(`${this.endpoint}/${id}`);
-      return response.data.data;
+      const response = await api.get<ApiResponse<Comment>>(
+        `${this.endpoint}/${id}`
+      );
+
+      return normalizeObject<Comment>(response.data);
     } catch (error) {
       throw new Error(getApiErrorMessage(error));
     }
@@ -42,3 +45,4 @@ class AdminCommentsService {
 }
 
 export const adminCommentsService = new AdminCommentsService();
+export default adminCommentsService;

@@ -1,50 +1,33 @@
-import { api, getApiErrorMessage } from './api';
-import { ApiResponse } from '@/lib/api-utils';
-import { Service } from '@/types/api';
+import { api } from './api';
+import { normalizeArray, normalizeObject } from '@/lib/api-utils';
+import type { Service } from '@/types/api';
 
 class ServicesService {
-  private endpoint = '/services';
+  private readonly endpoint = '/services';
 
   async getAll(): Promise<Service[]> {
-    try {
-      const response = await api.get<ApiResponse<Service[]>>(this.endpoint);
-      return response.data.data || [];
-    } catch (error) {
-      console.error('Failed to fetch services:', getApiErrorMessage(error));
-      return [];
-    }
+    const response = await api.get(this.endpoint);
+    return normalizeArray<Service>(response.data);
   }
 
   async getFeatured(): Promise<Service[]> {
-    try {
-      const response = await api.get<ApiResponse<Service[]>>(`${this.endpoint}/featured`);
-      return response.data.data || [];
-    } catch (error) {
-      console.error('Failed to fetch featured services:', getApiErrorMessage(error));
-      return [];
-    }
+    const response = await api.get(`${this.endpoint}/featured`);
+    return normalizeArray<Service>(response.data);
   }
 
-  async getById(id: string): Promise<Service | null> {
-    try {
-      const response = await api.get<ApiResponse<Service>>(`${this.endpoint}/${id}`);
-      return response.data.data;
-    } catch (error) {
-      console.error('Failed to fetch service:', getApiErrorMessage(error));
-      return null;
-    }
-  }
-
-  // Products pages are backed by this service (no /api/products endpoint exists)
   async getBySlug(slug: string): Promise<Service | null> {
-    try {
-      const response = await api.get<ApiResponse<Service>>(`${this.endpoint}/${slug}`);
-      return response.data.data;
-    } catch (error) {
-      console.error('Failed to fetch service by slug:', getApiErrorMessage(error));
-      return null;
-    }
+    const response = await api.get(`${this.endpoint}/${slug}`);
+    return normalizeObject<Service>(response.data);
+  }
+
+  /**
+   * Compatibility alias.
+   * Public backend route is /api/services/{slug}, not a numeric/id lookup.
+   */
+  async getById(slug: string): Promise<Service | null> {
+    return this.getBySlug(slug);
   }
 }
 
 export const servicesService = new ServicesService();
+export default servicesService;

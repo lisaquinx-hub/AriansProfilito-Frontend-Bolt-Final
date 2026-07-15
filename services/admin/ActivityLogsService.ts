@@ -9,12 +9,17 @@ interface ActivityLogsFilter extends PaginationParams {
 }
 
 class AdminActivityLogsService {
-  private endpoint = '/admin/activity-logs';
+  private readonly endpoint = '/admin/activity-logs';
 
   async getAll(params?: ActivityLogsFilter): Promise<ActivityLog[]> {
     try {
-      const response = await api.get<ApiResponse<ActivityLog[]>>(this.endpoint, { params });
-      return response.data.data || [];
+      const response = await api.get<ApiResponse<ActivityLog[]>>(this.endpoint, {
+        params,
+      });
+
+      const data = response.data?.data;
+
+      return Array.isArray(data) ? data : [];
     } catch (error) {
       console.error('Failed to fetch activity logs:', getApiErrorMessage(error));
       return [];
@@ -23,8 +28,11 @@ class AdminActivityLogsService {
 
   async getById(id: string): Promise<ActivityLog | null> {
     try {
-      const response = await api.get<ApiResponse<ActivityLog>>(`${this.endpoint}/${id}`);
-      return response.data.data;
+      const response = await api.get<ApiResponse<ActivityLog>>(
+        `${this.endpoint}/${id}`
+      );
+
+      return response.data?.data ?? null;
     } catch (error) {
       throw new Error(getApiErrorMessage(error));
     }
@@ -32,3 +40,4 @@ class AdminActivityLogsService {
 }
 
 export const adminActivityLogsService = new AdminActivityLogsService();
+export default adminActivityLogsService;
