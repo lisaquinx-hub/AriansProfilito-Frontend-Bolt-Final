@@ -1,36 +1,47 @@
-import { api, getApiErrorMessage } from './api';
-import { ApiResponse } from '@/lib/api-utils';
+import { api, getApiErrorMessage, getApiStatus } from './api';
+import { ApiResponse, normalizeArray, normalizeObject } from '@/lib/api-utils';
 import { BlogPost } from '@/types/api';
+
+interface BlogPostQueryParams {
+  categorySlug?: string;
+  search?: string;
+  pageNumber?: number;
+  pageSize?: number;
+}
+
+interface BlogPostPage {
+  items: BlogPost[];
+  pageNumber: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
+}
 
 class BlogPostService {
   private endpoint = '/blog/posts';
 
-  async getAll(params?: { categoryId?: string; skip?: number; take?: number }): Promise<BlogPost[]> {
+  async getAll(params?: BlogPostQueryParams): Promise<BlogPost[]> {
     try {
-      const response = await api.get<ApiResponse<BlogPost[]>>(this.endpoint, { params });
-      return response.data.data || [];
+      const response = await api.get<ApiResponse<BlogPostPage>>(this.endpoint, {
+        params: { pageNumber: 1, pageSize: 50, ...params },
+      });
+      return normalizeArray<BlogPost>(response.data);
     } catch (error) {
       console.error('Failed to fetch blog posts:', getApiErrorMessage(error));
       return [];
     }
   }
 
-  async getById(id: string): Promise<BlogPost | null> {
-    try {
-      const response = await api.get<ApiResponse<BlogPost>>(`${this.endpoint}/${id}`);
-      return response.data.data;
-    } catch (error) {
-      console.error('Failed to fetch blog post:', getApiErrorMessage(error));
-      return null;
-    }
-  }
-
   async getBySlug(slug: string): Promise<BlogPost | null> {
     try {
       const response = await api.get<ApiResponse<BlogPost>>(`${this.endpoint}/${slug}`);
-      return response.data.data;
+      return normalizeObject<BlogPost>(response.data);
     } catch (error) {
-      console.error('Failed to fetch blog post:', getApiErrorMessage(error));
+      if (getApiStatus(error) !== 404) {
+        console.error('Failed to fetch blog post:', getApiErrorMessage(error));
+      }
       return null;
     }
   }

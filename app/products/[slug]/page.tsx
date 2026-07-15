@@ -1,7 +1,6 @@
 'use client';
 
-// Products pages are backed by the ServicesController (/api/services).
-// There is no /api/products endpoint on the backend.
+// Local catalog products and backend service slugs share this detail route.
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
@@ -12,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { SectionTitle } from '@/components/shared';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { servicesService } from '@/services/ServicesService';
+import { productService } from '@/services/ProductService';
 import { Service } from '@/types/api';
 
 export default function ProductDetailsPage() {
@@ -25,7 +24,7 @@ export default function ProductDetailsPage() {
 
   useEffect(() => {
     if (!slug) return;
-    servicesService.getBySlug(slug).then((data) => {
+    productService.getProduct(slug).then((data) => {
       if (data) setService(data);
       else setNotFound(true);
       setIsLoading(false);

@@ -1,14 +1,15 @@
-import { api, getApiErrorMessage } from './api';
-import { ApiResponse } from '@/lib/api-utils';
+import { api, getApiErrorMessage, getApiStatus } from './api';
+import { ApiResponse, normalizeArray, normalizeObject } from '@/lib/api-utils';
 import { BlogCategory } from '@/types/api';
 
 class BlogCategoryService {
-  private endpoint = '/blog-categories';
+  private listEndpoint = '/blog/categories';
+  private detailEndpoint = '/blog-categories';
 
   async getAll(): Promise<BlogCategory[]> {
     try {
-      const response = await api.get<ApiResponse<BlogCategory[]>>(this.endpoint);
-      return response.data.data || [];
+      const response = await api.get<ApiResponse<BlogCategory[]>>(this.listEndpoint);
+      return normalizeArray<BlogCategory>(response.data);
     } catch (error) {
       console.error('Failed to fetch blog categories:', getApiErrorMessage(error));
       return [];
@@ -17,10 +18,14 @@ class BlogCategoryService {
 
   async getBySlug(slug: string): Promise<BlogCategory | null> {
     try {
-      const response = await api.get<ApiResponse<BlogCategory>>(`${this.endpoint}/slug/${slug}`);
-      return response.data.data;
+      const response = await api.get<ApiResponse<BlogCategory>>(
+        `${this.detailEndpoint}/slug/${slug}`
+      );
+      return normalizeObject<BlogCategory>(response.data);
     } catch (error) {
-      console.error('Failed to fetch blog category:', getApiErrorMessage(error));
+      if (getApiStatus(error) !== 404) {
+        console.error('Failed to fetch blog category:', getApiErrorMessage(error));
+      }
       return null;
     }
   }

@@ -1,4 +1,4 @@
-import { api, getApiErrorMessage } from './api';
+import { api, getApiErrorMessage, getApiStatus } from './api';
 import { ApiResponse, normalizeArray, normalizeObject } from '@/lib/api-utils';
 import { Service } from '@/types/api';
 
@@ -41,7 +41,9 @@ class ServicesService {
       const response = await api.get<ApiResponse<Service>>(`${this.endpoint}/${slug}`);
       return normalizeObject<Service>(response.data);
     } catch (error) {
-      console.error('Failed to fetch service by slug:', getApiErrorMessage(error));
+      if (getApiStatus(error) !== 404) {
+        console.error('Failed to fetch service by slug:', getApiErrorMessage(error));
+      }
       return null;
     }
   }

@@ -142,8 +142,11 @@ export interface BlogPost {
   keywords?: string;
   categoryId?: string;
   categoryName?: string;
+  categorySlug?: string;
+  authorId?: string;
   authorName?: string;
   authorAvatar?: string;
+  viewCount?: number;
   createdAt?: string;
   updatedAt?: string;
 }

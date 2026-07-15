@@ -40,7 +40,7 @@ export default function BlogPage() {
     let result = [...safePosts];
     if (selectedCategory !== 'all') {
       result = result.filter(
-        (p) => p.categoryId === selectedCategory || p.categoryName === selectedCategory
+        (p) => p.categorySlug === selectedCategory
       );
     }
     if (searchQuery.trim()) {
@@ -70,7 +70,7 @@ export default function BlogPage() {
 
   const displayCategories = [
     { id: 'all', name: 'همه', count: posts.length },
-    ...categories.map((c) => ({ id: c.id, name: c.name, count: c.publishedPostCount || 0 })),
+    ...categories.map((c) => ({ id: c.slug, name: c.name, count: c.publishedPostCount || 0 })),
   ];
 
   return (
@@ -162,7 +162,7 @@ export default function BlogPage() {
                               <span>{post.authorName || '-'}</span>
                               <div className="flex items-center gap-1">
                                 <Eye className="w-4 h-4" />
-                                <span>{(post as unknown as Record<string, unknown>).views as number || 0}</span>
+                                <span>{post.viewCount || 0}</span>
                               </div>
                             </div>
                             <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
