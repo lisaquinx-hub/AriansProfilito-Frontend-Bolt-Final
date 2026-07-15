@@ -24,7 +24,16 @@ export default function Hero() {
   const subtitle = heroData?.subtitle || 'توسعه نرم‌افزار';
   const description = heroData?.description || 'طراحی مدرن، سرعت بالا و تجربه‌ای متفاوت';
   const primaryButtonText = heroData?.primaryButtonText || 'شروع همکاری';
-  const primaryButtonUrl = getSafeNavigationHref(heroData?.primaryButtonUrl, '/#contact');
+  const configuredPrimaryButtonUrl = getSafeNavigationHref(
+    heroData?.primaryButtonUrl,
+    '/#contact-form'
+  );
+  const primaryButtonUrl =
+    configuredPrimaryButtonUrl === '/register' ||
+    configuredPrimaryButtonUrl === '/login' ||
+    configuredPrimaryButtonUrl === '/dashboard/projects/new'
+      ? '/#contact-form'
+      : configuredPrimaryButtonUrl;
   const secondaryButtonText = heroData?.secondaryButtonText || 'نمونه کارها';
   const secondaryButtonUrl = getSafeNavigationHref(heroData?.secondaryButtonUrl, '/portfolio');
 

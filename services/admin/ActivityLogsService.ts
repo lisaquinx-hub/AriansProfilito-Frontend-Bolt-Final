@@ -3,6 +3,7 @@ import { ApiResponse, normalizeArray, normalizeObject, PaginationParams } from '
 import { ActivityLog } from '@/types/api';
 
 interface ActivityLogsFilter extends PaginationParams {
+  userId?: string;
   activity?: string;
   from?: string;
   to?: string;

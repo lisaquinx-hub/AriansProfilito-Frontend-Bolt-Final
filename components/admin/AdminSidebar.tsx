@@ -10,11 +10,9 @@ import {
   Mail, Activity, ClipboardList, Receipt, CreditCard, HeadphonesIcon,
   Bell, Menu, X, ChevronLeft, LogOut,
 } from 'lucide-react';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import { cn } from '@/lib/utils';
 import { authService } from '@/services/AuthService';
 import { useAuth } from '@/hooks/useAuth';
-import { NotificationDropdown } from '@/components/admin/NotificationDropdown';
 
 const adminLinks = [
   { href: '/dashboard/admin', icon: LayoutDashboard, label: 'داشبورد' },
@@ -162,10 +160,6 @@ function AdminLayoutContent({ children }: AdminLayoutContentProps) {
               <Link href="/dashboard" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
                 <ChevronLeft className="w-4 h-4" /><span className="hidden sm:inline">بازگشت به داشبورد</span>
               </Link>
-            </div>
-            <div className="flex items-center gap-2 lg:gap-4">
-              <NotificationDropdown isAdmin />
-              <ThemeToggle />
             </div>
           </div>
         </header>

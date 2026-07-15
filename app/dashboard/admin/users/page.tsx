@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Users, RefreshCw, Plus, Key, ToggleLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
@@ -12,6 +14,8 @@ import { User } from '@/types/api';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/services/api';
 import { AnimatePresence, motion } from 'framer-motion';
+import { UserIdFilter } from '@/components/admin/UserIdFilter';
+import { isValidUuid } from '@/lib/identifiers';
 
 // UserRole: Customer=1, Employee=2, Admin=3
 const ROLE_OPTIONS = [
@@ -21,8 +25,13 @@ const ROLE_OPTIONS = [
 ];
 
 export default function AdminUsersPage() {
+  const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [userIdQuery, setUserIdQuery] = useState('');
+  const [isIdSearching, setIsIdSearching] = useState(false);
+  const [userSearchError, setUserSearchError] = useState<string | null>(null);
+  const [isFilteredById, setIsFilteredById] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -40,12 +49,68 @@ export default function AdminUsersPage() {
 
   const fetchUsers = async () => {
     setIsLoading(true);
+    setUserSearchError(null);
     const data = await adminUsersService.getAll();
     setUsers(data);
+    setIsFilteredById(false);
     setIsLoading(false);
   };
 
-  useEffect(() => { fetchUsers(); }, []);
+  const searchUserById = async (rawUserId: string, updateUrl = true) => {
+    const userId = rawUserId.trim();
+    if (!isValidUuid(userId)) {
+      setUserSearchError('شناسه کاربر باید یک UUID معتبر باشد');
+      setIsLoading(false);
+      return;
+    }
+
+    setIsIdSearching(true);
+    setIsLoading(true);
+    setUserSearchError(null);
+    try {
+      const user = await adminUsersService.getById(userId);
+      if (!user) {
+        setUsers([]);
+        setUserSearchError('کاربری با این شناسه پیدا نشد');
+      } else {
+        setUsers([user]);
+      }
+      setIsFilteredById(true);
+      if (updateUrl) {
+        router.replace(`/dashboard/admin/users?userId=${encodeURIComponent(userId)}`, {
+          scroll: false,
+        });
+      }
+    } catch (error) {
+      setUsers([]);
+      setIsFilteredById(true);
+      setUserSearchError(getApiErrorMessage(error));
+    } finally {
+      setIsIdSearching(false);
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const requestedUserId = new URLSearchParams(window.location.search)
+      .get('userId')
+      ?.trim() || '';
+    if (requestedUserId) {
+      setUserIdQuery(requestedUserId);
+      void searchUserById(requestedUserId, false);
+    } else {
+      void fetchUsers();
+    }
+    // Query parameters are read once when this page is opened.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleClearUserSearch = () => {
+    setUserIdQuery('');
+    setUserSearchError(null);
+    router.replace('/dashboard/admin/users', { scroll: false });
+    void fetchUsers();
+  };
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -191,10 +256,46 @@ export default function AdminUsersPage() {
           <p className="text-muted-foreground text-sm mt-1">{users.length} کاربر</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={fetchUsers}><RefreshCw className={`w-4 h-4 ml-1 ${isLoading ? 'animate-spin' : ''}`} />بروزرسانی</Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => userIdQuery.trim()
+              ? void searchUserById(userIdQuery, false)
+              : void fetchUsers()}
+          >
+            <RefreshCw className={`w-4 h-4 ml-1 ${isLoading ? 'animate-spin' : ''}`} />بروزرسانی
+          </Button>
           <Button size="sm" className="btn-primary" onClick={() => { setEditingItem(null); setIsFormOpen(true); }}><Plus className="w-4 h-4 ml-1" />کاربر جدید</Button>
         </div>
       </div>
+      <Card className="glass">
+        <CardContent className="p-6">
+          <div className="mb-4">
+            <h2 className="font-semibold">جستجوی مستقیم کاربر با شناسه</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              شناسه UUID کاربر را وارد کنید تا اطلاعات او مستقیماً از سرور دریافت شود.
+            </p>
+          </div>
+          <UserIdFilter
+            value={userIdQuery}
+            onChange={setUserIdQuery}
+            onSearch={() => void searchUserById(userIdQuery)}
+            onClear={handleClearUserSearch}
+            loading={isIdSearching}
+            error={userSearchError}
+          />
+          {isFilteredById && users[0] && (
+            <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-border">
+              <Link href={`/dashboard/admin/activity-logs?userId=${encodeURIComponent(users[0].id)}`}>
+                <Button variant="outline" size="sm">مشاهده لاگ فعالیت</Button>
+              </Link>
+              <Link href={`/dashboard/admin/audit-logs?userId=${encodeURIComponent(users[0].id)}`}>
+                <Button variant="outline" size="sm">مشاهده لاگ ممیزی</Button>
+              </Link>
+            </div>
+          )}
+        </CardContent>
+      </Card>
       <Card className="glass"><CardContent className="p-6">
         <DataTable
           data={users}

@@ -14,6 +14,10 @@ import { adminBlogPostsService } from '@/services/admin/BlogPostsService';
 import { adminCommentsService } from '@/services/admin/CommentsService';
 import { adminActivityLogsService } from '@/services/admin/ActivityLogsService';
 import { cn } from '@/lib/utils';
+import { UserIdFilter } from '@/components/admin/UserIdFilter';
+import { isValidUuid } from '@/lib/identifiers';
+import { getApiErrorMessage } from '@/services/api';
+import { User } from '@/types/api';
 
 interface StatCardProps {
   title: string;
@@ -57,6 +61,43 @@ export default function AdminDashboardPage() {
     pendingComments: 0,
     activityLogs: 0,
   });
+  const [userIdQuery, setUserIdQuery] = useState('');
+  const [foundUser, setFoundUser] = useState<User | null>(null);
+  const [isSearchingUser, setIsSearchingUser] = useState(false);
+  const [userSearchError, setUserSearchError] = useState<string | null>(null);
+
+  const handleUserSearch = async () => {
+    const userId = userIdQuery.trim();
+    if (!isValidUuid(userId)) {
+      setFoundUser(null);
+      setUserSearchError('شناسه کاربر باید یک UUID معتبر باشد');
+      return;
+    }
+
+    setIsSearchingUser(true);
+    setUserSearchError(null);
+    try {
+      const user = await adminUsersService.getById(userId);
+      if (!user) {
+        setFoundUser(null);
+        setUserSearchError('کاربری با این شناسه پیدا نشد');
+      } else {
+        setFoundUser(user);
+      }
+    } catch (error) {
+      setFoundUser(null);
+      setUserSearchError(getApiErrorMessage(error));
+    } finally {
+      setIsSearchingUser(false);
+    }
+  };
+
+  const handleClearUserSearch = () => {
+    setUserIdQuery('');
+    setFoundUser(null);
+    setUserSearchError(null);
+  };
+
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -128,6 +169,52 @@ export default function AdminDashboardPage() {
           </motion.div>
         ))}
       </div>
+
+      <Card className="glass">
+        <CardHeader>
+          <CardTitle>جستجوی کاربر با شناسه</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <UserIdFilter
+            value={userIdQuery}
+            onChange={setUserIdQuery}
+            onSearch={() => void handleUserSearch()}
+            onClear={handleClearUserSearch}
+            loading={isSearchingUser}
+            error={userSearchError}
+          />
+          {foundUser && (
+            <div className="mt-5 p-4 rounded-xl bg-muted/40 border border-border">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="font-semibold truncate">{foundUser.fullName}</div>
+                  <div className="text-sm text-muted-foreground truncate">{foundUser.email}</div>
+                  <div className="text-xs text-muted-foreground font-mono mt-1 break-all" dir="ltr">
+                    {foundUser.id}
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Link href={`/dashboard/admin/users?userId=${encodeURIComponent(foundUser.id)}`}>
+                    <button className="px-3 py-2 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 transition-colors text-sm">
+                      مشاهده کاربر
+                    </button>
+                  </Link>
+                  <Link href={`/dashboard/admin/activity-logs?userId=${encodeURIComponent(foundUser.id)}`}>
+                    <button className="px-3 py-2 rounded-lg bg-gray-500/10 text-foreground hover:bg-gray-500/20 transition-colors text-sm">
+                      لاگ فعالیت
+                    </button>
+                  </Link>
+                  <Link href={`/dashboard/admin/audit-logs?userId=${encodeURIComponent(foundUser.id)}`}>
+                    <button className="px-3 py-2 rounded-lg bg-purple-500/10 text-purple-500 hover:bg-purple-500/20 transition-colors text-sm">
+                      لاگ ممیزی
+                    </button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Quick Actions */}
       <div className="grid gap-4 md:grid-cols-2">

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { ClipboardList, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/admin/DataTable';
@@ -9,25 +10,64 @@ import { ViewDetailModal } from '@/components/admin/ViewDetailModal';
 import { adminAuditLogsService } from '@/services/admin/AuditLogsService';
 import { AuditLog } from '@/types/api';
 import { getApiErrorMessage } from '@/services/api';
+import { UserIdFilter } from '@/components/admin/UserIdFilter';
+import { isValidUuid } from '@/lib/identifiers';
 
 export default function AdminAuditLogsPage() {
+  const router = useRouter();
   const [items, setItems] = useState<AuditLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [userIdQuery, setUserIdQuery] = useState('');
+  const [filterError, setFilterError] = useState<string | null>(null);
 
   const [viewItem, setViewItem] = useState<AuditLog | null>(null);
   const [viewLoading, setViewLoading] = useState(false);
   const [viewError, setViewError] = useState<string | null>(null);
 
-  const fetchData = async () => {
+  const fetchData = async (userId?: string) => {
     setIsLoading(true);
-    const data = await adminAuditLogsService.getAll({ take: 100 });
+    setFilterError(null);
+    const data = await adminAuditLogsService.getAll({
+      take: 100,
+      userId: userId || undefined,
+    });
     setItems(data);
     setIsLoading(false);
   };
 
   useEffect(() => {
-    fetchData();
+    const requestedUserId = new URLSearchParams(window.location.search)
+      .get('userId')
+      ?.trim() || '';
+    setUserIdQuery(requestedUserId);
+    if (requestedUserId && !isValidUuid(requestedUserId)) {
+      setFilterError('شناسه کاربر باید یک UUID معتبر باشد');
+      setIsLoading(false);
+      return;
+    }
+    void fetchData(requestedUserId || undefined);
+    // Query parameters are read once when this page is opened.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleUserIdSearch = () => {
+    const userId = userIdQuery.trim();
+    if (!isValidUuid(userId)) {
+      setFilterError('شناسه کاربر باید یک UUID معتبر باشد');
+      return;
+    }
+    router.replace(`/dashboard/admin/audit-logs?userId=${encodeURIComponent(userId)}`, {
+      scroll: false,
+    });
+    void fetchData(userId);
+  };
+
+  const handleClearFilter = () => {
+    setUserIdQuery('');
+    setFilterError(null);
+    router.replace('/dashboard/admin/audit-logs', { scroll: false });
+    void fetchData();
+  };
 
   const handleView = async (item: AuditLog) => {
     setViewItem({ ...item });
@@ -69,11 +109,34 @@ export default function AdminAuditLogsPage() {
           </h1>
           <p className="text-muted-foreground text-sm mt-1">{items.length} رکورد</p>
         </div>
-        <Button variant="outline" size="sm" onClick={fetchData}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => userIdQuery.trim() ? handleUserIdSearch() : void fetchData()}
+        >
           <RefreshCw className="w-4 h-4 ml-1" />
           بروزرسانی
         </Button>
       </div>
+
+      <Card className="glass">
+        <CardContent className="p-6">
+          <div className="mb-4">
+            <h2 className="font-semibold">جستجو بر اساس شناسه کاربر</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              تغییرات ثبت‌شده توسط یک کاربر مشخص را نمایش می‌دهد.
+            </p>
+          </div>
+          <UserIdFilter
+            value={userIdQuery}
+            onChange={setUserIdQuery}
+            onSearch={handleUserIdSearch}
+            onClear={handleClearFilter}
+            loading={isLoading}
+            error={filterError}
+          />
+        </CardContent>
+      </Card>
 
       <Card className="glass">
         <CardContent className="p-6">
@@ -95,6 +158,7 @@ export default function AdminAuditLogsPage() {
         error={viewError}
         fields={viewItem ? [
           { label: 'شناسه', value: viewItem.id },
+          { label: 'شناسه کاربر', value: viewItem.userId || '-' },
           { label: 'کاربر', value: viewItem.userFullName || viewItem.userEmail || 'سیستم' },
           { label: 'ایمیل کاربر', value: viewItem.userEmail || '-' },
           { label: 'عملیات', value: viewItem.action },

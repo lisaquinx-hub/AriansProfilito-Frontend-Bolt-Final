@@ -3,6 +3,7 @@ import { ApiResponse, normalizeArray, normalizeObject, PaginationParams } from '
 import { AuditLog } from '@/types/api';
 
 interface AuditLogsFilter extends PaginationParams {
+  userId?: string;
   action?: string;
   entityName?: string;
   entityId?: string;

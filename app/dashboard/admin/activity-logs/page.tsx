@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Activity, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/admin/DataTable';
@@ -9,25 +10,64 @@ import { ViewDetailModal } from '@/components/admin/ViewDetailModal';
 import { adminActivityLogsService } from '@/services/admin/ActivityLogsService';
 import { ActivityLog } from '@/types/api';
 import { getApiErrorMessage } from '@/services/api';
+import { UserIdFilter } from '@/components/admin/UserIdFilter';
+import { isValidUuid } from '@/lib/identifiers';
 
 export default function AdminActivityLogsPage() {
+  const router = useRouter();
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [userIdQuery, setUserIdQuery] = useState('');
+  const [filterError, setFilterError] = useState<string | null>(null);
 
   const [viewItem, setViewItem] = useState<ActivityLog | null>(null);
   const [viewLoading, setViewLoading] = useState(false);
   const [viewError, setViewError] = useState<string | null>(null);
 
-  const fetchLogs = async () => {
+  const fetchLogs = async (userId?: string) => {
     setIsLoading(true);
-    const data = await adminActivityLogsService.getAll({ take: 100 });
+    setFilterError(null);
+    const data = await adminActivityLogsService.getAll({
+      take: 100,
+      userId: userId || undefined,
+    });
     setLogs(data);
     setIsLoading(false);
   };
 
   useEffect(() => {
-    fetchLogs();
+    const requestedUserId = new URLSearchParams(window.location.search)
+      .get('userId')
+      ?.trim() || '';
+    setUserIdQuery(requestedUserId);
+    if (requestedUserId && !isValidUuid(requestedUserId)) {
+      setFilterError('شناسه کاربر باید یک UUID معتبر باشد');
+      setIsLoading(false);
+      return;
+    }
+    void fetchLogs(requestedUserId || undefined);
+    // Query parameters are read once when this page is opened.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleUserIdSearch = () => {
+    const userId = userIdQuery.trim();
+    if (!isValidUuid(userId)) {
+      setFilterError('شناسه کاربر باید یک UUID معتبر باشد');
+      return;
+    }
+    router.replace(`/dashboard/admin/activity-logs?userId=${encodeURIComponent(userId)}`, {
+      scroll: false,
+    });
+    void fetchLogs(userId);
+  };
+
+  const handleClearFilter = () => {
+    setUserIdQuery('');
+    setFilterError(null);
+    router.replace('/dashboard/admin/activity-logs', { scroll: false });
+    void fetchLogs();
+  };
 
   const handleView = async (item: ActivityLog) => {
     setViewItem({ ...item });
@@ -83,11 +123,34 @@ export default function AdminActivityLogsPage() {
             {logs.length} رکورد
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={fetchLogs}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => userIdQuery.trim() ? handleUserIdSearch() : void fetchLogs()}
+        >
           <RefreshCw className="w-4 h-4 ml-1" />
           بروزرسانی
         </Button>
       </div>
+
+      <Card className="glass">
+        <CardContent className="p-6">
+          <div className="mb-4">
+            <h2 className="font-semibold">جستجو بر اساس شناسه کاربر</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              فعالیت‌های ثبت‌شده برای یک کاربر مشخص را نمایش می‌دهد.
+            </p>
+          </div>
+          <UserIdFilter
+            value={userIdQuery}
+            onChange={setUserIdQuery}
+            onSearch={handleUserIdSearch}
+            onClear={handleClearFilter}
+            loading={isLoading}
+            error={filterError}
+          />
+        </CardContent>
+      </Card>
 
       <Card className="glass">
         <CardContent className="p-6">
@@ -109,6 +172,7 @@ export default function AdminActivityLogsPage() {
         error={viewError}
         fields={viewItem ? [
           { label: 'شناسه', value: viewItem.id },
+          { label: 'شناسه کاربر', value: viewItem.userId || '-' },
           { label: 'کاربر', value: viewItem.userFullName || viewItem.userEmail || 'سیستم' },
           { label: 'ایمیل کاربر', value: viewItem.userEmail || '-' },
           { label: 'فعالیت', value: viewItem.activity },

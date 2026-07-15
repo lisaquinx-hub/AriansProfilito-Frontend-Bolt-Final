@@ -64,14 +64,14 @@ export default function Contact() {
               برای ساخت محصولی آرام، سریع و ممتاز آماده‌اید؟
             </h3>
             <p className="text-muted-foreground max-w-xl mx-auto mb-8">
-              یک پیام کوتاه کافی است. درباره ایده، محصول یا چالشی که می‌خواهید حل کنید بنویسید
-              تا مسیر پیشنهادی را با شما بررسی کنیم.
+              برای ثبت پروژه، فرم تماس را تکمیل کنید یا مستقیماً با ما تماس بگیرید.
+              درباره ایده، محصول یا چالشی که می‌خواهید حل کنید بنویسید تا مسیر پیشنهادی را بررسی کنیم.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link href="/#contact-form">
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                   <Button className="btn-primary gap-2 group">
-                    ثبت درخواست پروژه
+                    تماس برای ثبت پروژه
                     <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
                   </Button>
                 </motion.div>

@@ -6,6 +6,7 @@ import { FolderKanban, Calendar, AlertCircle, Loader2, MessageSquare, X } from '
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import Link from 'next/link';
 import { projectService } from '@/services/ProjectService';
 import { Project } from '@/types/api';
 import { getApiErrorMessage } from '@/services/api';
@@ -99,6 +100,9 @@ export default function ProjectsPage() {
           <p className="text-muted-foreground text-sm">
             هنوز پروژه‌ای برای شما ثبت نشده است. برای سفارش پروژه با پشتیبانی تماس بگیرید.
           </p>
+          <Link href="/#contact-form">
+            <Button className="btn-primary mt-6">تماس برای ثبت پروژه</Button>
+          </Link>
         </div>
       )}
 

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard,
@@ -38,12 +38,14 @@ interface DashboardLayoutProps {
 
 function DashboardContent({ children }: DashboardLayoutProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const displayName = user?.fullName || user?.email || 'کاربر';
   const displayEmail = user?.email || '-';
+  const isAdminRoute = pathname.startsWith('/dashboard/admin');
 
   const handleLogout = async () => {
     await authService.logout();
@@ -219,7 +221,7 @@ function DashboardContent({ children }: DashboardLayoutProps) {
               </Link>
             </div>
             <div className="flex items-center gap-2 md:gap-4">
-              <NotificationDropdown />
+              <NotificationDropdown isAdmin={isAdminRoute} />
               <ThemeToggle />
               {/* Avatar in header — also links to profile */}
               <Link

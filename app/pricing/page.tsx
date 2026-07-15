@@ -103,12 +103,12 @@ export default function PricingPage() {
                   ))}
                 </ul>
 
-                <Link href="/register">
+                <Link href="/#contact-form">
                   <Button
                     className={cn('w-full rounded-full', plan.isPopular ? 'btn-primary shadow-glow' : '')}
                     variant={plan.isPopular ? 'default' : 'outline'}
                   >
-                    شروع همکاری
+                    تماس برای ثبت پروژه
                   </Button>
                 </Link>
               </motion.div>
