@@ -10,7 +10,7 @@ class FileAttachmentsService {
       const response = await api.get<ApiResponse<FileAttachment[]>>(`${this.endpoint}/my`);
       return normalizeArray<FileAttachment>(response.data);
     } catch (error) {
-      console.error('Failed to fetch my attachments:', getApiErrorMessage(error));
+      console.warn('Failed to fetch my attachments:', getApiErrorMessage(error));
       return [];
     }
   }

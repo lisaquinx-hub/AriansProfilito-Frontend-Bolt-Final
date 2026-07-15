@@ -61,7 +61,7 @@ export default function PortfolioPage() {
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
           <CategoryFilter categories={displayCategories} selected={selectedCategory} onSelect={setSelectedCategory} />
-          <SearchBox placeholder="جستجو در پروژه‌ها..." onSearch={setSearchQuery} className="w-full md:w-80" />
+          <SearchBox placeholder="جست‌وجو در پروژه‌ها..." onSearch={setSearchQuery} className="w-full md:w-80" />
         </motion.div>
 
         {isLoading ? (
@@ -74,7 +74,7 @@ export default function PortfolioPage() {
               <AnimatePresence mode="popLayout">
                 {items.map((item, index) => (
                   <motion.div key={item.id} layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} transition={{ duration: 0.3, delay: index * 0.05 }}>
-                    <Link href={`/portfolio/${item.slug}`}>
+                    <Link href={`/portfolio/${encodeURIComponent(item.slug)}`}>
                       <div className="group glass rounded-2xl overflow-hidden hover:glass-hover transition-all">
                         <div className="relative aspect-video bg-gradient-to-br from-sky-500/20 to-blue-500/20 dark:from-blue-500/20 dark:to-cyan-500/20 flex items-center justify-center">
                           <span className="text-5xl font-bold text-foreground/10">{item.title[0]}</span>
@@ -112,7 +112,7 @@ export default function PortfolioPage() {
           <EmptyState
             type="projects"
             title="نمونه‌کاری یافت نشد"
-            description="موردی با مشخصات مورد نظر وجود ندارد."
+            description="موردی با مشخصات موردنظر وجود ندارد."
             actionLabel="پاک کردن فیلترها"
             onAction={() => { setSelectedCategory('all'); setSearchQuery(''); }}
           />

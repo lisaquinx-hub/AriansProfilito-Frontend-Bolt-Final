@@ -47,7 +47,7 @@ export function PortfolioCard({ project, index = 0 }: PortfolioCardProps) {
             {project.shortDescription || ''}
           </p>
 
-          <Link href={`/portfolio/${project.slug}`}>
+          <Link href={`/portfolio/${encodeURIComponent(project.slug)}`}>
             <motion.span
               whileHover={{ x: -4 }}
               className="inline-flex items-center text-sm text-sky-500 dark:text-cyan-400 mb-4"

@@ -54,9 +54,9 @@ export function EntityIdLookup<T>({
   return (
     <div className="rounded-xl border border-border bg-muted/20 p-4 mb-6">
       <div className="mb-3">
-        <h3 className="font-medium">جستجو بر اساس شناسه {entityLabel}</h3>
+        <h3 className="font-medium">جست‌وجو بر اساس شناسه {entityLabel}</h3>
         <p className="text-xs text-muted-foreground mt-1">
-          جستجو مستقیماً از اندپوینت اختصاصی شناسه انجام می‌شود.
+          جست‌وجو مستقیماً از مسیر API اختصاصی شناسه انجام می‌شود.
         </p>
       </div>
       <UserIdFilter

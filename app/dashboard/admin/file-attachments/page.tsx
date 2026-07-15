@@ -159,15 +159,15 @@ export default function AdminFileAttachmentsPage() {
           <p className="text-sm text-muted-foreground mt-1">{items.length} پیوست</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => void fetchData()}><RefreshCw className="w-4 h-4 ml-1" />بروزرسانی</Button>
+          <Button variant="outline" size="sm" onClick={() => void fetchData()}><RefreshCw className="w-4 h-4 ml-1" />به‌روزرسانی</Button>
           <Button size="sm" className="btn-primary" onClick={() => { setEditingItem(null); setIsFormOpen(true); }}><Plus className="w-4 h-4 ml-1" />ایجاد</Button>
         </div>
       </div>
 
       <Card className="glass"><CardContent className="p-6">
         <div className="mb-4">
-          <h2 className="font-semibold">جستجو با ماژول و شناسه مرجع</h2>
-          <p className="text-sm text-muted-foreground mt-1">اندپوینت reference/&#123;module&#125;/&#123;referenceId&#125;</p>
+          <h2 className="font-semibold">جست‌وجو با ماژول و شناسه مرجع</h2>
+          <p className="text-sm text-muted-foreground mt-1">مسیر API reference/&#123;module&#125;/&#123;referenceId&#125;</p>
         </div>
         <div className="space-y-3">
           <Input

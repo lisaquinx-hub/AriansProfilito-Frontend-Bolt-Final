@@ -10,7 +10,7 @@ class AdminContactMessagesService {
       const response = await api.get<ApiResponse<ContactMessage[]>>(this.endpoint);
       return response.data.data || [];
     } catch (error) {
-      console.error('Failed to fetch contact messages:', getApiErrorMessage(error));
+      console.warn('Failed to fetch contact messages:', getApiErrorMessage(error));
       return [];
     }
   }

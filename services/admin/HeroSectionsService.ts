@@ -10,7 +10,7 @@ class AdminHeroSectionsService {
       const response = await api.get<ApiResponse<HeroSection[]>>(this.endpoint);
       return response.data.data || [];
     } catch (error) {
-      console.error('Failed to fetch hero sections:', getApiErrorMessage(error));
+      console.warn('Failed to fetch hero sections:', getApiErrorMessage(error));
       return [];
     }
   }

@@ -81,8 +81,10 @@ function DashboardContent({ children }: DashboardLayoutProps) {
             </span>
           </Link>
           <button
+            type="button"
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             className="p-2 rounded-lg hover:bg-muted transition-colors"
+            aria-label={isSidebarOpen ? 'بستن نوار کناری' : 'باز کردن نوار کناری'}
           >
             {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -159,8 +161,10 @@ function DashboardContent({ children }: DashboardLayoutProps) {
                   <span className="text-xl font-bold text-gradient">آریان‌لب</span>
                 </Link>
                 <button
+                  type="button"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="p-2 rounded-lg hover:bg-muted transition-colors"
+                  aria-label="بستن منو"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -214,8 +218,10 @@ function DashboardContent({ children }: DashboardLayoutProps) {
           <div className="h-full px-4 md:px-6 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
+                type="button"
                 onClick={() => setIsMobileMenuOpen(true)}
                 className="p-2 rounded-lg hover:bg-muted transition-colors md:hidden"
+                aria-label="باز کردن منو"
               >
                 <Menu className="w-5 h-5" />
               </button>

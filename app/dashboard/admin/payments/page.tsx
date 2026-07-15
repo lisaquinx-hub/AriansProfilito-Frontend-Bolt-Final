@@ -15,7 +15,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 
 const PAYMENT_STATUS_OPTIONS = [
   { value: '1', label: 'در انتظار' },
-  { value: '2', label: 'پرداخت شده' },
+  { value: '2', label: 'پرداخت‌شده' },
   { value: '3', label: 'ناموفق' },
   { value: '4', label: 'بازپرداخت' },
 ];
@@ -167,7 +167,7 @@ export default function AdminPaymentsPage() {
           <p className="text-muted-foreground text-sm mt-1">{items.length} پرداخت</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={fetchData}><RefreshCw className={`w-4 h-4 ml-1 ${isLoading ? 'animate-spin' : ''}`} />بروزرسانی</Button>
+          <Button variant="outline" size="sm" onClick={fetchData}><RefreshCw className={`w-4 h-4 ml-1 ${isLoading ? 'animate-spin' : ''}`} />به‌روزرسانی</Button>
           <Button size="sm" className="btn-primary" onClick={() => { setEditingItem(null); setIsFormOpen(true); }}><Plus className="w-4 h-4 ml-1" />پرداخت جدید</Button>
         </div>
       </div>

@@ -4,6 +4,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { ProductCard, PageHeader, CategoryFilter, SearchBox, Pagination, EmptyState } from '@/components/shared';
 import { products, productCategories } from '@/lib/mock-data';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 
 export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -53,6 +55,7 @@ export default function ProductsPage() {
   if (!isLoaded) {
     return (
       <main className="pt-24 pb-16">
+        <Navbar />
         <div className="container mx-auto px-6">
           <PageHeader title="محصولات" subtitle="خدمات دیجیتال ما برای رشد کسب‌وکار شما" />
           <div className="animate-pulse">
@@ -64,12 +67,14 @@ export default function ProductsPage() {
             </div>
           </div>
         </div>
+        <Footer />
       </main>
     );
   }
 
   return (
     <main className="min-h-screen pt-24 pb-16 relative overflow-x-hidden">
+      <Navbar />
       <div className="container mx-auto px-6">
         <PageHeader
           title="محصولات"
@@ -92,7 +97,7 @@ export default function ProductsPage() {
             onSelect={setSelectedCategory}
           />
           <SearchBox
-            placeholder="جستجوی محصول..."
+            placeholder="جست‌وجوی محصول..."
             onSearch={setSearchQuery}
             className="w-full md:w-80"
           />
@@ -130,6 +135,7 @@ export default function ProductsPage() {
           />
         )}
       </div>
+      <Footer />
     </main>
   );
 }

@@ -255,7 +255,7 @@ export default function AdminSupportTicketsPage() {
           <p className="text-muted-foreground text-sm mt-1">{tickets.length} تیکت</p>
         </div>
         <Button variant="outline" size="sm" onClick={fetchData}>
-          <RefreshCw className={`w-4 h-4 ml-1 ${isLoading ? 'animate-spin' : ''}`} />بروزرسانی
+          <RefreshCw className={`w-4 h-4 ml-1 ${isLoading ? 'animate-spin' : ''}`} />به‌روزرسانی
         </Button>
       </div>
 

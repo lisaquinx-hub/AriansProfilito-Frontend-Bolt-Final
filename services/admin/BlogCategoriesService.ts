@@ -29,7 +29,7 @@ class AdminBlogCategoriesService {
       const response = await api.get<ApiResponse<BlogCategory[]>>(this.endpoint);
       return normalizeArray<BlogCategory>(response.data);
     } catch (error) {
-      console.error('Failed to fetch blog categories:', getApiErrorMessage(error));
+      console.warn('Failed to fetch blog categories:', getApiErrorMessage(error));
       return [];
     }
   }

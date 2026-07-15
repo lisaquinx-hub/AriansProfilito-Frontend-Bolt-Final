@@ -19,7 +19,7 @@ class AdminAuditLogsService {
       const response = await api.get<ApiResponse<AuditLog[]>>(this.endpoint, { params });
       return normalizeArray<AuditLog>(response.data);
     } catch (error) {
-      console.error('Failed to fetch audit logs:', getApiErrorMessage(error));
+      console.warn('Failed to fetch audit logs:', getApiErrorMessage(error));
       return [];
     }
   }

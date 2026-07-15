@@ -18,7 +18,7 @@ class AdminTechnologiesService {
       const response = await api.get<ApiResponse<Technology[]>>(this.endpoint);
       return response.data.data || [];
     } catch (error) {
-      console.error('Failed to fetch technologies:', getApiErrorMessage(error));
+      console.warn('Failed to fetch technologies:', getApiErrorMessage(error));
       return [];
     }
   }

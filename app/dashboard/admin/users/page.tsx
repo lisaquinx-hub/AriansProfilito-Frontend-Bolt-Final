@@ -205,7 +205,7 @@ export default function AdminUsersPage() {
     { key: 'phoneNumber', label: 'شماره تلفن' },
     { key: 'role', label: 'نقش', type: 'select', required: true, options: ROLE_OPTIONS },
     { key: 'isActive', label: 'فعال', type: 'switch' },
-    { key: 'emailConfirmed', label: 'ایمیل تأیید شده', type: 'switch' },
+    { key: 'emailConfirmed', label: 'ایمیل تأییدشده', type: 'switch' },
   ];
 
   const createFields: FormField[] = [
@@ -263,7 +263,7 @@ export default function AdminUsersPage() {
               ? void searchUserById(userIdQuery, false)
               : void fetchUsers()}
           >
-            <RefreshCw className={`w-4 h-4 ml-1 ${isLoading ? 'animate-spin' : ''}`} />بروزرسانی
+            <RefreshCw className={`w-4 h-4 ml-1 ${isLoading ? 'animate-spin' : ''}`} />به‌روزرسانی
           </Button>
           <Button size="sm" className="btn-primary" onClick={() => { setEditingItem(null); setIsFormOpen(true); }}><Plus className="w-4 h-4 ml-1" />کاربر جدید</Button>
         </div>
@@ -271,7 +271,7 @@ export default function AdminUsersPage() {
       <Card className="glass">
         <CardContent className="p-6">
           <div className="mb-4">
-            <h2 className="font-semibold">جستجوی مستقیم کاربر با شناسه</h2>
+            <h2 className="font-semibold">جست‌وجوی مستقیم کاربر با شناسه</h2>
             <p className="text-sm text-muted-foreground mt-1">
               شناسه UUID کاربر را وارد کنید تا اطلاعات او مستقیماً از سرور دریافت شود.
             </p>
@@ -286,12 +286,12 @@ export default function AdminUsersPage() {
           />
           {isFilteredById && users[0] && (
             <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-border">
-              <Link href={`/dashboard/admin/activity-logs?userId=${encodeURIComponent(users[0].id)}`}>
-                <Button variant="outline" size="sm">مشاهده لاگ فعالیت</Button>
-              </Link>
-              <Link href={`/dashboard/admin/audit-logs?userId=${encodeURIComponent(users[0].id)}`}>
-                <Button variant="outline" size="sm">مشاهده لاگ ممیزی</Button>
-              </Link>
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/dashboard/admin/activity-logs?userId=${encodeURIComponent(users[0].id)}`}>مشاهده لاگ فعالیت</Link>
+              </Button>
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/dashboard/admin/audit-logs?userId=${encodeURIComponent(users[0].id)}`}>مشاهده لاگ ممیزی</Link>
+              </Button>
             </div>
           )}
         </CardContent>
@@ -327,7 +327,7 @@ export default function AdminUsersPage() {
           { label: 'شماره تلفن', value: viewItem.phoneNumber || '-' },
           { label: 'نقش', value: ROLE_OPTIONS.find(o => o.value === String(viewItem.role))?.label || String(viewItem.role) },
           { label: 'وضعیت', value: viewItem.isActive ? 'فعال' : 'غیرفعال' },
-          { label: 'ایمیل تأیید شده', value: viewItem.emailConfirmed ? 'بله' : 'خیر' },
+          { label: 'ایمیل تأییدشده', value: viewItem.emailConfirmed ? 'بله' : 'خیر' },
           { label: 'آخرین ورود', value: viewItem.lastLoginAt ? new Date(viewItem.lastLoginAt).toLocaleString('fa-IR') : '-' },
           { label: 'تاریخ ایجاد', value: viewItem.createdAt ? new Date(viewItem.createdAt).toLocaleString('fa-IR') : '-' },
         ] : []}

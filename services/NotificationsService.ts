@@ -10,7 +10,7 @@ class NotificationsService {
       const response = await api.get<ApiResponse<Notification[]>>(this.endpoint);
       return normalizeArray<Notification>(response.data);
     } catch (error) {
-      console.error('Failed to fetch notifications:', getApiErrorMessage(error));
+      console.warn('Failed to fetch notifications:', getApiErrorMessage(error));
       return [];
     }
   }

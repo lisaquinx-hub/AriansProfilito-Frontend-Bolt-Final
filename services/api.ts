@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosResponse } from 'axios';
+import { getAccessToken, removeAccessToken } from '@/lib/auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://localhost:7297/api';
 
@@ -10,6 +11,16 @@ export interface ApiError {
 }
 
 const isBrowser = () => typeof window !== 'undefined';
+
+function isApiOrigin(url?: string): boolean {
+  try {
+    const apiUrl = new URL(API_BASE_URL);
+    const requestUrl = new URL(url || '', `${API_BASE_URL.replace(/\/?$/, '/')}`);
+    return requestUrl.origin === apiUrl.origin;
+  } catch {
+    return false;
+  }
+}
 
 const AUTH_ROUTES = ['/login', '/register'];
 
@@ -29,8 +40,8 @@ export const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     if (isBrowser()) {
-      const token = localStorage.getItem('accessToken');
-      if (token && config.headers) {
+      const token = getAccessToken();
+      if (token && config.headers && isApiOrigin(config.url)) {
         config.headers.Authorization = `Bearer ${token}`;
       }
     }
@@ -44,9 +55,7 @@ api.interceptors.response.use(
   (error: AxiosError<ApiError>) => {
     if (error.response?.status === 401) {
       if (isBrowser()) {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
+        removeAccessToken();
         window.dispatchEvent(new Event('auth-changed'));
 
         if (!isPublicAuthRoute(window.location.pathname)) {
@@ -105,6 +114,13 @@ export function getApiErrorMessage(error: unknown): string {
       return 'خطای شبکه - اتصال خود را بررسی کنید';
     }
 
+    const status = error.response?.status;
+    if (status === 401) return 'لطفاً دوباره وارد شوید';
+    if (status === 403) return 'دسترسی غیرمجاز';
+    if (status === 404) return 'مورد یافت نشد';
+    if (status === 429) return 'تعداد درخواست‌ها بیش از حد مجاز است؛ کمی بعد دوباره تلاش کنید';
+    if (status && status >= 500) return 'خطای سرور؛ لطفاً دوباره تلاش کنید';
+
     const data = error.response?.data;
     if (data) {
       const messages = flattenErrors(data.errors);
@@ -118,13 +134,9 @@ export function getApiErrorMessage(error: unknown): string {
         return data.message.trim();
       }
     }
-    if (error.response?.status === 400) return 'اطلاعات ارسالی نامعتبر است';
-    if (error.response?.status === 401) return 'لطفا دوباره وارد شوید';
-    if (error.response?.status === 403) return 'دسترسی غیرمجاز';
-    if (error.response?.status === 404) return 'مورد یافت نشد';
-    if (error.response?.status === 409) return 'این اطلاعات با داده‌های موجود تداخل دارد';
-    if (error.response?.status === 422) return 'اطلاعات واردشده قابل پردازش نیست';
-    if (error.response?.status === 500) return 'خطای سرور - لطفا دوباره تلاش کنید';
+    if (status === 400) return 'اطلاعات ارسالی نامعتبر است';
+    if (status === 409) return 'این اطلاعات با داده‌های موجود تداخل دارد';
+    if (status === 422) return 'اطلاعات واردشده قابل پردازش نیست';
     return error.message || 'خطای غیرمنتظره';
   }
   if (error instanceof Error) return error.message;

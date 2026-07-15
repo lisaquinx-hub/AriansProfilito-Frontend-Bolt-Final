@@ -10,7 +10,7 @@ class CommentsService {
       const response = await api.get<ApiResponse<Comment[]>>(`${this.endpoint}/blog-post/${blogPostId}/approved`);
       return normalizeArray<Comment>(response.data);
     } catch (error) {
-      console.error('Failed to fetch comments:', getApiErrorMessage(error));
+      console.warn('Failed to fetch comments:', getApiErrorMessage(error));
       return [];
     }
   }

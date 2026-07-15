@@ -50,13 +50,13 @@ export default function ProductDetailsPage() {
         <div className="container mx-auto px-6 py-20 text-center">
           <AlertCircle className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
           <h2 className="text-2xl font-bold mb-2">سرویس یافت نشد</h2>
-          <p className="text-muted-foreground mb-6">سرویس مورد نظر وجود ندارد یا غیرفعال شده است.</p>
-          <Link href="/products">
-            <Button variant="outline" className="rounded-full gap-2">
+          <p className="text-muted-foreground mb-6">سرویس موردنظر وجود ندارد یا غیرفعال شده است.</p>
+          <Button asChild variant="outline" className="rounded-full gap-2">
+            <Link href="/products">
               <ArrowRight className="w-4 h-4" />
               بازگشت به خدمات
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
         <Footer />
       </main>
@@ -115,12 +115,12 @@ export default function ProductDetailsPage() {
                 </div>
               )}
 
-              <Link href="/#contact-form">
-                <Button className="btn-primary shadow-glow w-full md:w-auto">
+              <Button asChild className="btn-primary shadow-glow w-full md:w-auto">
+                <Link href="/#contact-form">
                   شروع پروژه
                   <ArrowRight className="mr-2 w-4 h-4" />
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </div>
           </div>
         </motion.div>
@@ -185,12 +185,12 @@ export default function ProductDetailsPage() {
               <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
                 همین حالا با ما تماس بگیرید و پروژه خود را شروع کنید
               </p>
-              <Link href="/#contact-form">
-                <Button size="lg" className="btn-primary shadow-glow text-lg px-10">
+              <Button asChild size="lg" className="btn-primary shadow-glow text-lg px-10">
+                <Link href="/#contact-form">
                   تماس با ما
                   <ArrowRight className="mr-2 w-5 h-5" />
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </div>
           </div>
         </motion.section>

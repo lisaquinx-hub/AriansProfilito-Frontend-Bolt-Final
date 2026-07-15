@@ -14,7 +14,7 @@ class ProjectService {
       const response = await api.get<ApiResponse<Project[]>>(this.endpoint);
       return response.data.data || [];
     } catch (error) {
-      console.error('Failed to fetch projects:', getApiErrorMessage(error));
+      console.warn('Failed to fetch projects:', getApiErrorMessage(error));
       return [];
     }
   }

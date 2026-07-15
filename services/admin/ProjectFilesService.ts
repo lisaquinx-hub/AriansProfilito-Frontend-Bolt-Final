@@ -15,7 +15,7 @@ class AdminProjectFilesService {
       const response = await api.get<ApiResponse<ProjectFile[]>>(this.endpoint);
       return normalizeArray<ProjectFile>(response.data);
     } catch (error) {
-      console.error('Failed to fetch project files:', getApiErrorMessage(error));
+      console.warn('Failed to fetch project files:', getApiErrorMessage(error));
       return [];
     }
   }

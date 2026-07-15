@@ -18,6 +18,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [rememberMe, setRememberMe] = useState(false);
   const [formData, setFormData] = useState({
     emailOrUserName: '',
     password: '',
@@ -29,7 +30,10 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const authResponse = await authService.login(formData);
+      const authResponse = await authService.login({
+        emailOrUserName: formData.emailOrUserName.trim(),
+        password: formData.password,
+      }, rememberMe);
       emitAuthChanged();
       const params = new URLSearchParams(window.location.search);
       const redirectParam = params.get('redirect');
@@ -81,6 +85,7 @@ export default function LoginPage() {
                   placeholder="email@example.com یا username"
                   value={formData.emailOrUserName}
                   onChange={(e) => setFormData({ ...formData, emailOrUserName: e.target.value })}
+                  autoComplete="username"
                   className="pr-10 bg-muted/50 border-border focus:border-sky-500"
                   required
                 />
@@ -97,6 +102,7 @@ export default function LoginPage() {
                   placeholder="رمز عبور"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  autoComplete="current-password"
                   className="pr-10 pl-10 bg-muted/50 border-border focus:border-sky-500"
                   required
                 />
@@ -104,6 +110,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label={showPassword ? 'پنهان کردن رمز عبور' : 'نمایش رمز عبور'}
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -118,11 +125,20 @@ export default function LoginPage() {
 
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="rounded border-border bg-muted text-sky-500 focus:ring-sky-500 dark:text-cyan-500" />
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(event) => setRememberMe(event.target.checked)}
+                  className="rounded border-border bg-muted text-sky-500 focus:ring-sky-500 dark:text-cyan-500"
+                />
                 <span className="text-muted-foreground">مرا به خاطر بسپار</span>
               </label>
-              <Link href="/forgot-password" className="text-sky-500 dark:text-cyan-400 hover:text-sky-600 dark:hover:text-cyan-300">
-                فراموشی رمز
+              <Link
+                href="/#contact-form"
+                title="برای بازیابی رمز عبور با پشتیبانی تماس بگیرید"
+                className="text-sky-500 dark:text-cyan-400 hover:text-sky-600 dark:hover:text-cyan-300"
+              >
+                بازیابی رمز
               </Link>
             </div>
 

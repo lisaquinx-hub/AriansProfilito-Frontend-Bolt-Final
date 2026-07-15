@@ -47,6 +47,9 @@ export function ViewDetailModal({
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className="relative glass rounded-2xl w-full max-w-2xl my-auto shadow-2xl"
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label={title}
           >
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-border">
@@ -55,6 +58,7 @@ export function ViewDetailModal({
                 type="button"
                 onClick={onClose}
                 className="p-2 rounded-lg hover:bg-muted transition-colors"
+                aria-label="بستن جزئیات"
               >
                 <X className="w-5 h-5" />
               </button>

@@ -24,7 +24,7 @@ class AdminFileAttachmentsService {
       const response = await api.get<ApiResponse<FileAttachment[]>>(this.endpoint);
       return normalizeArray<FileAttachment>(response.data);
     } catch (error) {
-      console.error('Failed to fetch file attachments:', getApiErrorMessage(error));
+      console.warn('Failed to fetch file attachments:', getApiErrorMessage(error));
       return [];
     }
   }

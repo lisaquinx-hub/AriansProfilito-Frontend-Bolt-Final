@@ -98,7 +98,7 @@ export function NotificationDropdown({ isAdmin = false }: NotificationDropdownPr
                   {unreadCount > 0 && (
                     <span className="text-xs text-muted-foreground">{unreadCount} خوانده‌نشده</span>
                   )}
-                  <button onClick={() => setIsOpen(false)} className="p-1 rounded-lg hover:bg-muted transition-colors">
+                  <button type="button" onClick={() => setIsOpen(false)} className="p-1 rounded-lg hover:bg-muted transition-colors" aria-label="بستن اعلان‌ها">
                     <X className="w-4 h-4" />
                   </button>
                 </div>
@@ -123,7 +123,7 @@ export function NotificationDropdown({ isAdmin = false }: NotificationDropdownPr
                   <div className="p-8 text-center">
                     <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-3" />
                     <p className="text-sm text-muted-foreground">{error}</p>
-                    <button onClick={fetchNotifications} className="mt-3 text-xs text-sky-500 dark:text-cyan-400 hover:underline">تلاش مجدد</button>
+                    <button onClick={fetchNotifications} className="mt-3 text-xs text-sky-500 dark:text-cyan-400 hover:underline">تلاش دوباره</button>
                   </div>
                 )}
 

@@ -17,7 +17,7 @@ class AdminActivityLogsService {
       const response = await api.get<ApiResponse<ActivityLog[]>>(this.endpoint, { params });
       return normalizeArray<ActivityLog>(response.data);
     } catch (error) {
-      console.error('Failed to fetch activity logs:', getApiErrorMessage(error));
+      console.warn('Failed to fetch activity logs:', getApiErrorMessage(error));
       return [];
     }
   }

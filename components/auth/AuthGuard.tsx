@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { isAuthenticated, hasAdminRole, getStoredUser, type StoredUser } from '@/lib/auth';
+import { isAuthenticated, hasAdminRole } from '@/lib/auth';
+import { authService } from '@/services/AuthService';
 import { motion } from 'framer-motion';
 import { ShieldAlert, Lock, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
@@ -19,29 +20,55 @@ export function AuthGuard({ children, requireAdmin = false }: AuthGuardProps) {
   const [authState, setAuthState] = useState<'authenticated' | 'denied' | 'unauthenticated'>('unauthenticated');
 
   useEffect(() => {
-    const checkAuth = () => {
+    let cancelled = false;
+
+    const redirectToLogin = () => {
+      const currentPath = `${window.location.pathname}${window.location.search}`;
+      router.replace(`/login?redirect=${encodeURIComponent(currentPath)}`);
+    };
+
+    const checkAuth = async () => {
       if (!isAuthenticated()) {
+        if (cancelled) return;
         setAuthState('unauthenticated');
         setIsChecking(false);
-        const currentPath = window.location.pathname;
-        router.push(`/login?redirect=${encodeURIComponent(currentPath)}`);
+        redirectToLogin();
         return;
       }
 
       if (requireAdmin) {
-        const user = getStoredUser<StoredUser>();
-        if (!hasAdminRole(user)) {
+        try {
+          const user = await authService.getMe();
+          if (!hasAdminRole(user)) {
+            if (cancelled) return;
+            setAuthState('denied');
+            setIsChecking(false);
+            return;
+          }
+        } catch {
+          // Never grant the admin UI from locally cached role data when the
+          // server cannot verify the current user.
+          if (!isAuthenticated()) {
+            if (cancelled) return;
+            setAuthState('unauthenticated');
+            setIsChecking(false);
+            redirectToLogin();
+            return;
+          }
+          if (cancelled) return;
           setAuthState('denied');
           setIsChecking(false);
           return;
         }
       }
 
+      if (cancelled) return;
       setAuthState('authenticated');
       setIsChecking(false);
     };
 
-    checkAuth();
+    void checkAuth();
+    return () => { cancelled = true; };
   }, [router, requireAdmin]);
 
   if (isChecking) {
@@ -74,18 +101,18 @@ export function AuthGuard({ children, requireAdmin = false }: AuthGuardProps) {
             برای ورود به پنل مدیریت نیاز به نقش مدیر دارید.
           </p>
           <div className="flex flex-col gap-3">
-            <Link href="/dashboard">
-              <Button className="btn-primary w-full shadow-glow">
+            <Button asChild className="btn-primary w-full shadow-glow">
+              <Link href="/dashboard">
                 <ArrowRight className="w-4 h-4 ml-2" />
                 بازگشت به داشبورد
-              </Button>
-            </Link>
-            <Link href="/">
-              <Button variant="outline" className="w-full rounded-full">
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="w-full rounded-full">
+              <Link href="/">
                 <Lock className="w-4 h-4 ml-2" />
                 بازگشت به صفحه اصلی
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         </motion.div>
       </div>

@@ -15,7 +15,7 @@ const iconMap: Record<string, React.ElementType> = {
 
 const quickLinks = [
   { href: '/', label: 'خانه' },
-  { href: '/portfolio', label: 'نمونه کارها' },
+  { href: '/portfolio', label: 'نمونه‌کارها' },
   { href: '/products', label: 'خدمات' },
   { href: '/pricing', label: 'تعرفه‌ها' },
   { href: '/blog', label: 'وبلاگ' },
@@ -23,9 +23,9 @@ const quickLinks = [
   { href: '/#contact', label: 'تماس با ما' },
 ];
 
-const legalLinks = [
-  { href: '/terms', label: 'قوانین' },
-  { href: '/privacy', label: 'حریم خصوصی' },
+const helpLinks = [
+  { href: '/#faq', label: 'سؤالات متداول' },
+  { href: '/#contact', label: 'تماس و پشتیبانی' },
 ];
 
 export default function Footer() {
@@ -100,11 +100,11 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Legal Links */}
+          {/* Help Links */}
           <div className="md:col-span-1">
-            <h4 className="font-semibold mb-4">قوانین</h4>
+            <h4 className="font-semibold mb-4">راهنما</h4>
             <ul className="space-y-3">
-              {legalLinks.map((link) => (
+              {helpLinks.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className="text-muted-foreground hover:text-foreground transition-colors">
                     {link.label}

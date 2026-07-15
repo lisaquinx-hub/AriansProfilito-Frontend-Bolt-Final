@@ -13,7 +13,7 @@ interface SearchBoxProps {
 }
 
 export function SearchBox({
-  placeholder = 'جستجو...',
+  placeholder = 'جست‌وجو...',
   onSearch,
   className,
   autoFocus = false,
@@ -45,6 +45,7 @@ export function SearchBox({
           onChange={(e) => setQuery(e.target.value)}
           placeholder={placeholder}
           autoFocus={autoFocus}
+          aria-label={placeholder}
           className="pr-10 pl-10 bg-muted/50 border-border focus:border-sky-500"
         />
         {query && (
@@ -52,6 +53,7 @@ export function SearchBox({
             type="button"
             onClick={handleClear}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            aria-label="پاک کردن جست‌وجو"
           >
             <X className="w-4 h-4" />
           </button>

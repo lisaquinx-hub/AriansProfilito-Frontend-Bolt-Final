@@ -111,7 +111,7 @@ export default function AdminProjectFilesPage() {
           <p className="text-sm text-muted-foreground mt-1">{items.length} فایل</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => void fetchData()}><RefreshCw className="w-4 h-4 ml-1" />بروزرسانی</Button>
+          <Button variant="outline" size="sm" onClick={() => void fetchData()}><RefreshCw className="w-4 h-4 ml-1" />به‌روزرسانی</Button>
           <Button size="sm" className="btn-primary" onClick={() => { setEditingItem(null); setIsFormOpen(true); }}><Plus className="w-4 h-4 ml-1" />ایجاد</Button>
         </div>
       </div>

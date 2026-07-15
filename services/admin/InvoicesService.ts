@@ -33,7 +33,7 @@ class AdminInvoicesService {
       const response = await api.get<ApiResponse<Invoice[]>>(this.endpoint);
       return response.data.data || [];
     } catch (error) {
-      console.error('Failed to fetch invoices:', getApiErrorMessage(error));
+      console.warn('Failed to fetch invoices:', getApiErrorMessage(error));
       return [];
     }
   }

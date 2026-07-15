@@ -10,7 +10,7 @@ class SettingsService {
       const response = await api.get<ApiResponse<Settings>>(`${this.endpoint}/current`);
       return response.data.data;
     } catch (error) {
-      console.error('Failed to fetch settings:', getApiErrorMessage(error));
+      console.warn('Failed to fetch settings:', getApiErrorMessage(error));
       return null;
     }
   }
@@ -33,7 +33,7 @@ class SiteSettingsService {
       const response = await api.get<ApiResponse<SiteSettings>>(`${this.endpoint}/current`);
       return response.data.data;
     } catch (error) {
-      console.error('Failed to fetch site settings:', getApiErrorMessage(error));
+      console.warn('Failed to fetch site settings:', getApiErrorMessage(error));
       return null;
     }
   }

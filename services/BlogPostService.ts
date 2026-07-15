@@ -29,18 +29,20 @@ class BlogPostService {
       });
       return normalizeArray<BlogPost>(response.data);
     } catch (error) {
-      console.error('Failed to fetch blog posts:', getApiErrorMessage(error));
+      console.warn('Failed to fetch blog posts:', getApiErrorMessage(error));
       return [];
     }
   }
 
   async getBySlug(slug: string): Promise<BlogPost | null> {
     try {
-      const response = await api.get<ApiResponse<BlogPost>>(`${this.endpoint}/${slug}`);
+      const response = await api.get<ApiResponse<BlogPost>>(
+        `${this.endpoint}/${encodeURIComponent(slug)}`
+      );
       return normalizeObject<BlogPost>(response.data);
     } catch (error) {
       if (getApiStatus(error) !== 404) {
-        console.error('Failed to fetch blog post:', getApiErrorMessage(error));
+        console.warn('Failed to fetch blog post:', getApiErrorMessage(error));
       }
       return null;
     }

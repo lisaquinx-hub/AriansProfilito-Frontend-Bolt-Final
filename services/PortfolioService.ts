@@ -27,7 +27,7 @@ class PortfolioService {
         }
       );
     } catch (error) {
-      console.error('Failed to fetch portfolio items:', getApiErrorMessage(error));
+      console.warn('Failed to fetch portfolio items:', getApiErrorMessage(error));
       return { items: [], totalCount: 0, pageNumber: 1, pageSize: 10, totalPages: 0 };
     }
   }
@@ -35,11 +35,11 @@ class PortfolioService {
   async getBySlug(slug: string): Promise<PortfolioDetail | null> {
     try {
       const response = await api.get<ApiResponse<PortfolioDetail>>(
-        `${this.baseEndpoint}/items/${slug}`
+        `${this.baseEndpoint}/items/${encodeURIComponent(slug)}`
       );
       return response.data.data;
     } catch (error) {
-      console.error('Failed to fetch portfolio item:', getApiErrorMessage(error));
+      console.warn('Failed to fetch portfolio item:', getApiErrorMessage(error));
       return null;
     }
   }
@@ -51,7 +51,7 @@ class PortfolioService {
       );
       return response.data.data || [];
     } catch (error) {
-      console.error('Failed to fetch portfolio categories:', getApiErrorMessage(error));
+      console.warn('Failed to fetch portfolio categories:', getApiErrorMessage(error));
       return [];
     }
   }

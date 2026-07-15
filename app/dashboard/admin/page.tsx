@@ -132,7 +132,7 @@ export default function AdminDashboardPage() {
           activityLogs: activityLogs.length,
         });
       } catch (error) {
-        console.error('Failed to fetch dashboard stats:', error);
+        console.warn('Failed to fetch dashboard stats:', error);
       }
     };
     fetchStats();
@@ -172,7 +172,7 @@ export default function AdminDashboardPage() {
 
       <Card className="glass">
         <CardHeader>
-          <CardTitle>جستجوی کاربر با شناسه</CardTitle>
+          <CardTitle>جست‌وجوی کاربر با شناسه</CardTitle>
         </CardHeader>
         <CardContent>
           <UserIdFilter
@@ -194,20 +194,23 @@ export default function AdminDashboardPage() {
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Link href={`/dashboard/admin/users?userId=${encodeURIComponent(foundUser.id)}`}>
-                    <button className="px-3 py-2 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 transition-colors text-sm">
-                      مشاهده کاربر
-                    </button>
+                  <Link
+                    href={`/dashboard/admin/users?userId=${encodeURIComponent(foundUser.id)}`}
+                    className="px-3 py-2 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 transition-colors text-sm"
+                  >
+                    مشاهده کاربر
                   </Link>
-                  <Link href={`/dashboard/admin/activity-logs?userId=${encodeURIComponent(foundUser.id)}`}>
-                    <button className="px-3 py-2 rounded-lg bg-gray-500/10 text-foreground hover:bg-gray-500/20 transition-colors text-sm">
-                      لاگ فعالیت
-                    </button>
+                  <Link
+                    href={`/dashboard/admin/activity-logs?userId=${encodeURIComponent(foundUser.id)}`}
+                    className="px-3 py-2 rounded-lg bg-gray-500/10 text-foreground hover:bg-gray-500/20 transition-colors text-sm"
+                  >
+                    لاگ فعالیت
                   </Link>
-                  <Link href={`/dashboard/admin/audit-logs?userId=${encodeURIComponent(foundUser.id)}`}>
-                    <button className="px-3 py-2 rounded-lg bg-purple-500/10 text-purple-500 hover:bg-purple-500/20 transition-colors text-sm">
-                      لاگ ممیزی
-                    </button>
+                  <Link
+                    href={`/dashboard/admin/audit-logs?userId=${encodeURIComponent(foundUser.id)}`}
+                    className="px-3 py-2 rounded-lg bg-purple-500/10 text-purple-500 hover:bg-purple-500/20 transition-colors text-sm"
+                  >
+                    لاگ ممیزی
                   </Link>
                 </div>
               </div>
@@ -223,20 +226,14 @@ export default function AdminDashboardPage() {
             <CardTitle>دسترسی سریع</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
-            <Link href="/dashboard/admin/blog-posts">
-              <button className="px-4 py-2 rounded-lg bg-sky-500/10 text-sky-500 dark:text-cyan-400 hover:bg-sky-500/20 transition-colors">
-                مقاله جدید
-              </button>
+            <Link href="/dashboard/admin/blog-posts" className="px-4 py-2 rounded-lg bg-sky-500/10 text-sky-500 dark:text-cyan-400 hover:bg-sky-500/20 transition-colors">
+              مقاله جدید
             </Link>
-            <Link href="/dashboard/admin/projects">
-              <button className="px-4 py-2 rounded-lg bg-purple-500/10 text-purple-500 hover:bg-purple-500/20 transition-colors">
-                پروژه جدید
-              </button>
+            <Link href="/dashboard/admin/projects" className="px-4 py-2 rounded-lg bg-purple-500/10 text-purple-500 hover:bg-purple-500/20 transition-colors">
+              پروژه جدید
             </Link>
-            <Link href="/dashboard/admin/users">
-              <button className="px-4 py-2 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 transition-colors">
-                مدیریت کاربران
-              </button>
+            <Link href="/dashboard/admin/users" className="px-4 py-2 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 transition-colors">
+              مدیریت کاربران
             </Link>
           </CardContent>
         </Card>

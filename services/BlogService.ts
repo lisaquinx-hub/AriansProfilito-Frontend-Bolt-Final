@@ -11,17 +11,19 @@ class BlogService {
       const response = await api.get<ApiResponse<BlogPost[]>>(this.postsEndpoint, { params });
       return response.data.data || [];
     } catch (error) {
-      console.error('Failed to fetch blog posts:', getApiErrorMessage(error));
+      console.warn('Failed to fetch blog posts:', getApiErrorMessage(error));
       return [];
     }
   }
 
   async getPostBySlug(slug: string): Promise<BlogPost | null> {
     try {
-      const response = await api.get<ApiResponse<BlogPost>>(`${this.postsEndpoint}/${slug}`);
+      const response = await api.get<ApiResponse<BlogPost>>(
+        `${this.postsEndpoint}/${encodeURIComponent(slug)}`
+      );
       return response.data.data;
     } catch (error) {
-      console.error('Failed to fetch blog post:', getApiErrorMessage(error));
+      console.warn('Failed to fetch blog post:', getApiErrorMessage(error));
       return null;
     }
   }
@@ -31,7 +33,7 @@ class BlogService {
       const response = await api.get<ApiResponse<BlogCategory[]>>(this.categoriesEndpoint);
       return response.data.data || [];
     } catch (error) {
-      console.error('Failed to fetch blog categories:', getApiErrorMessage(error));
+      console.warn('Failed to fetch blog categories:', getApiErrorMessage(error));
       return [];
     }
   }

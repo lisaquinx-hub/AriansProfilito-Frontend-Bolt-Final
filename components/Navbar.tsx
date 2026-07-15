@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -27,6 +27,7 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const closeSearch = useCallback(() => setIsSearchOpen(false), []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -113,7 +114,7 @@ export default function Navbar() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="p-2 rounded-full hover:bg-muted/50 transition-colors focus:outline-none focus:ring-2 focus:ring-sky-500"
-              aria-label="جستجو"
+              aria-label="جست‌وجو"
             >
               <Search className="w-5 h-5" />
             </motion.button>
@@ -121,23 +122,23 @@ export default function Navbar() {
             {isAuthenticated ? (
               <>
                 {isAdmin && (
-                  <Link href="/dashboard/admin">
-                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                      <Button variant="outline" className="rounded-full px-4">
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Button asChild variant="outline" className="rounded-full px-4">
+                      <Link href="/dashboard/admin">
                         <Shield className="w-4 h-4 ml-1" />
                         پنل مدیریت
-                      </Button>
-                    </motion.div>
-                  </Link>
-                )}
-                <Link href="/dashboard">
-                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <Button className="btn-primary px-6 shadow-glow">
-                      <LayoutDashboard className="w-4 h-4 ml-1" />
-                      داشبورد
+                      </Link>
                     </Button>
                   </motion.div>
-                </Link>
+                )}
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button asChild className="btn-primary px-6 shadow-glow">
+                    <Link href="/dashboard">
+                      <LayoutDashboard className="w-4 h-4 ml-1" />
+                      داشبورد
+                    </Link>
+                  </Button>
+                </motion.div>
                 <Button
                   variant="ghost"
                   className="rounded-full px-4"
@@ -149,20 +150,16 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                <Link href="/login">
-                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <Button variant="ghost" className="rounded-full px-6">
-                      ورود
-                    </Button>
-                  </motion.div>
-                </Link>
-                <Link href="/register">
-                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <Button className="btn-primary px-6 shadow-glow">
-                      ثبت‌نام
-                    </Button>
-                  </motion.div>
-                </Link>
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button asChild variant="ghost" className="rounded-full px-6">
+                    <Link href="/login">ورود</Link>
+                  </Button>
+                </motion.div>
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button asChild className="btn-primary px-6 shadow-glow">
+                    <Link href="/register">ثبت‌نام</Link>
+                  </Button>
+                </motion.div>
               </>
             )}
           </div>
@@ -172,7 +169,7 @@ export default function Navbar() {
               onClick={() => setIsSearchOpen(true)}
               whileTap={{ scale: 0.95 }}
               className="p-2"
-              aria-label="جستجو"
+              aria-label="جست‌وجو"
             >
               <Search className="w-5 h-5" />
             </motion.button>
@@ -181,6 +178,7 @@ export default function Navbar() {
               className="p-2"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               whileTap={{ scale: 0.95 }}
+              aria-label={isMobileMenuOpen ? 'بستن منو' : 'باز کردن منو'}
             >
               {isMobileMenuOpen ? <X /> : <Menu />}
             </motion.button>
@@ -222,19 +220,19 @@ export default function Navbar() {
                 {isAuthenticated ? (
                   <>
                     {isAdmin && (
-                      <Link href="/dashboard/admin" onClick={() => setIsMobileMenuOpen(false)}>
-                        <Button variant="outline" className="w-full rounded-full">
+                      <Button asChild variant="outline" className="w-full rounded-full">
+                        <Link href="/dashboard/admin" onClick={() => setIsMobileMenuOpen(false)}>
                           <Shield className="w-4 h-4 ml-2" />
                           پنل مدیریت
-                        </Button>
-                      </Link>
+                        </Link>
+                      </Button>
                     )}
-                    <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
-                      <Button className="w-full btn-primary shadow-glow">
+                    <Button asChild className="w-full btn-primary shadow-glow">
+                      <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
                         <LayoutDashboard className="w-4 h-4 ml-2" />
                         داشبورد
-                      </Button>
-                    </Link>
+                      </Link>
+                    </Button>
                     <Button
                       variant="ghost"
                       className="w-full rounded-full"
@@ -249,16 +247,12 @@ export default function Navbar() {
                   </>
                 ) : (
                   <>
-                    <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                      <Button variant="ghost" className="w-full rounded-full">
-                        ورود
-                      </Button>
-                    </Link>
-                    <Link href="/register" onClick={() => setIsMobileMenuOpen(false)}>
-                      <Button className="w-full btn-primary shadow-glow">
-                        ثبت‌نام
-                      </Button>
-                    </Link>
+                    <Button asChild variant="ghost" className="w-full rounded-full">
+                      <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>ورود</Link>
+                    </Button>
+                    <Button asChild className="w-full btn-primary shadow-glow">
+                      <Link href="/register" onClick={() => setIsMobileMenuOpen(false)}>ثبت‌نام</Link>
+                    </Button>
                   </>
                 )}
               </div>
@@ -267,7 +261,7 @@ export default function Navbar() {
         )}
       </AnimatePresence>
 
-      <GlobalSearch isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+      <GlobalSearch isOpen={isSearchOpen} onClose={closeSearch} />
     </motion.header>
   );
 }

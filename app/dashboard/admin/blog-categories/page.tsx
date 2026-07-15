@@ -45,10 +45,12 @@ export default function AdminBlogCategoriesPage() {
       await adminBlogCategoriesService.delete(deleteId);
       setItems(items.filter(i => i.id !== deleteId));
       setDeleteId(null);
+      toast.success('دسته‌بندی با موفقیت حذف شد');
     } catch (error) {
-      console.error('Failed to delete:', error);
+      toast.error(getApiErrorMessage(error));
+    } finally {
+      setIsDeleting(false);
     }
-    setIsDeleting(false);
   };
 
   const handleEdit = (item: BlogCategory) => {
@@ -127,7 +129,7 @@ export default function AdminBlogCategoriesPage() {
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={fetchData}>
             <RefreshCw className="w-4 h-4 ml-1" />
-            بروزرسانی
+            به‌روزرسانی
           </Button>
           <Button size="sm" className="btn-primary" onClick={handleCreate}>
             <Plus className="w-4 h-4 ml-1" />
@@ -183,7 +185,7 @@ export default function AdminBlogCategoriesPage() {
           { label: 'شناسه', value: viewItem.id },
           { label: 'نام', value: viewItem.name },
           { label: 'اسلاگ', value: viewItem.slug || '-' },
-          { label: 'تعداد پست‌های منتشر شده', value: viewItem.publishedPostCount || 0 },
+          { label: 'تعداد پست‌های منتشرشده', value: viewItem.publishedPostCount || 0 },
           { label: 'تاریخ ایجاد', value: viewItem.createdAt ? new Date(viewItem.createdAt).toLocaleString('fa-IR') : '-' },
         ] : []}
       />

@@ -47,7 +47,7 @@ export default function PricingPage() {
           </div>
         ) : plans.length === 0 ? (
           <div className="text-center py-20 text-muted-foreground">
-            پلن قیمت‌گذاری‌ای یافت نشد
+            پلن قیمت‌گذاری یافت نشد
           </div>
         ) : (
           <motion.div
@@ -103,14 +103,13 @@ export default function PricingPage() {
                   ))}
                 </ul>
 
-                <Link href="/#contact-form">
-                  <Button
+                <Button
+                  asChild
                     className={cn('w-full rounded-full', plan.isPopular ? 'btn-primary shadow-glow' : '')}
                     variant={plan.isPopular ? 'default' : 'outline'}
-                  >
-                    تماس برای ثبت پروژه
-                  </Button>
-                </Link>
+                >
+                  <Link href="/#contact-form">تماس برای ثبت پروژه</Link>
+                </Button>
               </motion.div>
             ))}
           </motion.div>

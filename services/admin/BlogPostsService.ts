@@ -49,7 +49,7 @@ class AdminBlogPostsService {
       const response = await api.get<ApiResponse<BlogPost[]>>(this.endpoint);
       return normalizeArray<BlogPost>(response.data);
     } catch (error) {
-      console.error('Failed to fetch blog posts:', getApiErrorMessage(error));
+      console.warn('Failed to fetch blog posts:', getApiErrorMessage(error));
       return [];
     }
   }

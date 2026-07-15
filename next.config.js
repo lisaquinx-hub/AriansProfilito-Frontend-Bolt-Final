@@ -1,5 +1,21 @@
 /** @type {import('next').NextConfig} */
 const isDevelopment = process.env.NODE_ENV === 'development';
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://localhost:7297/api';
+
+function getApiOrigin(value) {
+  try {
+    return new URL(value).origin;
+  } catch {
+    return null;
+  }
+}
+
+const apiOrigin = getApiOrigin(apiBaseUrl);
+const connectSources = [
+  "'self'",
+  ...(apiOrigin ? [apiOrigin] : []),
+  ...(isDevelopment ? ['ws:', 'wss:'] : []),
+];
 
 const contentSecurityPolicy = [
   "default-src 'self'",
@@ -8,15 +24,21 @@ const contentSecurityPolicy = [
   "frame-ancestors 'none'",
   "object-src 'none'",
   `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ''}`,
+  "script-src-attr 'none'",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' data: https://fonts.gstatic.com",
   "img-src 'self' data: blob: https:",
-  `connect-src 'self' http: https:${isDevelopment ? ' ws: wss:' : ''}`,
+  "media-src 'self' https:",
+  "worker-src 'self' blob:",
+  `connect-src ${connectSources.join(' ')}`,
 ].join('; ');
 
 const nextConfig = {
   poweredByHeader: false,
   outputFileTracingRoot: __dirname,
+  compiler: {
+    removeConsole: isDevelopment ? false : { exclude: ['error'] },
+  },
   images: {
     unoptimized: true,
     remotePatterns: [
@@ -43,6 +65,9 @@ const nextConfig = {
           },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-XSS-Protection', value: '0' },
+          { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
+          { key: 'Cross-Origin-Resource-Policy', value: 'same-site' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           {
             key: 'Permissions-Policy',

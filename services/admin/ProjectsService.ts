@@ -49,7 +49,7 @@ class AdminProjectsService {
       const response = await api.get<ApiResponse<Project[]>>(this.endpoint);
       return normalizeArray<Project>(response.data);
     } catch (error) {
-      console.error('Failed to fetch projects:', getApiErrorMessage(error));
+      console.warn('Failed to fetch projects:', getApiErrorMessage(error));
       return [];
     }
   }

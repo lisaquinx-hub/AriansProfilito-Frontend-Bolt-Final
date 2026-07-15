@@ -20,7 +20,7 @@ const defaultContent: Record<EmptyStateType, { icon: React.ElementType; title: s
   products: {
     icon: Package,
     title: 'محصولی یافت نشد',
-    description: 'محصولی با مشخصات مورد نظر وجود ندارد. فیلترها را تغییر دهید.',
+    description: 'محصولی با مشخصات موردنظر وجود ندارد. فیلترها را تغییر دهید.',
   },
   projects: {
     icon: FolderOpen,
@@ -40,7 +40,7 @@ const defaultContent: Record<EmptyStateType, { icon: React.ElementType; title: s
   search: {
     icon: Search,
     title: 'نتیجه‌ای یافت نشد',
-    description: 'عبارت دیگری را جستجو کنید.',
+    description: 'عبارت دیگری را جست‌وجو کنید.',
   },
   default: {
     icon: FolderOpen,
@@ -76,11 +76,11 @@ export function EmptyState({
         {description || content.description}
       </p>
       {(actionLabel && actionHref) && (
-        <Link href={actionHref}>
-          <Button className="btn-primary shadow-glow">
+        <Button asChild className="btn-primary shadow-glow">
+          <Link href={actionHref}>
             {actionLabel}
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       )}
       {(actionLabel && onAction && !actionHref) && (
         <Button onClick={onAction} className="btn-primary shadow-glow">

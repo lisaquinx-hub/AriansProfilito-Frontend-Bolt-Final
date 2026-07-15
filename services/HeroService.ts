@@ -10,7 +10,7 @@ class HeroService {
       const response = await api.get<ApiResponse<HeroSection>>(`${this.endpoint}/active`);
       return response.data.data || null;
     } catch (error) {
-      console.error('Failed to fetch active hero section:', getApiErrorMessage(error));
+      console.warn('Failed to fetch active hero section:', getApiErrorMessage(error));
       return null;
     }
   }

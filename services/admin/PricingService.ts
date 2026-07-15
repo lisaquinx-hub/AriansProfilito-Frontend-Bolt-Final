@@ -24,7 +24,7 @@ class AdminPricingService {
       const response = await api.get<ApiResponse<PricingPlan[]>>(this.endpoint);
       return response.data.data || [];
     } catch (error) {
-      console.error('Failed to fetch pricing plans:', getApiErrorMessage(error));
+      console.warn('Failed to fetch pricing plans:', getApiErrorMessage(error));
       return [];
     }
   }

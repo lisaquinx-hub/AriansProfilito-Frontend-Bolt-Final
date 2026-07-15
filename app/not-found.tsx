@@ -31,7 +31,7 @@ export default function NotFound() {
 
           {/* Title */}
           <h1 className="text-3xl md:text-4xl font-bold mb-4">
-            صفحه مورد نظر یافت نشد
+            صفحه موردنظر یافت نشد
           </h1>
 
           {/* Description */}
@@ -42,18 +42,18 @@ export default function NotFound() {
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/">
-              <Button className="btn-primary shadow-glow">
+            <Button asChild className="btn-primary shadow-glow">
+              <Link href="/">
                 <Home className="ml-2 w-4 h-4" />
                 صفحه اصلی
-              </Button>
-            </Link>
-            <Link href="/blog">
-              <Button variant="outline" className="rounded-full">
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="rounded-full">
+              <Link href="/blog">
                 <Search className="ml-2 w-4 h-4" />
-                جستجو در وبلاگ
-              </Button>
-            </Link>
+                جست‌وجو در وبلاگ
+              </Link>
+            </Button>
           </div>
 
           {/* Additional Links */}

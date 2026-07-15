@@ -1,11 +1,14 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, X } from 'lucide-react';
+import { Loader2, Search, X } from 'lucide-react';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
-import { products, blogPosts, projects } from '@/lib/mock-data';
+import { products } from '@/lib/mock-data';
+import { blogPostService } from '@/services/BlogPostService';
+import { portfolioService } from '@/services/PortfolioService';
+import { BlogPost, PortfolioListItem } from '@/types/api';
 
 interface GlobalSearchProps {
   isOpen: boolean;
@@ -14,22 +17,71 @@ interface GlobalSearchProps {
 
 export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
   const [query, setQuery] = useState('');
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [projects, setProjects] = useState<PortfolioListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setQuery('');
+      return;
+    }
+
+    let cancelled = false;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+
+    setIsLoading(true);
+    void Promise.all([
+      blogPostService.getAll({ pageNumber: 1, pageSize: 50 }),
+      portfolioService.getItems({ pageNumber: 1, pageSize: 50 }),
+    ]).then(([posts, portfolio]) => {
+      if (cancelled) return;
+      setBlogPosts(posts);
+      setProjects(portfolio.items || []);
+    }).catch(() => {
+      if (cancelled) return;
+      setBlogPosts([]);
+      setProjects([]);
+    }).finally(() => {
+      if (!cancelled) setIsLoading(false);
+    });
+
+    return () => {
+      cancelled = true;
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   const results = useMemo(() => {
     if (!query.trim()) return { products: [], blogPosts: [], projects: [] };
 
-    const q = query.toLowerCase();
+    const normalizedQuery = query.trim().toLocaleLowerCase('fa-IR');
     return {
       products: products.filter(
-        (p) => p.title.toLowerCase().includes(q) || p.shortDescription.toLowerCase().includes(q)
+        (product) =>
+          product.title.toLocaleLowerCase('fa-IR').includes(normalizedQuery) ||
+          product.shortDescription.toLocaleLowerCase('fa-IR').includes(normalizedQuery)
       ).slice(0, 3),
       blogPosts: blogPosts.filter(
-        (p) => p.title.toLowerCase().includes(q) || p.excerpt.toLowerCase().includes(q)
+        (post) =>
+          post.title.toLocaleLowerCase('fa-IR').includes(normalizedQuery) ||
+          (post.excerpt || '').toLocaleLowerCase('fa-IR').includes(normalizedQuery)
       ).slice(0, 3),
       projects: projects.filter(
-        (p) => p.title.toLowerCase().includes(q) || p.description.toLowerCase().includes(q)
+        (project) =>
+          project.title.toLocaleLowerCase('fa-IR').includes(normalizedQuery) ||
+          (project.shortDescription || '').toLocaleLowerCase('fa-IR').includes(normalizedQuery) ||
+          project.clientName.toLocaleLowerCase('fa-IR').includes(normalizedQuery)
       ).slice(0, 3),
     };
-  }, [query]);
+  }, [blogPosts, projects, query]);
 
   const totalResults = results.products.length + results.blogPosts.length + results.projects.length;
 
@@ -39,49 +91,56 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 bg-background/80 backdrop-blur-xl"
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="جست‌وجوی سراسری"
     >
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="container mx-auto px-4 pt-20 max-w-3xl"
-        onClick={(e) => e.stopPropagation()}
+        onClick={(event) => event.stopPropagation()}
       >
-        {/* Search Input */}
         <div className="relative">
           <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
-            type="text"
+            type="search"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="جستجو در محصولات، مقالات و پروژه‌ها..."
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="جست‌وجو در محصولات، مقالات و پروژه‌ها..."
             className="pr-12 pl-12 h-14 text-lg bg-card border-border"
+            aria-label="عبارت جست‌وجو"
             autoFocus
           />
           <button
+            type="button"
             onClick={onClose}
             className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            aria-label="بستن جست‌وجو"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Results */}
         {query && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="mt-4 glass rounded-2xl overflow-hidden"
           >
-            {totalResults === 0 ? (
+            {isLoading ? (
+              <div className="p-8 flex items-center justify-center gap-3 text-muted-foreground">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                در حال دریافت نتایج...
+              </div>
+            ) : totalResults === 0 ? (
               <div className="p-8 text-center text-muted-foreground">
                 نتیجه‌ای یافت نشد
               </div>
             ) : (
               <div className="max-h-[60vh] overflow-y-auto">
-                {/* Products */}
                 {results.products.length > 0 && (
                   <div className="p-4 border-b border-border">
                     <h3 className="text-sm font-medium text-muted-foreground mb-3">
@@ -90,7 +149,7 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                     {results.products.map((product) => (
                       <Link
                         key={product.id}
-                        href={`/products/${product.slug}`}
+                        href={`/products/${encodeURIComponent(product.slug)}`}
                         onClick={onClose}
                         className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors"
                       >
@@ -106,7 +165,6 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                   </div>
                 )}
 
-                {/* Blog Posts */}
                 {results.blogPosts.length > 0 && (
                   <div className="p-4 border-b border-border">
                     <h3 className="text-sm font-medium text-muted-foreground mb-3">
@@ -115,7 +173,7 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                     {results.blogPosts.map((post) => (
                       <Link
                         key={post.id}
-                        href={`/blog/${post.slug}`}
+                        href={`/blog/${encodeURIComponent(post.slug)}`}
                         onClick={onClose}
                         className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors"
                       >
@@ -124,14 +182,15 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                         </div>
                         <div>
                           <div className="font-medium">{post.title}</div>
-                          <div className="text-sm text-muted-foreground">{post.readTime}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {post.readTime ? `${post.readTime} دقیقه` : 'زمان مطالعه نامشخص'}
+                          </div>
                         </div>
                       </Link>
                     ))}
                   </div>
                 )}
 
-                {/* Projects */}
                 {results.projects.length > 0 && (
                   <div className="p-4">
                     <h3 className="text-sm font-medium text-muted-foreground mb-3">
@@ -140,7 +199,7 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                     {results.projects.map((project) => (
                       <Link
                         key={project.id}
-                        href={`/portfolio/${project.slug}`}
+                        href={`/portfolio/${encodeURIComponent(project.slug)}`}
                         onClick={onClose}
                         className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors"
                       >
@@ -149,7 +208,9 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                         </div>
                         <div>
                           <div className="font-medium">{project.title}</div>
-                          <div className="text-sm text-muted-foreground">{project.metricValue}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {project.categoryName || project.clientName}
+                          </div>
                         </div>
                       </Link>
                     ))}

@@ -271,12 +271,12 @@ export default function BlogPostPage() {
             </motion.div>
 
             <div className="mt-8">
-              <Link href="/blog">
-                <Button variant="outline" className="rounded-full gap-2">
+              <Button asChild variant="outline" className="rounded-full gap-2">
+                <Link href="/blog">
                   <ArrowLeft className="w-4 h-4 rotate-180" />
                   بازگشت به وبلاگ
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </div>
           </article>
 

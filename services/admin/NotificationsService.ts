@@ -18,7 +18,7 @@ class AdminNotificationsService {
       const response = await api.get<ApiResponse<Notification[]>>(this.endpoint);
       return response.data.data || [];
     } catch (error) {
-      console.error('Failed to fetch notifications:', getApiErrorMessage(error));
+      console.warn('Failed to fetch notifications:', getApiErrorMessage(error));
       return [];
     }
   }

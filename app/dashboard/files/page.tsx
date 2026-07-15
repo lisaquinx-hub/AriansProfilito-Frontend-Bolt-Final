@@ -104,7 +104,7 @@ export default function FilesPage() {
           <h1 className="text-3xl font-bold flex items-center gap-2"><Files className="w-7 h-7" />فایل‌ها</h1>
           <p className="text-muted-foreground mt-1">مشاهده پیوست‌ها و فایل‌های پروژه‌های شما</p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => void fetchAttachments()}><RefreshCw className="w-4 h-4 ml-1" />بروزرسانی</Button>
+        <Button variant="outline" size="sm" onClick={() => void fetchAttachments()}><RefreshCw className="w-4 h-4 ml-1" />به‌روزرسانی</Button>
       </div>
 
       <Card className="glass">

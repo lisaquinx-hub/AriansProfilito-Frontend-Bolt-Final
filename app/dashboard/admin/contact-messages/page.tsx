@@ -164,7 +164,7 @@ export default function AdminContactMessagesPage() {
         </div>
         <Button variant="outline" size="sm" onClick={fetchData}>
           <RefreshCw className={`w-4 h-4 ml-1 ${isLoading ? 'animate-spin' : ''}`} />
-          بروزرسانی
+          به‌روزرسانی
         </Button>
       </div>
 

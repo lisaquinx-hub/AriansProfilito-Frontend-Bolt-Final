@@ -52,9 +52,9 @@ export default function DashboardPage() {
           <h1 className="text-3xl font-bold">داشبورد</h1>
           <p className="text-muted-foreground mt-1">خوش آمدید، {displayName}</p>
         </div>
-        <Link href="/dashboard/projects">
-          <Button className="btn-primary shadow-glow">مشاهده پروژه‌ها</Button>
-        </Link>
+        <Button asChild className="btn-primary shadow-glow">
+          <Link href="/dashboard/projects">مشاهده پروژه‌ها</Link>
+        </Button>
       </div>
 
       {isLoading ? (

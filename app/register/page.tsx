@@ -41,15 +41,15 @@ export default function RegisterPage() {
     setIsLoading(true);
     try {
       await authService.register({
-        fullName: formData.fullName,
-        email: formData.email,
-        userName: formData.userName || formData.email,
+        fullName: formData.fullName.trim(),
+        email: formData.email.trim(),
+        userName: formData.userName.trim() || formData.email.trim(),
         password: formData.password,
       });
       emitAuthChanged();
       router.push('/dashboard');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'ثبت‌نام با خطا مواجه شد');
+      setError(err instanceof Error ? err.message : 'ثبت‌نام با خطا روبه‌رو شد');
     } finally {
       setIsLoading(false);
     }
@@ -94,6 +94,7 @@ export default function RegisterPage() {
                   placeholder="نام کامل شما"
                   value={formData.fullName}
                   onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                  autoComplete="name"
                   className="pr-10 bg-muted/50 border-border focus:border-sky-500"
                   required
                 />
@@ -110,6 +111,7 @@ export default function RegisterPage() {
                   placeholder="email@example.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  autoComplete="email"
                   className="pr-10 bg-muted/50 border-border focus:border-sky-500"
                   required
                 />
@@ -126,6 +128,7 @@ export default function RegisterPage() {
                   placeholder="نام کاربری (اختیاری)"
                   value={formData.userName}
                   onChange={(e) => setFormData({ ...formData, userName: e.target.value })}
+                  autoComplete="username"
                   className="pr-10 bg-muted/50 border-border focus:border-sky-500"
                 />
               </div>
@@ -141,6 +144,8 @@ export default function RegisterPage() {
                   placeholder="حداقل ۶ کاراکتر"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  autoComplete="new-password"
+                  minLength={6}
                   className="pr-10 pl-10 bg-muted/50 border-border focus:border-sky-500"
                   required
                 />
@@ -148,6 +153,7 @@ export default function RegisterPage() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label={showPassword ? 'پنهان کردن رمز عبور' : 'نمایش رمز عبور'}
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -164,6 +170,8 @@ export default function RegisterPage() {
                   placeholder="تکرار رمز عبور"
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  autoComplete="new-password"
+                  minLength={6}
                   className="pr-10 bg-muted/50 border-border focus:border-sky-500"
                   required
                 />

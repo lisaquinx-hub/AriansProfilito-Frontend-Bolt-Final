@@ -30,6 +30,7 @@ export function Pagination({ currentPage, totalPages, onPageChange, className }:
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage <= 1}
         className="rounded-full"
+        aria-label="صفحه قبل"
       >
         <ChevronRight className="w-4 h-4" />
       </Button>
@@ -44,6 +45,8 @@ export function Pagination({ currentPage, totalPages, onPageChange, className }:
               variant={currentPage === page ? 'default' : 'ghost'}
               size="sm"
               onClick={() => onPageChange(page as number)}
+              aria-label={`صفحه ${page}`}
+              aria-current={currentPage === page ? 'page' : undefined}
               className={cn(
                 'rounded-full min-w-[40px]',
                 currentPage === page && 'bg-gradient-to-l from-sky-500 to-blue-600 dark:from-blue-500 dark:to-cyan-500'
@@ -62,6 +65,7 @@ export function Pagination({ currentPage, totalPages, onPageChange, className }:
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage >= totalPages}
         className="rounded-full"
+        aria-label="صفحه بعد"
       >
         <ChevronLeft className="w-4 h-4" />
       </Button>

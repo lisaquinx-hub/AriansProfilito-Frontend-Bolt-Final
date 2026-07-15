@@ -1,44 +1,85 @@
 const ACCESS_TOKEN_KEY = 'accessToken';
+const REFRESH_TOKEN_KEY = 'refreshToken';
 const USER_KEY = 'user';
 
 const isBrowser = () => typeof window !== 'undefined';
 
-export function getAccessToken(): string | null {
-  if (!isBrowser()) return null;
-  return localStorage.getItem(ACCESS_TOKEN_KEY);
+function clearStorage(storage: Storage): void {
+  storage.removeItem(ACCESS_TOKEN_KEY);
+  storage.removeItem(REFRESH_TOKEN_KEY);
+  storage.removeItem(USER_KEY);
 }
 
-export function setAccessToken(token: string): void {
+function getAuthStorage(): Storage | null {
+  if (!isBrowser()) return null;
+  if (sessionStorage.getItem(ACCESS_TOKEN_KEY)) return sessionStorage;
+  if (localStorage.getItem(ACCESS_TOKEN_KEY)) return localStorage;
+  return null;
+}
+
+function isExpiredJwt(token: string): boolean {
+  const parts = token.split('.');
+  if (parts.length !== 3) return false;
+
+  try {
+    const normalized = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
+    const payload = JSON.parse(atob(padded)) as { exp?: unknown };
+    return typeof payload.exp === 'number' && Date.now() >= payload.exp * 1000;
+  } catch {
+    // Some backends may return opaque access tokens. Their validity is verified by the API.
+    return false;
+  }
+}
+
+export function getAccessToken(): string | null {
+  const storage = getAuthStorage();
+  if (!storage) return null;
+
+  const token = storage.getItem(ACCESS_TOKEN_KEY);
+  if (token && isExpiredJwt(token)) {
+    removeAccessToken();
+    return null;
+  }
+  return token;
+}
+
+export function setAccessToken(token: string, persistent = false): void {
   if (!isBrowser()) return;
-  localStorage.setItem(ACCESS_TOKEN_KEY, token);
+  clearStorage(sessionStorage);
+  clearStorage(localStorage);
+  const storage = persistent ? localStorage : sessionStorage;
+  storage.setItem(ACCESS_TOKEN_KEY, token);
 }
 
 export function removeAccessToken(): void {
   if (!isBrowser()) return;
-  localStorage.removeItem(ACCESS_TOKEN_KEY);
-  localStorage.removeItem(USER_KEY);
+  clearStorage(sessionStorage);
+  clearStorage(localStorage);
 }
 
 export function isAuthenticated(): boolean {
-  if (!isBrowser()) return false;
-  return !!localStorage.getItem(ACCESS_TOKEN_KEY);
+  return Boolean(getAccessToken());
 }
 
 export function getStoredUser<T>(): T | null {
-  if (!isBrowser()) return null;
-  const userJson = localStorage.getItem(USER_KEY);
+  const storage = getAuthStorage();
+  if (!storage) return null;
+
+  const userJson = storage.getItem(USER_KEY);
   if (!userJson) return null;
   try {
     return JSON.parse(userJson) as T;
   } catch {
-    localStorage.removeItem(USER_KEY);
+    storage.removeItem(USER_KEY);
     return null;
   }
 }
 
 export function setStoredUser<T>(user: T): void {
   if (!isBrowser()) return;
-  localStorage.setItem(USER_KEY, JSON.stringify(user));
+  const storage = getAuthStorage() || sessionStorage;
+  storage.setItem(USER_KEY, JSON.stringify(user));
 }
 
 export interface StoredUser {
@@ -90,7 +131,6 @@ export function hasAdminRole(user: unknown): boolean {
   if (!user || typeof user !== 'object') return false;
   const u = user as Record<string, unknown>;
 
-  // Direct numeric check (UserRole.Admin = 3)
   if (typeof u.role === 'number' && u.role === ADMIN_ROLE_VALUE) return true;
 
   const allRoles = [
@@ -98,14 +138,13 @@ export function hasAdminRole(user: unknown): boolean {
     ...normalizeRoleValues(u.roles),
   ];
 
-  return allRoles.some(r => ADMIN_ROLE_NAMES.has(r));
+  return allRoles.some((role) => ADMIN_ROLE_NAMES.has(role));
 }
 
 export function isAdmin(): boolean {
   try {
     const user = getStoredUser<StoredUser>();
-    if (!user) return false;
-    return hasAdminRole(user);
+    return Boolean(user && hasAdminRole(user));
   } catch {
     return false;
   }

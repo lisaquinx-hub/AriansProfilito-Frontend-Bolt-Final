@@ -187,7 +187,7 @@ export default function AdminPricingPage() {
       ) : items.length === 0 ? (
         <div className="glass rounded-2xl p-12 text-center">
           <DollarSign className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-muted-foreground">پلن قیمت‌گذاری‌ای یافت نشد</p>
+          <p className="text-muted-foreground">پلن قیمت‌گذاری یافت نشد</p>
           <Button onClick={handleCreate} className="btn-primary mt-4 gap-2">
             <Plus className="w-4 h-4" />
             ایجاد اولین پلن

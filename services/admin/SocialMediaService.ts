@@ -10,7 +10,7 @@ class AdminSocialMediaService {
       const response = await api.get<ApiResponse<SocialMedia[]>>(this.endpoint);
       return response.data.data || [];
     } catch (error) {
-      console.error('Failed to fetch social media:', getApiErrorMessage(error));
+      console.warn('Failed to fetch social media:', getApiErrorMessage(error));
       return [];
     }
   }

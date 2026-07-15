@@ -104,7 +104,7 @@ export default function AdminCommentsPage() {
             ? 'bg-green-500/10 text-green-500'
             : 'bg-yellow-500/10 text-yellow-500'
         }`}>
-          {comment.isApproved ? 'تأیید شده' : 'در انتظار'}
+          {comment.isApproved ? 'تأییدشده' : 'در انتظار'}
         </span>
       ),
     },
@@ -139,7 +139,7 @@ export default function AdminCommentsPage() {
         </div>
         <Button variant="outline" size="sm" onClick={fetchComments}>
           <RefreshCw className="w-4 h-4 ml-1" />
-          بروزرسانی
+          به‌روزرسانی
         </Button>
       </div>
 
@@ -181,7 +181,7 @@ export default function AdminCommentsPage() {
           { label: 'نام', value: viewItem.fullName },
           { label: 'ایمیل', value: viewItem.email },
           { label: 'مقاله', value: viewItem.blogPostTitle || '-' },
-          { label: 'وضعیت', value: viewItem.isApproved ? 'تأیید شده' : 'در انتظار تأیید' },
+          { label: 'وضعیت', value: viewItem.isApproved ? 'تأییدشده' : 'در انتظار تأیید' },
           { label: 'پیام', value: viewItem.message, fullWidth: true },
           { label: 'تاریخ ایجاد', value: viewItem.createdAt ? new Date(viewItem.createdAt).toLocaleString('fa-IR') : '-' },
         ] : []}

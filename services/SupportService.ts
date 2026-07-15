@@ -28,7 +28,7 @@ class SupportService {
       const response = await api.get<ApiResponse<SupportTicket[]>>(this.myEndpoint);
       return response.data.data || [];
     } catch (error) {
-      console.error('Failed to fetch tickets:', getApiErrorMessage(error));
+      console.warn('Failed to fetch tickets:', getApiErrorMessage(error));
       return [];
     }
   }

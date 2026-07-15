@@ -160,7 +160,7 @@ export default function SupportPage() {
         <div className="glass rounded-xl p-6 text-center">
           <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-3" />
           <p className="text-muted-foreground">{error}</p>
-          <Button variant="outline" className="mt-4 rounded-full" onClick={fetchTickets}>تلاش مجدد</Button>
+          <Button variant="outline" className="mt-4 rounded-full" onClick={fetchTickets}>تلاش دوباره</Button>
         </div>
       )}
 

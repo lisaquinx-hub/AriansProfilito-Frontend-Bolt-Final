@@ -42,10 +42,12 @@ export default function AdminFaqsPage() {
       await adminFaqService.delete(deleteId);
       setItems(items.filter(i => i.id !== deleteId));
       setDeleteId(null);
+      toast.success('سؤال با موفقیت حذف شد');
     } catch (error) {
-      console.error('Failed to delete:', error);
+      toast.error(getApiErrorMessage(error));
+    } finally {
+      setIsDeleting(false);
     }
-    setIsDeleting(false);
   };
 
   const handleEdit = (item: FAQ) => {
@@ -80,10 +82,10 @@ export default function AdminFaqsPage() {
     try {
       if (editingItem) {
         await adminFaqService.update(editingItem.id, submitData as Partial<FAQ>);
-        toast.success('سوال با موفقیت ویرایش شد');
+        toast.success('سؤال با موفقیت ویرایش شد');
       } else {
         await adminFaqService.create(submitData as Partial<FAQ>);
-        toast.success('سوال با موفقیت ایجاد شد');
+        toast.success('سؤال با موفقیت ایجاد شد');
       }
       fetchData();
     } catch (error) {
@@ -93,14 +95,14 @@ export default function AdminFaqsPage() {
   };
 
   const fields: FormField[] = [
-    { key: 'question', label: 'سوال', required: true },
+    { key: 'question', label: 'سؤال', required: true },
     { key: 'answer', label: 'پاسخ', type: 'textarea', required: true, fullWidth: true },
     { key: 'displayOrder', label: 'ترتیب نمایش', type: 'number' },
     { key: 'isActive', label: 'فعال', type: 'switch' },
   ];
 
   const columns = [
-    { key: 'question', label: 'سوال', render: (item: FAQ) => (
+    { key: 'question', label: 'سؤال', render: (item: FAQ) => (
       <div className="max-w-xs truncate font-medium">{item.question}</div>
     )},
     { key: 'answer', label: 'پاسخ', render: (item: FAQ) => (
@@ -119,14 +121,14 @@ export default function AdminFaqsPage() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <HelpCircle className="w-6 h-6" />
-            مدیریت سوالات متداول
+            مدیریت سؤالات متداول
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">{items.length} سوال</p>
+          <p className="text-muted-foreground text-sm mt-1">{items.length} سؤال</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={fetchData}>
             <RefreshCw className="w-4 h-4 ml-1" />
-            بروزرسانی
+            به‌روزرسانی
           </Button>
           <Button size="sm" className="btn-primary" onClick={handleCreate}>
             <Plus className="w-4 h-4 ml-1" />
@@ -145,10 +147,10 @@ export default function AdminFaqsPage() {
             onEdit={handleEdit}
             onDelete={(item) => setDeleteId(item.id)}
             idLookup={{
-              entityLabel: 'سوال متداول',
+              entityLabel: 'سؤال متداول',
               getById: (id) => adminFaqService.getById(id),
             }}
-            emptyMessage="سوالی یافت نشد"
+            emptyMessage="سؤالی یافت نشد"
           />
         </CardContent>
       </Card>
@@ -156,8 +158,8 @@ export default function AdminFaqsPage() {
       <ConfirmDialog
         open={!!deleteId}
         onOpenChange={(open) => !open && setDeleteId(null)}
-        title="حذف سوال"
-        description="آیا از حذف این سوال اطمینان دارید؟"
+        title="حذف سؤال"
+        description="آیا از حذف این سؤال اطمینان دارید؟"
         onConfirm={handleDelete}
         loading={isDeleting}
       />
@@ -165,7 +167,7 @@ export default function AdminFaqsPage() {
       <EntityFormModal
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
-        title={editingItem ? 'ویرایش سوال' : 'ایجاد سوال جدید'}
+        title={editingItem ? 'ویرایش سؤال' : 'ایجاد سؤال جدید'}
         fields={fields}
         initialValues={editingItem ? { ...editingItem } as Record<string, unknown> : undefined}
         onSubmit={handleSubmit}
@@ -175,12 +177,12 @@ export default function AdminFaqsPage() {
       <ViewDetailModal
         open={!!viewItem || viewLoading}
         onClose={() => { setViewItem(null); setViewError(null); setViewLoading(false); }}
-        title="جزئیات سوال متداول"
+        title="جزئیات سؤال متداول"
         loading={viewLoading}
         error={viewError}
         fields={viewItem ? [
           { label: 'شناسه', value: viewItem.id },
-          { label: 'سوال', value: viewItem.question, fullWidth: true },
+          { label: 'سؤال', value: viewItem.question, fullWidth: true },
           { label: 'پاسخ', value: viewItem.answer, fullWidth: true },
           { label: 'ترتیب نمایش', value: viewItem.displayOrder ?? '-' },
           { label: 'وضعیت', value: viewItem.isActive ? 'فعال' : 'غیرفعال' },

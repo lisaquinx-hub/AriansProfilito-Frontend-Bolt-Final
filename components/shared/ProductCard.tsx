@@ -55,7 +55,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
           </div>
 
           {/* CTA Button */}
-          <Link href={`/products/${product.slug}`}>
+          <Link href={`/products/${encodeURIComponent(product.slug)}`}>
             <motion.span
               whileHover={{ x: -4 }}
               className="inline-flex items-center text-sm text-sky-500 dark:text-cyan-400 group-hover:text-gradient transition-all mb-4"

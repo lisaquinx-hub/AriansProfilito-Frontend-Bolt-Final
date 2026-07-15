@@ -44,7 +44,7 @@ export default function FAQ() {
           transition={{ duration: 0.5 }}
           className="text-center mb-16"
         >
-          <h2 className="text-sm font-medium text-sky-500 dark:text-cyan-400 mb-4">سوالات متداول</h2>
+          <h2 className="text-sm font-medium text-sky-500 dark:text-cyan-400 mb-4">سؤالات متداول</h2>
           <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold">
             شفاف، کوتاه، بدون پیچیدگی
           </h3>
@@ -110,14 +110,14 @@ export default function FAQ() {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="flex justify-center mt-12"
           >
-            <Link href="/#faq">
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Button variant="outline" className="rounded-full gap-2 group">
-                  همه سوالات
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button asChild variant="outline" className="rounded-full gap-2 group">
+                <Link href="/#faq">
+                  همه سؤالات
                   <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-                </Button>
-              </motion.div>
-            </Link>
+                </Link>
+              </Button>
+            </motion.div>
           </motion.div>
         )}
       </div>

@@ -34,14 +34,14 @@ export default function Contact() {
     setIsSubmitting(true);
     try {
       await contactService.sendMessage({
-        fullName: form.fullName,
-        email: form.email,
-        subject: form.subject || 'تماس از سایت',
-        message: form.message,
+        fullName: form.fullName.trim(),
+        email: form.email.trim(),
+        subject: form.subject.trim() || 'تماس از سایت',
+        message: form.message.trim(),
       });
       setSubmitted(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'خطا در ارسال پیام. لطفاً مجدداً تلاش کنید.');
+      setError(err instanceof Error ? err.message : 'خطا در ارسال پیام. لطفاً دوباره تلاش کنید.');
     } finally {
       setIsSubmitting(false);
     }
@@ -68,14 +68,14 @@ export default function Contact() {
               درباره ایده، محصول یا چالشی که می‌خواهید حل کنید بنویسید تا مسیر پیشنهادی را بررسی کنیم.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/#contact-form">
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <Button className="btn-primary gap-2 group">
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button asChild className="btn-primary gap-2 group">
+                  <Link href="/#contact-form">
                     تماس برای ثبت پروژه
                     <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-                  </Button>
-                </motion.div>
-              </Link>
+                  </Link>
+                </Button>
+              </motion.div>
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Button variant="outline" onClick={scrollToForm} className="rounded-full gap-2">
                   تماس با ما
@@ -101,30 +101,38 @@ export default function Contact() {
                 )}
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm text-foreground/70 mb-2">نام <span className="text-red-500">*</span></label>
+                    <label htmlFor="contact-full-name" className="block text-sm text-foreground/70 mb-2">نام <span className="text-red-500">*</span></label>
                     <Input
+                      id="contact-full-name"
+                      name="fullName"
                       value={form.fullName}
                       onChange={(e) => setForm({ ...form, fullName: e.target.value })}
                       placeholder="نام شما"
+                      autoComplete="name"
                       className="bg-muted/50 border-border focus:border-sky-500"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm text-foreground/70 mb-2">ایمیل <span className="text-red-500">*</span></label>
+                    <label htmlFor="contact-email" className="block text-sm text-foreground/70 mb-2">ایمیل <span className="text-red-500">*</span></label>
                     <Input
+                      id="contact-email"
+                      name="email"
                       type="email"
                       value={form.email}
                       onChange={(e) => setForm({ ...form, email: e.target.value })}
                       placeholder="email@example.com"
+                      autoComplete="email"
                       className="bg-muted/50 border-border focus:border-sky-500"
                       required
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm text-foreground/70 mb-2">موضوع</label>
+                  <label htmlFor="contact-subject" className="block text-sm text-foreground/70 mb-2">موضوع</label>
                   <Input
+                    id="contact-subject"
+                    name="subject"
                     value={form.subject}
                     onChange={(e) => setForm({ ...form, subject: e.target.value })}
                     placeholder="موضوع پیام"
@@ -132,8 +140,10 @@ export default function Contact() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-foreground/70 mb-2">پیام <span className="text-red-500">*</span></label>
+                  <label htmlFor="contact-message" className="block text-sm text-foreground/70 mb-2">پیام <span className="text-red-500">*</span></label>
                   <Textarea
+                    id="contact-message"
+                    name="message"
                     rows={5}
                     value={form.message}
                     onChange={(e) => setForm({ ...form, message: e.target.value })}

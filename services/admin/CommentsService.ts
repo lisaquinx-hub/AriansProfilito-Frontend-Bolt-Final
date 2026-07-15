@@ -10,7 +10,7 @@ class AdminCommentsService {
       const response = await api.get<ApiResponse<Comment[]>>(this.endpoint);
       return normalizeArray<Comment>(response.data);
     } catch (error) {
-      console.error('Failed to fetch comments:', getApiErrorMessage(error));
+      console.warn('Failed to fetch comments:', getApiErrorMessage(error));
       return [];
     }
   }

@@ -45,7 +45,7 @@ export function UserIdFilter({
         </div>
         <Button type="submit" className="btn-primary" disabled={loading || !value.trim()}>
           {loading ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : <Search className="w-4 h-4 ml-2" />}
-          جستجو
+          جست‌وجو
         </Button>
         {value && (
           <Button type="button" variant="outline" onClick={onClear} disabled={loading}>

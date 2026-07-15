@@ -10,7 +10,7 @@ class PricingService {
       const response = await api.get<ApiResponse<PricingPlan[]>>(this.endpoint);
       return response.data.data || [];
     } catch (error) {
-      console.error('Failed to fetch pricing plans:', getApiErrorMessage(error));
+      console.warn('Failed to fetch pricing plans:', getApiErrorMessage(error));
       return [];
     }
   }
@@ -20,7 +20,7 @@ class PricingService {
       const response = await api.get<ApiResponse<PricingPlan>>(`${this.endpoint}/${id}`);
       return response.data.data;
     } catch (error) {
-      console.error('Failed to fetch pricing plan:', getApiErrorMessage(error));
+      console.warn('Failed to fetch pricing plan:', getApiErrorMessage(error));
       return null;
     }
   }

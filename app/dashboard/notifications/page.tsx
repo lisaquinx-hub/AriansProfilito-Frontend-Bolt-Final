@@ -91,7 +91,7 @@ export default function NotificationsPage() {
           <p className="text-muted-foreground mt-1">{items.length} اعلان</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => void fetchData()}><RefreshCw className="w-4 h-4 ml-1" />بروزرسانی</Button>
+          <Button variant="outline" size="sm" onClick={() => void fetchData()}><RefreshCw className="w-4 h-4 ml-1" />به‌روزرسانی</Button>
           <Button variant="outline" size="sm" onClick={() => void markAllRead()}><CheckCheck className="w-4 h-4 ml-1" />خواندن همه</Button>
         </div>
       </div>

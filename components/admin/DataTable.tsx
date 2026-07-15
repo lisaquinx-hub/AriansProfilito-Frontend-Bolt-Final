@@ -171,7 +171,7 @@ export function DataTable<T extends { id: string }>({
                   <td className="px-4 py-3">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" aria-label="نمایش عملیات">
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -224,6 +224,7 @@ export function DataTable<T extends { id: string }>({
             size="sm"
             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
             disabled={currentPage === 1}
+            aria-label="صفحه قبل"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -235,6 +236,7 @@ export function DataTable<T extends { id: string }>({
             size="sm"
             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
+            aria-label="صفحه بعد"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -257,7 +259,7 @@ export function ConfirmDialog({ open, onOpenChange, title, description, onConfir
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" aria-label={title}>
       <div className="fixed inset-0 bg-black/50" onClick={() => onOpenChange(false)} />
       <div className="relative glass rounded-2xl p-6 max-w-md w-full mx-4">
         <h3 className="text-lg font-semibold mb-2">{title}</h3>

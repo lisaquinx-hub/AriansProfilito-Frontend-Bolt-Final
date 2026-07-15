@@ -297,7 +297,7 @@ export default function AdminProjectsPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={fetchData} disabled={isLoading}>
-            <RefreshCw className={`w-4 h-4 ml-1 ${isLoading ? 'animate-spin' : ''}`} />بروزرسانی
+            <RefreshCw className={`w-4 h-4 ml-1 ${isLoading ? 'animate-spin' : ''}`} />به‌روزرسانی
           </Button>
           <Button size="sm" className="btn-primary" onClick={openCreate}>
             <Plus className="w-4 h-4 ml-1" />ایجاد پروژه
@@ -434,7 +434,7 @@ export default function AdminProjectsPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label>مبلغ پرداخت شده</Label>
+                    <Label>مبلغ پرداخت‌شده</Label>
                     <Input type="number" min={0} value={form.paidAmount}
                       onChange={e => setForm(f => ({ ...f, paidAmount: Number(e.target.value) }))}
                       className="bg-muted/50 border-border" />
@@ -500,7 +500,7 @@ export default function AdminProjectsPage() {
           { label: 'وضعیت', value: statusLabel(viewItem.status) },
           { label: 'پیشرفت', value: `${viewItem.progress}%` },
           { label: 'قیمت', value: viewItem.price?.toLocaleString() || '-' },
-          { label: 'پرداخت شده', value: viewItem.paidAmount?.toLocaleString() || '-' },
+          { label: 'پرداخت‌شده', value: viewItem.paidAmount?.toLocaleString() || '-' },
           { label: 'تحویل تخمینی', value: viewItem.estimatedDeliveryDate ? new Date(viewItem.estimatedDeliveryDate).toLocaleDateString('fa-IR') : '-' },
           { label: 'شروع', value: viewItem.startDate ? new Date(viewItem.startDate).toLocaleDateString('fa-IR') : '-' },
           { label: 'پایان', value: viewItem.endDate ? new Date(viewItem.endDate).toLocaleDateString('fa-IR') : '-' },

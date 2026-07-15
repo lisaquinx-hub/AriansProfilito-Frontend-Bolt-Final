@@ -8,7 +8,7 @@ import { EntityIdLookup } from '@/components/admin/EntityIdLookup';
 import { invoiceService, InvoiceListItem, InvoiceDetail } from '@/services/InvoiceService';
 import { getApiErrorMessage } from '@/services/api';
 
-const STATUS_LABELS: Record<number, string> = { 1: 'در انتظار', 2: 'پرداخت شده', 3: 'ناموفق', 4: 'بازپرداخت' };
+const STATUS_LABELS: Record<number, string> = { 1: 'در انتظار', 2: 'پرداخت‌شده', 3: 'ناموفق', 4: 'بازپرداخت' };
 const STATUS_COLORS: Record<number, string> = {
   1: 'bg-yellow-500/20 text-yellow-500',
   2: 'bg-green-500/20 text-green-500',
@@ -70,7 +70,7 @@ export default function InvoicesPage() {
         </div>
         <Button variant="outline" size="sm" onClick={fetchInvoices}>
           <RefreshCw className={`w-4 h-4 ml-1 ${isLoading ? 'animate-spin' : ''}`} />
-          بروزرسانی
+          به‌روزرسانی
         </Button>
       </div>
 
@@ -85,7 +85,7 @@ export default function InvoicesPage() {
         <div className="glass rounded-xl p-6 text-center">
           <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-3" />
           <p className="text-muted-foreground">{error}</p>
-          <Button variant="outline" className="mt-4 rounded-full" onClick={fetchInvoices}>تلاش مجدد</Button>
+          <Button variant="outline" className="mt-4 rounded-full" onClick={fetchInvoices}>تلاش دوباره</Button>
         </div>
       )}
 
@@ -174,7 +174,7 @@ export default function InvoicesPage() {
                     ['تخفیف', formatAmount(detailItem.discountAmount)],
                     ['مالیات', formatAmount(detailItem.taxAmount)],
                     ['مبلغ نهایی', formatAmount(detailItem.finalAmount)],
-                    ['پرداخت شده', detailItem.isPaid ? 'بله' : 'خیر'],
+                    ['پرداخت‌شده', detailItem.isPaid ? 'بله' : 'خیر'],
                     ['تاریخ پرداخت', detailItem.paidAt ? new Date(detailItem.paidAt).toLocaleDateString('fa-IR') : '-'],
                     ['سررسید', detailItem.dueDate ? new Date(detailItem.dueDate).toLocaleDateString('fa-IR') : '-'],
                     ['تاریخ ایجاد', detailItem.createdAt ? new Date(detailItem.createdAt).toLocaleDateString('fa-IR') : '-'],

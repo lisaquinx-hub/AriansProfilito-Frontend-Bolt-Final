@@ -115,14 +115,14 @@ export default function AdminAuditLogsPage() {
           onClick={() => userIdQuery.trim() ? handleUserIdSearch() : void fetchData()}
         >
           <RefreshCw className="w-4 h-4 ml-1" />
-          بروزرسانی
+          به‌روزرسانی
         </Button>
       </div>
 
       <Card className="glass">
         <CardContent className="p-6">
           <div className="mb-4">
-            <h2 className="font-semibold">جستجو بر اساس شناسه کاربر</h2>
+            <h2 className="font-semibold">جست‌وجو بر اساس شناسه کاربر</h2>
             <p className="text-sm text-muted-foreground mt-1">
               تغییرات ثبت‌شده توسط یک کاربر مشخص را نمایش می‌دهد.
             </p>

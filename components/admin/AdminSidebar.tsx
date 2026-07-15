@@ -20,7 +20,7 @@ const adminLinks = [
   { href: '/dashboard/admin/hero-sections', icon: Image, label: 'هیرو سکشن‌ها' },
   { href: '/dashboard/admin/services', icon: Briefcase, label: 'خدمات' },
   { href: '/dashboard/admin/pricing', icon: DollarSign, label: 'قیمت‌گذاری' },
-  { href: '/dashboard/admin/faqs', icon: HelpCircle, label: 'سوالات متداول' },
+  { href: '/dashboard/admin/faqs', icon: HelpCircle, label: 'سؤالات متداول' },
   { href: '/dashboard/admin/settings', icon: Settings, label: 'تنظیمات' },
   { href: '/dashboard/admin/site-settings', icon: Settings, label: 'تنظیمات سایت' },
   { href: '/dashboard/admin/social-media', icon: Share2, label: 'شبکه‌های اجتماعی' },
@@ -78,7 +78,12 @@ function AdminLayoutContent({ children }: AdminLayoutContentProps) {
               پنل مدیریت
             </span>
           </Link>
-          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 rounded-lg hover:bg-muted transition-colors">
+          <button
+            type="button"
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className="p-2 rounded-lg hover:bg-muted transition-colors"
+            aria-label={isSidebarOpen ? 'بستن نوار کناری' : 'باز کردن نوار کناری'}
+          >
             {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
@@ -131,7 +136,7 @@ function AdminLayoutContent({ children }: AdminLayoutContentProps) {
             <motion.aside initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'tween', duration: 0.3 }} className="fixed right-0 top-0 bottom-0 w-72 bg-card z-50 lg:hidden overflow-y-auto">
               <div className="p-6 flex items-center justify-between border-b border-border">
                 <Link href="/dashboard/admin"><span className="text-xl font-bold text-gradient">پنل مدیریت</span></Link>
-                <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 rounded-lg hover:bg-muted transition-colors"><X className="w-5 h-5" /></button>
+                <button type="button" onClick={() => setIsMobileMenuOpen(false)} className="p-2 rounded-lg hover:bg-muted transition-colors" aria-label="بستن منو"><X className="w-5 h-5" /></button>
               </div>
               <nav className="p-4 space-y-1">
                 {adminLinks.map((link) => {
@@ -158,7 +163,7 @@ function AdminLayoutContent({ children }: AdminLayoutContentProps) {
         <header className="h-16 border-b border-border dark:border-white/5 bg-card/30 backdrop-blur-xl sticky top-0 z-30">
           <div className="h-full px-4 lg:px-6 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 rounded-lg hover:bg-muted transition-colors lg:hidden"><Menu className="w-5 h-5" /></button>
+              <button type="button" onClick={() => setIsMobileMenuOpen(true)} className="p-2 rounded-lg hover:bg-muted transition-colors lg:hidden" aria-label="باز کردن منو"><Menu className="w-5 h-5" /></button>
               <Link href="/dashboard" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
                 <ChevronLeft className="w-4 h-4" /><span className="hidden sm:inline">بازگشت به داشبورد</span>
               </Link>

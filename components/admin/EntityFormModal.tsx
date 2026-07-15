@@ -102,10 +102,11 @@ export function EntityFormModal({
       return (
         <div className="flex items-center gap-3">
           <Switch
+            id={field.key}
             checked={Boolean(value)}
             onCheckedChange={(checked) => handleChange(field.key, checked)}
           />
-          <Label className="text-sm text-muted-foreground">{Boolean(value) ? 'فعال' : 'غیرفعال'}</Label>
+          <Label htmlFor={field.key} className="text-sm text-muted-foreground">{Boolean(value) ? 'فعال' : 'غیرفعال'}</Label>
         </div>
       );
     }
@@ -113,8 +114,11 @@ export function EntityFormModal({
     if (field.type === 'select') {
       return (
         <select
+          id={field.key}
+          name={field.key}
           value={String(value ?? '')}
           onChange={(e) => handleChange(field.key, e.target.value)}
+          required={field.required}
           className="w-full h-10 px-3 rounded-md bg-muted/50 border border-border focus:border-sky-500 dark:focus:border-cyan-500 text-foreground text-sm transition-colors focus:outline-none"
         >
           <option value="">انتخاب کنید...</option>
@@ -130,6 +134,8 @@ export function EntityFormModal({
     if (field.type === 'textarea') {
       return (
         <Textarea
+          id={field.key}
+          name={field.key}
           value={String(value ?? '')}
           onChange={(e) => handleChange(field.key, e.target.value)}
           placeholder={field.placeholder}
@@ -142,12 +148,15 @@ export function EntityFormModal({
 
     return (
       <Input
+        id={field.key}
+        name={field.key}
         type={field.type || 'text'}
         value={String(value ?? '')}
         onChange={(e) => handleChange(field.key, field.type === 'number' ? Number(e.target.value) : e.target.value)}
         placeholder={field.placeholder}
         className="bg-muted/50 border-border"
         required={field.required}
+        autoComplete={field.type === 'password' ? 'new-password' : 'off'}
       />
     );
   };
@@ -169,6 +178,9 @@ export function EntityFormModal({
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className="relative glass rounded-2xl w-full max-w-2xl my-auto shadow-2xl"
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label={title}
           >
             <div className="flex items-center justify-between p-6 border-b border-border">
               <h2 className="text-lg font-semibold">{title}</h2>
@@ -176,6 +188,7 @@ export function EntityFormModal({
                 type="button"
                 onClick={() => onOpenChange(false)}
                 className="p-2 rounded-lg hover:bg-muted transition-colors"
+                aria-label="بستن فرم"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -194,7 +207,7 @@ export function EntityFormModal({
                       key={field.key}
                       className={field.fullWidth || field.type === 'textarea' ? 'col-span-full' : ''}
                     >
-                      <Label className="text-sm font-medium mb-2 block">
+                      <Label htmlFor={field.key} className="text-sm font-medium mb-2 block">
                         {field.label}
                         {field.required && <span className="text-red-500 mr-1">*</span>}
                       </Label>

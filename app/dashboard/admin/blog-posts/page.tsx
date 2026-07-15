@@ -112,7 +112,7 @@ export default function AdminBlogPostsPage() {
     { key: 'coverImage', label: 'تصویر شاخص', type: 'url', fullWidth: true },
     { key: 'readTime', label: 'زمان مطالعه (دقیقه)', type: 'number' },
     { key: 'publishedAt', label: 'تاریخ انتشار', type: 'datetime-local' },
-    { key: 'isPublished', label: 'منتشر شده', type: 'switch' },
+    { key: 'isPublished', label: 'منتشرشده', type: 'switch' },
     { key: 'seoTitle', label: 'عنوان SEO', fullWidth: true },
     { key: 'seoDescription', label: 'توضیحات SEO', type: 'textarea', fullWidth: true },
     { key: 'keywords', label: 'کلمات کلیدی', fullWidth: true },
@@ -126,11 +126,11 @@ export default function AdminBlogPostsPage() {
       label: 'وضعیت',
       render: (item: BlogPost) => (
         <span className={`px-2 py-1 rounded-full text-xs ${item.isPublished ? 'bg-green-500/10 text-green-500' : 'bg-gray-500/10 text-gray-400'}`}>
-          {item.isPublished ? 'منتشر شده' : 'پیش‌نویس'}
+          {item.isPublished ? 'منتشرشده' : 'پیش‌نویس'}
         </span>
       ),
     },
-    { key: 'readTime', label: 'مطالعه', render: (item: BlogPost) => `${item.readTime || 0} دق` },
+    { key: 'readTime', label: 'مطالعه', render: (item: BlogPost) => `${item.readTime || 0} دقیقه` },
     {
       key: 'createdAt',
       label: 'تاریخ',
@@ -149,7 +149,7 @@ export default function AdminBlogPostsPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={fetchData}>
-            <RefreshCw className={`w-4 h-4 ml-1 ${isLoading ? 'animate-spin' : ''}`} />بروزرسانی
+            <RefreshCw className={`w-4 h-4 ml-1 ${isLoading ? 'animate-spin' : ''}`} />به‌روزرسانی
           </Button>
           <Button size="sm" className="btn-primary" onClick={() => { setEditingItem(null); setIsFormOpen(true); }}>
             <Plus className="w-4 h-4 ml-1" />پست جدید
@@ -213,7 +213,7 @@ export default function AdminBlogPostsPage() {
           { label: 'عنوان', value: viewItem.title, fullWidth: true },
           { label: 'Slug', value: viewItem.slug },
           { label: 'دسته‌بندی', value: viewItem.categoryName || '-' },
-          { label: 'وضعیت', value: viewItem.isPublished ? 'منتشر شده' : 'پیش‌نویس' },
+          { label: 'وضعیت', value: viewItem.isPublished ? 'منتشرشده' : 'پیش‌نویس' },
           { label: 'زمان مطالعه', value: `${viewItem.readTime || 0} دقیقه` },
           { label: 'تاریخ انتشار', value: viewItem.publishedAt ? new Date(viewItem.publishedAt).toLocaleDateString('fa-IR') : '-' },
           { label: 'نویسنده', value: viewItem.authorName || '-' },

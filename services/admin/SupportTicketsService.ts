@@ -16,7 +16,7 @@ class AdminSupportTicketsService {
       const response = await api.get<ApiResponse<SupportTicket[]>>(this.endpoint);
       return response.data.data || [];
     } catch (error) {
-      console.error('Failed to fetch support tickets:', getApiErrorMessage(error));
+      console.warn('Failed to fetch support tickets:', getApiErrorMessage(error));
       return [];
     }
   }

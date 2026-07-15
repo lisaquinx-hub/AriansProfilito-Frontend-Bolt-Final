@@ -27,7 +27,7 @@ class AdminServicesService {
       const response = await api.get<ApiResponse<Service[]>>(this.endpoint);
       return response.data.data || [];
     } catch (error) {
-      console.error('Failed to fetch services:', getApiErrorMessage(error));
+      console.warn('Failed to fetch services:', getApiErrorMessage(error));
       return [];
     }
   }

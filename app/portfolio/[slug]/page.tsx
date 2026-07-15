@@ -48,14 +48,14 @@ export default function PortfolioDetailPage() {
         <Navbar />
         <div className="container mx-auto px-6 py-20 text-center">
           <AlertCircle className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
-          <h2 className="text-2xl font-bold mb-2">نمونه کار یافت نشد</h2>
-          <p className="text-muted-foreground mb-6">پروژه مورد نظر وجود ندارد یا حذف شده است.</p>
-          <Link href="/portfolio">
-            <Button variant="outline" className="rounded-full gap-2">
+          <h2 className="text-2xl font-bold mb-2">نمونه‌کار یافت نشد</h2>
+          <p className="text-muted-foreground mb-6">پروژه موردنظر وجود ندارد یا حذف شده است.</p>
+          <Button asChild variant="outline" className="rounded-full gap-2">
+            <Link href="/portfolio">
               <ArrowLeft className="w-4 h-4 rotate-180" />
               بازگشت به نمونه‌کارها
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
         <Footer />
       </main>
@@ -125,7 +125,7 @@ export default function PortfolioDetailPage() {
                 transition={{ delay: 0.3 }}
                 className="glass rounded-2xl p-8"
               >
-                <h2 className="text-xl font-bold mb-4">تکنولوژی‌های استفاده شده</h2>
+                <h2 className="text-xl font-bold mb-4">تکنولوژی‌های استفاده‌شده</h2>
                 <div className="flex flex-wrap gap-2">
                   {item.technologies.map((t) => (
                     <span
@@ -162,32 +162,32 @@ export default function PortfolioDetailPage() {
               </div>
 
               {websiteUrl && (
-                <a href={websiteUrl} target="_blank" rel="noopener noreferrer">
-                  <Button variant="outline" className="w-full rounded-full gap-2 mt-2">
+                <Button asChild variant="outline" className="w-full rounded-full gap-2 mt-2">
+                  <a href={websiteUrl} target="_blank" rel="noopener noreferrer">
                     <Globe className="w-4 h-4" />
                     مشاهده وب‌سایت
-                  </Button>
-                </a>
+                  </a>
+                </Button>
               )}
               {githubUrl && (
-                <a href={githubUrl} target="_blank" rel="noopener noreferrer">
-                  <Button variant="outline" className="w-full rounded-full gap-2">
+                <Button asChild variant="outline" className="w-full rounded-full gap-2">
+                  <a href={githubUrl} target="_blank" rel="noopener noreferrer">
                     <Github className="w-4 h-4" />
                     GitHub
-                  </Button>
-                </a>
+                  </a>
+                </Button>
               )}
             </div>
           </motion.div>
         </div>
 
         <div className="mt-12">
-          <Link href="/portfolio">
-            <Button variant="outline" className="rounded-full gap-2">
+          <Button asChild variant="outline" className="rounded-full gap-2">
+            <Link href="/portfolio">
               <ArrowLeft className="w-4 h-4 rotate-180" />
               بازگشت به نمونه‌کارها
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </div>
       <Footer />

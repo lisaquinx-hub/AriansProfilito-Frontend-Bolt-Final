@@ -10,7 +10,7 @@ class AdminFaqService {
       const response = await api.get<ApiResponse<FAQ[]>>(this.endpoint);
       return response.data.data || [];
     } catch (error) {
-      console.error('Failed to fetch FAQs:', getApiErrorMessage(error));
+      console.warn('Failed to fetch FAQs:', getApiErrorMessage(error));
       return [];
     }
   }

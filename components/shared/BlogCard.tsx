@@ -37,7 +37,7 @@ export function BlogCard({ post, index = 0, variant = 'default' }: BlogCardProps
             </span>
           </div>
         </div>
-        <Link href={`/blog/${post.slug}`} className="absolute inset-0" />
+        <Link href={`/blog/${encodeURIComponent(post.slug)}`} className="absolute inset-0" />
       </motion.div>
     );
   }
@@ -59,7 +59,7 @@ export function BlogCard({ post, index = 0, variant = 'default' }: BlogCardProps
             <Clock className="w-3 h-3" />
             <span>{post.readTime || 5} دقیقه</span>
           </div>
-          <Link href={`/blog/${post.slug}`} className="absolute inset-0" />
+          <Link href={`/blog/${encodeURIComponent(post.slug)}`} className="absolute inset-0" />
         </div>
       </motion.div>
     );
@@ -94,7 +94,7 @@ export function BlogCard({ post, index = 0, variant = 'default' }: BlogCardProps
             {post.excerpt || ''}
           </p>
 
-          <Link href={`/blog/${post.slug}`}>
+          <Link href={`/blog/${encodeURIComponent(post.slug)}`}>
             <motion.span
               whileHover={{ x: -4 }}
               className="inline-flex items-center text-sm text-sky-500 dark:text-cyan-400 group-hover:text-gradient transition-all mb-4"

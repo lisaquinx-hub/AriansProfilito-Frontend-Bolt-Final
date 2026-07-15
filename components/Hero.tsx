@@ -34,7 +34,7 @@ export default function Hero() {
     configuredPrimaryButtonUrl === '/dashboard/projects/new'
       ? '/#contact-form'
       : configuredPrimaryButtonUrl;
-  const secondaryButtonText = heroData?.secondaryButtonText || 'نمونه کارها';
+  const secondaryButtonText = heroData?.secondaryButtonText || 'نمونه‌کارها';
   const secondaryButtonUrl = getSafeNavigationHref(heroData?.secondaryButtonUrl, '/portfolio');
 
   return (
@@ -98,34 +98,36 @@ export default function Hero() {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            <Link href={primaryButtonUrl}>
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Button
+                asChild
+                size="lg"
+                className="btn-primary px-8 py-6 shadow-glow text-lg group"
               >
-                <Button
-                  size="lg"
-                  className="btn-primary px-8 py-6 shadow-glow text-lg group"
-                >
+                <Link href={primaryButtonUrl}>
                   {primaryButtonText}
                   <ArrowLeft className="mr-2 h-5 w-5 transition-transform group-hover:-translate-x-1" />
-                </Button>
-              </motion.div>
-            </Link>
-            <Link href={secondaryButtonUrl}>
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                </Link>
+              </Button>
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="rounded-full px-8 py-6 text-lg"
               >
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="rounded-full px-8 py-6 text-lg"
-                >
+                <Link href={secondaryButtonUrl}>
                   {secondaryButtonText}
-                </Button>
-              </motion.div>
-            </Link>
+                </Link>
+              </Button>
+            </motion.div>
           </motion.div>
 
           {/* Stats Row */}

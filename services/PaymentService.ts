@@ -34,7 +34,7 @@ class PaymentService {
       const response = await api.get<ApiResponse<PaymentListItem[]>>(`${this.endpoint}/my`);
       return Array.isArray(response.data.data) ? response.data.data : [];
     } catch (error) {
-      console.error('Failed to fetch payments:', getApiErrorMessage(error));
+      console.warn('Failed to fetch payments:', getApiErrorMessage(error));
       return [];
     }
   }

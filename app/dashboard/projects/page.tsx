@@ -90,7 +90,7 @@ export default function ProjectsPage() {
           <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-3" />
           <p className="text-muted-foreground">{error}</p>
           <Button variant="outline" className="mt-4 rounded-full" onClick={fetchProjects}>
-            تلاش مجدد
+            تلاش دوباره
           </Button>
         </div>
       )}
@@ -108,9 +108,9 @@ export default function ProjectsPage() {
           <p className="text-muted-foreground text-sm">
             هنوز پروژه‌ای برای شما ثبت نشده است. برای سفارش پروژه با پشتیبانی تماس بگیرید.
           </p>
-          <Link href="/#contact-form">
-            <Button className="btn-primary mt-6">تماس برای ثبت پروژه</Button>
-          </Link>
+          <Button asChild className="btn-primary mt-6">
+            <Link href="/#contact-form">تماس برای ثبت پروژه</Link>
+          </Button>
         </div>
       )}
 

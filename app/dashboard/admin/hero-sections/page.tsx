@@ -42,10 +42,12 @@ export default function AdminHeroSectionsPage() {
       await adminHeroSectionsService.delete(deleteId);
       setItems(items.filter(i => i.id !== deleteId));
       setDeleteId(null);
+      toast.success('بخش اصلی با موفقیت حذف شد');
     } catch (error) {
-      console.error('Failed to delete:', error);
+      toast.error(getApiErrorMessage(error));
+    } finally {
+      setIsDeleting(false);
     }
-    setIsDeleting(false);
   };
 
   const handleEdit = (item: HeroSection) => {
@@ -159,7 +161,7 @@ export default function AdminHeroSectionsPage() {
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={fetchData}>
             <RefreshCw className="w-4 h-4 ml-1" />
-            بروزرسانی
+            به‌روزرسانی
           </Button>
           <Button size="sm" className="btn-primary" onClick={handleCreate}>
             <Plus className="w-4 h-4 ml-1" />

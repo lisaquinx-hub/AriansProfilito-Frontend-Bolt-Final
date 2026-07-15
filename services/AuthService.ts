@@ -1,5 +1,5 @@
 import { api, getApiErrorMessage } from './api';
-import { ApiResponse } from '@/lib/api-utils';
+import { ApiResponse, normalizeObject } from '@/lib/api-utils';
 import { setAccessToken, removeAccessToken, setStoredUser, getStoredUser, isAuthenticated } from '@/lib/auth';
 
 export interface LoginRequest {
@@ -37,28 +37,32 @@ export interface AuthResponse {
 class AuthService {
   private endpoint = '/Auth';
 
-  async login(data: LoginRequest): Promise<AuthResponse> {
+  private parseAuthResponse(value: unknown): AuthResponse {
+    const responseData = normalizeObject<AuthResponse>(value);
+    if (!responseData?.accessToken || !responseData.user) {
+      throw new Error('پاسخ احراز هویت سرور نامعتبر است');
+    }
+    return responseData;
+  }
+
+  private storeAuth(responseData: AuthResponse, persistent: boolean): void {
+    setAccessToken(responseData.accessToken, persistent);
+    setStoredUser({
+      id: responseData.user.id,
+      fullName: responseData.user.fullName,
+      email: responseData.user.email,
+      userName: responseData.user.userName,
+      role: responseData.user.role,
+      avatar: responseData.user.avatar,
+      isActive: responseData.user.isActive,
+    });
+  }
+
+  async login(data: LoginRequest, persistent = false): Promise<AuthResponse> {
     try {
       const response = await api.post<ApiResponse<AuthResponse>>(`${this.endpoint}/login`, data);
-      const responseData = response.data.data;
-
-      if (!responseData) {
-        throw new Error('Invalid response from server');
-      }
-
-      setAccessToken(responseData.accessToken);
-
-      const storedUser = {
-        id: responseData.user.id,
-        fullName: responseData.user.fullName,
-        email: responseData.user.email,
-        userName: responseData.user.userName,
-        role: responseData.user.role,
-        avatar: responseData.user.avatar,
-        isActive: responseData.user.isActive,
-      };
-      setStoredUser(storedUser);
-
+      const responseData = this.parseAuthResponse(response.data);
+      this.storeAuth(responseData, persistent);
       return responseData;
     } catch (error) {
       throw new Error(getApiErrorMessage(error));
@@ -68,25 +72,8 @@ class AuthService {
   async register(data: RegisterRequest): Promise<AuthResponse> {
     try {
       const response = await api.post<ApiResponse<AuthResponse>>(`${this.endpoint}/register`, data);
-      const responseData = response.data.data;
-
-      if (!responseData) {
-        throw new Error('Invalid response from server');
-      }
-
-      setAccessToken(responseData.accessToken);
-
-      const storedUser = {
-        id: responseData.user.id,
-        fullName: responseData.user.fullName,
-        email: responseData.user.email,
-        userName: responseData.user.userName,
-        role: responseData.user.role,
-        avatar: responseData.user.avatar,
-        isActive: responseData.user.isActive,
-      };
-      setStoredUser(storedUser);
-
+      const responseData = this.parseAuthResponse(response.data);
+      this.storeAuth(responseData, false);
       return responseData;
     } catch (error) {
       throw new Error(getApiErrorMessage(error));
@@ -94,12 +81,19 @@ class AuthService {
   }
 
   async logout(): Promise<void> {
+    // Swagger does not expose a logout endpoint; ending the local bearer session is sufficient.
+    removeAccessToken();
+  }
+
+  async getMe(): Promise<AuthUser> {
     try {
-      await api.post(`${this.endpoint}/logout`);
-    } catch {
-      // ignore
-    } finally {
-      removeAccessToken();
+      const response = await api.get<ApiResponse<AuthUser>>(`${this.endpoint}/me`);
+      const user = normalizeObject<AuthUser>(response.data);
+      if (!user) throw new Error('پاسخ اطلاعات کاربر نامعتبر است');
+      setStoredUser(user);
+      return user;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
     }
   }
 

@@ -102,7 +102,7 @@ export default function BlogPage() {
                 onSelect={setSelectedCategory}
               />
               <SearchBox
-                placeholder="جستجوی مقاله..."
+                placeholder="جست‌وجوی مقاله..."
                 onSearch={setSearchQuery}
                 className="w-full md:w-80"
               />
@@ -140,7 +140,7 @@ export default function BlogPage() {
                         transition={{ duration: 0.3, delay: index * 0.05 }}
                         className="group glass rounded-2xl overflow-hidden"
                       >
-                        <Link href={`/blog/${post.slug}`}>
+                        <Link href={`/blog/${encodeURIComponent(post.slug)}`}>
                           <div className="relative aspect-video bg-gradient-to-br from-sky-500/20 to-blue-500/20 dark:from-blue-500/20 dark:to-cyan-500/20 flex items-center justify-center">
                             <span className="text-5xl font-bold text-foreground/10">{post.title[0]}</span>
                             {post.categoryName && (
@@ -207,7 +207,7 @@ export default function BlogPage() {
               </div>
               <div className="space-y-4">
                 {popularPosts.map((post, index) => (
-                  <Link key={post.id} href={`/blog/${post.slug}`} className="flex gap-4 group">
+                  <Link key={post.id} href={`/blog/${encodeURIComponent(post.slug)}`} className="flex gap-4 group">
                     <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-sky-500/20 to-blue-500/20 dark:from-blue-500/20 dark:to-cyan-500/20 flex items-center justify-center">
                       <span className="text-sm font-bold text-muted-foreground">{index + 1}</span>
                     </div>

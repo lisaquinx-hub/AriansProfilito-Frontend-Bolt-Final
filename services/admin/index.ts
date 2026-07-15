@@ -33,7 +33,7 @@ class AdminUsersService {
       const response = await api.get<ApiResponse<User[]>>(this.endpoint, { params });
       return normalizeArray<User>(response.data);
     } catch (error) {
-      console.error('Failed to fetch users:', getApiErrorMessage(error));
+      console.warn('Failed to fetch users:', getApiErrorMessage(error));
       return [];
     }
   }

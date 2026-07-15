@@ -35,7 +35,7 @@ class InvoiceService {
       const response = await api.get<ApiResponse<InvoiceListItem[]>>(`${this.endpoint}/my`);
       return Array.isArray(response.data.data) ? response.data.data : [];
     } catch (error) {
-      console.error('Failed to fetch invoices:', getApiErrorMessage(error));
+      console.warn('Failed to fetch invoices:', getApiErrorMessage(error));
       return [];
     }
   }

@@ -10,7 +10,7 @@ class AdminEmailTemplatesService {
       const response = await api.get<ApiResponse<EmailTemplate[]>>(this.endpoint);
       return response.data.data || [];
     } catch (error) {
-      console.error('Failed to fetch email templates:', getApiErrorMessage(error));
+      console.warn('Failed to fetch email templates:', getApiErrorMessage(error));
       return [];
     }
   }
@@ -20,7 +20,7 @@ class AdminEmailTemplatesService {
       const response = await api.get<ApiResponse<EmailTemplate[]>>(`${this.endpoint}/active`);
       return response.data.data || [];
     } catch (error) {
-      console.error('Failed to fetch active email templates:', getApiErrorMessage(error));
+      console.warn('Failed to fetch active email templates:', getApiErrorMessage(error));
       return [];
     }
   }
@@ -36,7 +36,9 @@ class AdminEmailTemplatesService {
 
   async getByName(name: string): Promise<EmailTemplate | null> {
     try {
-      const response = await api.get<ApiResponse<EmailTemplate>>(`${this.endpoint}/by-name/${name}`);
+      const response = await api.get<ApiResponse<EmailTemplate>>(
+        `${this.endpoint}/by-name/${encodeURIComponent(name)}`
+      );
       return response.data.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error));

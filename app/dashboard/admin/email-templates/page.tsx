@@ -149,7 +149,7 @@ export default function AdminEmailTemplatesPage() {
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={fetchData}>
             <RefreshCw className="w-4 h-4 ml-1" />
-            بروزرسانی
+            به‌روزرسانی
           </Button>
           <Button size="sm" className="btn-primary" onClick={handleCreate}>
             <Plus className="w-4 h-4 ml-1" />

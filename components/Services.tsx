@@ -106,7 +106,7 @@ export default function Services() {
 
               {/* Learn More */}
               <Link
-                href={service.slug ? `/products/${service.slug}` : '/products'}
+                href={service.slug ? `/products/${encodeURIComponent(service.slug)}` : '/products'}
                 className="inline-flex items-center text-sm text-sky-500 dark:text-cyan-400 hover:text-sky-600 dark:hover:text-cyan-300 transition-colors group/link"
               >
                 بیشتر بدانید
@@ -127,14 +127,14 @@ export default function Services() {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="flex justify-center"
         >
-          <Link href="/products">
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button className="btn-primary gap-2 group">
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button asChild className="btn-primary gap-2 group">
+              <Link href="/products">
                 مشاهده همه خدمات
-                <ArrowLeft className="w-4 w-4 transition-transform group-hover:-translate-x-1" />
-              </Button>
-            </motion.div>
-          </Link>
+                <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+              </Link>
+            </Button>
+          </motion.div>
         </motion.div>
       </div>
     </section>

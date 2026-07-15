@@ -47,14 +47,14 @@ export default function Projects() {
           transition={{ duration: 0.5 }}
           className="flex justify-center mb-8"
         >
-          <Link href="/portfolio">
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button variant="outline" className="rounded-full gap-2 group">
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button asChild variant="outline" className="rounded-full gap-2 group">
+              <Link href="/portfolio">
                 مشاهده همه نمونه‌کارها
                 <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-              </Button>
-            </motion.div>
-          </Link>
+              </Link>
+            </Button>
+          </motion.div>
         </motion.div>
 
         <motion.div
@@ -79,7 +79,7 @@ export default function Projects() {
         >
           {items.map((item) => (
             <motion.div key={item.id} variants={itemVariants} className="group relative">
-              <Link href={`/portfolio/${item.slug}`}>
+              <Link href={`/portfolio/${encodeURIComponent(item.slug)}`}>
                 <div className="relative overflow-hidden rounded-2xl glass transition-all duration-300 hover:shadow-glow">
                   <div className="relative h-48 overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-sky-500/30 to-blue-500/30 dark:from-blue-600/30 dark:to-cyan-600/30" />
@@ -125,14 +125,14 @@ export default function Projects() {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="flex justify-center mt-12"
         >
-          <Link href="/portfolio">
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button className="btn-primary gap-2 group">
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button asChild className="btn-primary gap-2 group">
+              <Link href="/portfolio">
                 مشاهده همه نمونه‌کارها
                 <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-              </Button>
-            </motion.div>
-          </Link>
+              </Link>
+            </Button>
+          </motion.div>
         </motion.div>
       </div>
     </section>
