@@ -14,6 +14,7 @@ const contentSecurityPolicy = [
 
 const nextConfig = {
   poweredByHeader: false,
+  outputFileTracingRoot: __dirname,
   images: {
     unoptimized: true,
     remotePatterns: [

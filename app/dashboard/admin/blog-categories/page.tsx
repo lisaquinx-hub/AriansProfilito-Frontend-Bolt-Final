@@ -5,7 +5,10 @@ import { FolderOpen, RefreshCw, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
-import { adminBlogCategoriesService } from '@/services/admin/BlogCategoriesService';
+import {
+  adminBlogCategoriesService,
+  CreateBlogCategoryDto,
+} from '@/services/admin/BlogCategoriesService';
 import { BlogCategory } from '@/types/api';
 import { EntityFormModal, FormField } from '@/components/admin/EntityFormModal';
 import { ViewDetailModal } from '@/components/admin/ViewDetailModal';
@@ -73,12 +76,19 @@ export default function AdminBlogCategoriesPage() {
   };
 
   const handleSubmit = async (data: Record<string, unknown>) => {
+    const payload: CreateBlogCategoryDto = {
+      name: String(data.name || '').trim(),
+      slug: String(data.slug || '').trim(),
+      description: editingItem?.description || null,
+      isActive: editingItem?.isActive ?? true,
+    };
+
     try {
       if (editingItem) {
-        await adminBlogCategoriesService.update(editingItem.id, data as Partial<BlogCategory>);
+        await adminBlogCategoriesService.update(editingItem.id, payload);
         toast.success('دسته‌بندی با موفقیت ویرایش شد');
       } else {
-        await adminBlogCategoriesService.create(data as Partial<BlogCategory>);
+        await adminBlogCategoriesService.create(payload);
         toast.success('دسته‌بندی با موفقیت ایجاد شد');
       }
       fetchData();

@@ -1,5 +1,5 @@
 import { api, getApiErrorMessage } from '../api';
-import { ApiResponse } from '@/lib/api-utils';
+import { ApiResponse, normalizeArray, normalizeObject } from '@/lib/api-utils';
 import { Project } from '@/types/api';
 
 export interface CreateProjectDto {
@@ -47,7 +47,7 @@ class AdminProjectsService {
   async getAll(): Promise<Project[]> {
     try {
       const response = await api.get<ApiResponse<Project[]>>(this.endpoint);
-      return Array.isArray(response.data.data) ? response.data.data : [];
+      return normalizeArray<Project>(response.data);
     } catch (error) {
       console.error('Failed to fetch projects:', getApiErrorMessage(error));
       return [];
@@ -57,7 +57,7 @@ class AdminProjectsService {
   async getById(id: string): Promise<Project | null> {
     try {
       const response = await api.get<ApiResponse<Project>>(`${this.endpoint}/${id}`);
-      return response.data.data;
+      return normalizeObject<Project>(response.data);
     } catch (error) {
       throw new Error(getApiErrorMessage(error));
     }
@@ -66,7 +66,7 @@ class AdminProjectsService {
   async create(data: CreateProjectDto): Promise<Project | null> {
     try {
       const response = await api.post<ApiResponse<Project>>(this.endpoint, data);
-      return response.data.data;
+      return normalizeObject<Project>(response.data);
     } catch (error) {
       throw new Error(getApiErrorMessage(error));
     }
@@ -75,7 +75,7 @@ class AdminProjectsService {
   async update(id: string, data: UpdateProjectDto): Promise<Project | null> {
     try {
       const response = await api.put<ApiResponse<Project>>(`${this.endpoint}/${id}`, data);
-      return response.data.data;
+      return normalizeObject<Project>(response.data);
     } catch (error) {
       throw new Error(getApiErrorMessage(error));
     }
@@ -92,7 +92,7 @@ class AdminProjectsService {
   async updateStatus(id: string, data: UpdateProjectStatusDto): Promise<Project | null> {
     try {
       const response = await api.patch<ApiResponse<Project>>(`${this.endpoint}/${id}/status`, data);
-      return response.data.data;
+      return normalizeObject<Project>(response.data);
     } catch (error) {
       throw new Error(getApiErrorMessage(error));
     }

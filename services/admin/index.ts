@@ -1,5 +1,5 @@
 import { api, getApiErrorMessage } from '../api';
-import { ApiResponse, PaginationParams } from '@/lib/api-utils';
+import { ApiResponse, normalizeArray, normalizeObject, PaginationParams } from '@/lib/api-utils';
 import { User } from '@/types/api';
 
 export interface CreateUserDto {
@@ -31,7 +31,7 @@ class AdminUsersService {
   async getAll(params?: PaginationParams): Promise<User[]> {
     try {
       const response = await api.get<ApiResponse<User[]>>(this.endpoint, { params });
-      return response.data.data || [];
+      return normalizeArray<User>(response.data);
     } catch (error) {
       console.error('Failed to fetch users:', getApiErrorMessage(error));
       return [];
@@ -41,7 +41,7 @@ class AdminUsersService {
   async getById(id: string): Promise<User | null> {
     try {
       const response = await api.get<ApiResponse<User>>(`${this.endpoint}/${id}`);
-      return response.data.data;
+      return normalizeObject<User>(response.data);
     } catch (error) {
       throw new Error(getApiErrorMessage(error));
     }
@@ -50,7 +50,7 @@ class AdminUsersService {
   async create(data: CreateUserDto): Promise<User | null> {
     try {
       const response = await api.post<ApiResponse<User>>(this.endpoint, data);
-      return response.data.data;
+      return normalizeObject<User>(response.data);
     } catch (error) {
       throw new Error(getApiErrorMessage(error));
     }
@@ -59,7 +59,7 @@ class AdminUsersService {
   async update(id: string, data: UpdateUserDto): Promise<User | null> {
     try {
       const response = await api.put<ApiResponse<User>>(`${this.endpoint}/${id}`, data);
-      return response.data.data;
+      return normalizeObject<User>(response.data);
     } catch (error) {
       throw new Error(getApiErrorMessage(error));
     }

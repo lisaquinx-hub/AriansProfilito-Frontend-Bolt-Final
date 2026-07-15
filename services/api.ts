@@ -1,12 +1,12 @@
 import axios, { AxiosError, AxiosResponse } from 'axios';
-import { ApiResponse } from '@/lib/api-utils';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://localhost:7297/api';
 
 export interface ApiError {
-  success: false;
-  message: string;
-  errors?: Record<string, string[]>;
+  success?: false;
+  message?: string;
+  errors?: unknown;
+  data?: unknown;
 }
 
 const isBrowser = () => typeof window !== 'undefined';
@@ -40,11 +40,12 @@ api.interceptors.request.use(
 );
 
 api.interceptors.response.use(
-  (response: AxiosResponse<ApiResponse>) => response,
+  (response: AxiosResponse) => response,
   (error: AxiosError<ApiError>) => {
     if (error.response?.status === 401) {
       if (isBrowser()) {
         localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
         window.dispatchEvent(new Event('auth-changed'));
 
@@ -58,42 +59,76 @@ api.interceptors.response.use(
   }
 );
 
+const HIDDEN_ERROR_KEYS = new Set([
+  'stackTrace',
+  'StackTrace',
+  'exceptionType',
+  'ExceptionType',
+  'baseExceptionType',
+  'BaseExceptionType',
+]);
+
+function isSafeErrorText(value: string): boolean {
+  const text = value.trim();
+  return Boolean(text) && !/^at\s/i.test(text) && !/^\s+at\s/i.test(value);
+}
+
+function flattenErrors(value: unknown, depth = 0): string[] {
+  if (depth > 3 || value === null || value === undefined) return [];
+
+  if (typeof value === 'string') {
+    return isSafeErrorText(value) ? [value.trim()] : [];
+  }
+
+  if (Array.isArray(value)) {
+    return value.flatMap((item) => flattenErrors(item, depth + 1));
+  }
+
+  if (typeof value !== 'object') return [];
+
+  return Object.entries(value as Record<string, unknown>)
+    .filter(([key]) => !HIDDEN_ERROR_KEYS.has(key))
+    .flatMap(([, item]) => flattenErrors(item, depth + 1));
+}
+
+export function getApiStatus(error: unknown): number | undefined {
+  return axios.isAxiosError(error) ? error.response?.status : undefined;
+}
+
 export function getApiErrorMessage(error: unknown): string {
-  if (axios.isAxiosError(error)) {
-    const data = error.response?.data as Record<string, unknown> | undefined;
+  if (axios.isAxiosError<ApiError>(error)) {
+    if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+      return 'زمان پاسخ‌گویی سرور به پایان رسید؛ دوباره تلاش کنید';
+    }
+
+    if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+      return 'خطای شبکه - اتصال خود را بررسی کنید';
+    }
+
+    const data = error.response?.data;
     if (data) {
-      // nested errors object — extract useful message, hide stackTrace
-      if (data.errors && typeof data.errors === 'object' && !Array.isArray(data.errors)) {
-        const errs = data.errors as Record<string, unknown>;
-        if (typeof errs.message === 'string' && errs.message && !errs.message.startsWith('   at ')) {
-          return errs.message;
-        }
-        const msgs = Object.entries(errs)
-          .filter(([k]) => k !== 'stackTrace' && k !== 'StackTrace' && k !== 'exceptionType')
-          .flatMap(([, v]) => (Array.isArray(v) ? v.map(String) : typeof v === 'string' ? [v] : []))
-          .filter(Boolean);
-        if (msgs.length > 0) return msgs.join(' | ');
-      }
-      if (Array.isArray(data.errors)) {
-        const msgs = (data.errors as unknown[]).map(String).filter(Boolean);
-        if (msgs.length > 0) return msgs.join(' | ');
-      }
-      if (typeof data.message === 'string' && data.message) {
-        if (data.message === 'An unexpected error occurred.' && data.errors) {
-          // fall through to status code fallback
-        } else {
-          return data.message;
-        }
+      const messages = flattenErrors(data.errors);
+      if (messages.length > 0) return Array.from(new Set(messages)).join(' | ');
+
+      if (
+        typeof data.message === 'string' &&
+        data.message !== 'An unexpected error occurred.' &&
+        isSafeErrorText(data.message)
+      ) {
+        return data.message.trim();
       }
     }
     if (error.response?.status === 400) return 'اطلاعات ارسالی نامعتبر است';
     if (error.response?.status === 401) return 'لطفا دوباره وارد شوید';
     if (error.response?.status === 403) return 'دسترسی غیرمجاز';
     if (error.response?.status === 404) return 'مورد یافت نشد';
+    if (error.response?.status === 409) return 'این اطلاعات با داده‌های موجود تداخل دارد';
+    if (error.response?.status === 422) return 'اطلاعات واردشده قابل پردازش نیست';
     if (error.response?.status === 500) return 'خطای سرور - لطفا دوباره تلاش کنید';
-    if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') return 'خطای شبکه - اتصال خود را بررسی کنید';
     return error.message || 'خطای غیرمنتظره';
   }
   if (error instanceof Error) return error.message;
   return 'خطای غیرمنتظره';
 }
+
+export default api;

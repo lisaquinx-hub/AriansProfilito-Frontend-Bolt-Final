@@ -1,5 +1,5 @@
 import { api, getApiErrorMessage } from './api';
-import { ApiResponse } from '@/lib/api-utils';
+import { ApiResponse, normalizeArray, normalizeObject } from '@/lib/api-utils';
 import { Service } from '@/types/api';
 
 class ServicesService {
@@ -8,7 +8,7 @@ class ServicesService {
   async getAll(): Promise<Service[]> {
     try {
       const response = await api.get<ApiResponse<Service[]>>(this.endpoint);
-      return response.data.data || [];
+      return normalizeArray<Service>(response.data);
     } catch (error) {
       console.error('Failed to fetch services:', getApiErrorMessage(error));
       return [];
@@ -18,7 +18,7 @@ class ServicesService {
   async getFeatured(): Promise<Service[]> {
     try {
       const response = await api.get<ApiResponse<Service[]>>(`${this.endpoint}/featured`);
-      return response.data.data || [];
+      return normalizeArray<Service>(response.data);
     } catch (error) {
       console.error('Failed to fetch featured services:', getApiErrorMessage(error));
       return [];
@@ -28,7 +28,7 @@ class ServicesService {
   async getById(id: string): Promise<Service | null> {
     try {
       const response = await api.get<ApiResponse<Service>>(`${this.endpoint}/${id}`);
-      return response.data.data;
+      return normalizeObject<Service>(response.data);
     } catch (error) {
       console.error('Failed to fetch service:', getApiErrorMessage(error));
       return null;
@@ -39,7 +39,7 @@ class ServicesService {
   async getBySlug(slug: string): Promise<Service | null> {
     try {
       const response = await api.get<ApiResponse<Service>>(`${this.endpoint}/${slug}`);
-      return response.data.data;
+      return normalizeObject<Service>(response.data);
     } catch (error) {
       console.error('Failed to fetch service by slug:', getApiErrorMessage(error));
       return null;

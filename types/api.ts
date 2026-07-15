@@ -120,6 +120,8 @@ export interface BlogCategory {
   id: string;
   name: string;
   slug: string;
+  description?: string | null;
+  isActive?: boolean;
   publishedPostCount?: number;
   createdAt?: string;
   updatedAt?: string;

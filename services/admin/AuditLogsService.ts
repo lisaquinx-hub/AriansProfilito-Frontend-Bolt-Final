@@ -1,5 +1,5 @@
 import { api, getApiErrorMessage } from '../api';
-import { ApiResponse, PaginationParams } from '@/lib/api-utils';
+import { ApiResponse, normalizeArray, normalizeObject, PaginationParams } from '@/lib/api-utils';
 import { AuditLog } from '@/types/api';
 
 interface AuditLogsFilter extends PaginationParams {
@@ -16,7 +16,7 @@ class AdminAuditLogsService {
   async getAll(params?: AuditLogsFilter): Promise<AuditLog[]> {
     try {
       const response = await api.get<ApiResponse<AuditLog[]>>(this.endpoint, { params });
-      return response.data.data || [];
+      return normalizeArray<AuditLog>(response.data);
     } catch (error) {
       console.error('Failed to fetch audit logs:', getApiErrorMessage(error));
       return [];
@@ -26,7 +26,7 @@ class AdminAuditLogsService {
   async getById(id: string): Promise<AuditLog | null> {
     try {
       const response = await api.get<ApiResponse<AuditLog>>(`${this.endpoint}/${id}`);
-      return response.data.data;
+      return normalizeObject<AuditLog>(response.data);
     } catch (error) {
       throw new Error(getApiErrorMessage(error));
     }
