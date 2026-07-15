@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Clock, ArrowLeft } from 'lucide-react';
 import { Product } from '@/lib/mock-data';
-import { cn } from '@/lib/utils';
 
 interface ProductCardProps {
   product: Product;

@@ -7,6 +7,7 @@ import { ArrowUp, Instagram, Linkedin, Twitter, Facebook, Youtube, Github, Globe
 import { socialMediaService } from '@/services/SocialMediaService';
 import { siteSettingsService } from '@/services/SettingsService';
 import { SocialMedia, SiteSettings } from '@/types/api';
+import { getSafeExternalUrl } from '@/lib/utils';
 
 const iconMap: Record<string, React.ElementType> = {
   Instagram, Twitter, Linkedin, Facebook, Youtube, Github, Globe,
@@ -19,7 +20,7 @@ const quickLinks = [
   { href: '/pricing', label: 'تعرفه‌ها' },
   { href: '/blog', label: 'وبلاگ' },
   { href: '/#about', label: 'درباره ما' },
-  { href: '/contact', label: 'تماس با ما' },
+  { href: '/#contact', label: 'تماس با ما' },
 ];
 
 const legalLinks = [
@@ -46,7 +47,10 @@ export default function Footer() {
   const siteName = settings?.siteName || 'آریان‌لب';
   const footerDescription = settings?.footerText || 'استودیوی محصول دیجیتال ممتاز - طراحی مدرن، سرعت بالا و تجربه‌ای متفاوت';
   const copyright = settings?.copyright || `${siteName} © ۲۰۲۶`;
-  const displaySocialLinks = socialLinks.filter((s) => s.isActive);
+  const displaySocialLinks = socialLinks
+    .filter((social) => social.isActive)
+    .map((social) => ({ social, safeUrl: getSafeExternalUrl(social.url) }))
+    .filter((item): item is { social: SocialMedia; safeUrl: string } => Boolean(item.safeUrl));
 
   return (
     <footer className="relative pt-24 pb-8 border-t border-border">
@@ -115,14 +119,14 @@ export default function Footer() {
             <h4 className="font-semibold mb-4">شبکه‌های اجتماعی</h4>
             {displaySocialLinks.length > 0 ? (
               <div className="flex flex-wrap gap-3">
-                {displaySocialLinks.map((social) => {
+                {displaySocialLinks.map(({ social, safeUrl }) => {
                   const platform = social.platform || '';
                   const iconKey = Object.keys(iconMap).find(k => platform.toLowerCase().includes(k.toLowerCase()));
                   const Icon = iconKey ? iconMap[iconKey] : Globe;
                   return (
                     <a
                       key={social.id}
-                      href={social.url}
+                      href={safeUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="p-2 rounded-lg glass hover:glass-hover transition-all"

@@ -110,7 +110,7 @@ export default function FAQ() {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="flex justify-center mt-12"
           >
-            <Link href="/faq">
+            <Link href="/#faq">
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Button variant="outline" className="rounded-full gap-2 group">
                   همه سوالات

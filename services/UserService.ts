@@ -1,4 +1,4 @@
-import { api, getApiErrorMessage } from './api';
+import { api } from './api';
 import { ApiResponse } from '@/lib/api-utils';
 
 export interface UserProfile {

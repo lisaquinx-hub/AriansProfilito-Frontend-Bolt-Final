@@ -11,6 +11,7 @@ import { EntityFormModal, FormField } from '@/components/admin/EntityFormModal';
 import { ViewDetailModal } from '@/components/admin/ViewDetailModal';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/services/api';
+import { getSafeExternalUrl } from '@/lib/utils';
 
 export default function AdminSocialMediaPage() {
   const [items, setItems] = useState<SocialMedia[]>([]);
@@ -111,11 +112,14 @@ export default function AdminSocialMediaPage() {
 
   const columns = [
     { key: 'platform', label: 'پلتفرم' },
-    { key: 'url', label: 'لینک', render: (item: SocialMedia) => (
-      <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-sky-500 hover:underline text-sm truncate max-w-xs block">
-        {item.url}
-      </a>
-    )},
+    { key: 'url', label: 'لینک', render: (item: SocialMedia) => {
+      const safeUrl = getSafeExternalUrl(item.url);
+      return safeUrl ? (
+        <a href={safeUrl} target="_blank" rel="noopener noreferrer" className="text-sky-500 hover:underline text-sm truncate max-w-xs block">
+          {item.url}
+        </a>
+      ) : <span className="text-muted-foreground">-</span>;
+    }},
     {
       key: 'isActive',
       label: 'وضعیت',

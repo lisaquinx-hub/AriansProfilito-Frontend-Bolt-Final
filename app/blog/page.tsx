@@ -7,7 +7,7 @@ import { PageHeader, CategoryFilter, SearchBox, Pagination, EmptyState } from '@
 import { BlogCardSkeleton } from '@/components/shared/SkeletonLoaders';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { ArrowLeft, TrendingUp, Eye } from 'lucide-react';
+import { TrendingUp, Eye } from 'lucide-react';
 import { blogPostService } from '@/services/BlogPostService';
 import { blogCategoryService } from '@/services/BlogCategoryService';
 import { BlogPost, BlogCategory } from '@/types/api';

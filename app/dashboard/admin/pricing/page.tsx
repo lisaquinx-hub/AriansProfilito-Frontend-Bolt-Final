@@ -34,9 +34,6 @@ export default function AdminPricingPage() {
     fetchData();
   }, []);
 
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-
   const handleDelete = async (id: string) => {
     setDeleteId(id);
     setIsDeleting(true);

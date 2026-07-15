@@ -14,7 +14,6 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { servicesService } from '@/services/ServicesService';
 import { Service } from '@/types/api';
-import { cn } from '@/lib/utils';
 
 export default function ProductDetailsPage() {
   const params = useParams<{ slug: string }>();
@@ -117,7 +116,7 @@ export default function ProductDetailsPage() {
                 </div>
               )}
 
-              <Link href="/contact">
+              <Link href="/#contact">
                 <Button className="btn-primary shadow-glow w-full md:w-auto">
                   شروع پروژه
                   <ArrowRight className="mr-2 w-4 h-4" />
@@ -187,7 +186,7 @@ export default function ProductDetailsPage() {
               <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
                 همین حالا با ما تماس بگیرید و پروژه خود را شروع کنید
               </p>
-              <Link href="/contact">
+              <Link href="/#contact">
                 <Button size="lg" className="btn-primary shadow-glow text-lg px-10">
                   تماس با ما
                   <ArrowRight className="mr-2 w-5 h-5" />

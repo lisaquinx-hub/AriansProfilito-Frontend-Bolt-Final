@@ -4,8 +4,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { ProductCard, PageHeader, CategoryFilter, SearchBox, Pagination, EmptyState } from '@/components/shared';
 import { products, productCategories } from '@/lib/mock-data';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 
 export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');

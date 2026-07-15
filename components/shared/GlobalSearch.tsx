@@ -2,12 +2,10 @@
 
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Search, X, ArrowLeft } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { products, blogPosts, projects } from '@/lib/mock-data';
-import { useRouter } from 'next/navigation';
 
 interface GlobalSearchProps {
   isOpen: boolean;
@@ -16,8 +14,6 @@ interface GlobalSearchProps {
 
 export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
   const [query, setQuery] = useState('');
-  const router = useRouter();
-
   const results = useMemo(() => {
     if (!query.trim()) return { products: [], blogPosts: [], projects: [] };
 

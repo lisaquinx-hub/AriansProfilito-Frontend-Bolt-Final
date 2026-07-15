@@ -16,7 +16,6 @@ import {
   X,
   ChevronLeft,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import { NotificationDropdown } from '@/components/admin/NotificationDropdown';

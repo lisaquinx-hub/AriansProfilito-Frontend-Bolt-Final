@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { authService } from '@/services/AuthService';
 import { emitAuthChanged } from '@/hooks/useAuth';
+import { getSafeInternalPath } from '@/lib/utils';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -36,7 +37,7 @@ export default function LoginPage() {
       const role = authResponse?.user?.role;
       const isAdminUser = role === 3 || String(role).toLowerCase() === 'admin';
       const defaultDest = isAdminUser ? '/dashboard/admin' : '/dashboard';
-      router.replace(redirectParam || defaultDest);
+      router.replace(getSafeInternalPath(redirectParam, defaultDest));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'خطا در ورود');
     } finally {

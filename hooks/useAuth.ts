@@ -5,8 +5,6 @@ import {
   getAccessToken,
   getStoredUser,
   removeAccessToken,
-  setStoredUser,
-  isAdmin,
   hasAdminRole,
   type StoredUser,
 } from '@/lib/auth';

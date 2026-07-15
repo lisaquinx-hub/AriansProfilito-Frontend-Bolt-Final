@@ -1,5 +1,5 @@
 import { api, getApiErrorMessage } from './api';
-import { ApiResponse, unwrapResponse } from '@/lib/api-utils';
+import { ApiResponse } from '@/lib/api-utils';
 import { HeroSection } from '@/types/api';
 
 class HeroService {

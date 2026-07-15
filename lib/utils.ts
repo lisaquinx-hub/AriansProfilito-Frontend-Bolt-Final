@@ -21,3 +21,65 @@ export function formatDatePersian(date: Date | string): string {
   const d = new Date(date);
   return d.toLocaleDateString('fa-IR');
 }
+
+/**
+ * Accept only same-origin application paths for post-auth navigation.
+ * Protocol-relative URLs, backslashes and executable URL schemes are rejected.
+ */
+export function getSafeInternalPath(
+  value: string | null | undefined,
+  fallback: string
+): string {
+  if (!value || !value.startsWith('/') || value.startsWith('//') || value.includes('\\')) {
+    return fallback;
+  }
+
+  try {
+    const parsed = new URL(value, 'https://local.invalid');
+    return parsed.origin === 'https://local.invalid'
+      ? `${parsed.pathname}${parsed.search}${parsed.hash}`
+      : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+const SECTION_ROUTE_ALIASES: Record<string, string> = {
+  '/contact': '/#contact',
+  '/faq': '/#faq',
+};
+
+/** Accept safe app-relative paths and http(s) URLs for CMS-controlled links. */
+export function getSafeNavigationHref(
+  value: string | null | undefined,
+  fallback: string
+): string {
+  const trimmed = value?.trim();
+  if (!trimmed) return fallback;
+
+  const aliased = SECTION_ROUTE_ALIASES[trimmed] || trimmed;
+  if (aliased.startsWith('/')) {
+    return getSafeInternalPath(aliased, fallback);
+  }
+
+  if (/^#[A-Za-z][A-Za-z0-9_:.-]*$/.test(aliased)) {
+    return aliased;
+  }
+
+  return getSafeExternalUrl(aliased) || fallback;
+}
+
+/** Return only absolute http(s) URLs without embedded credentials. */
+export function getSafeExternalUrl(value: string | null | undefined): string | null {
+  if (!value) return null;
+
+  try {
+    const parsed = new URL(value.trim());
+    if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password) {
+      return null;
+    }
+    return parsed.href;
+  } catch {
+    return null;
+  }
+}

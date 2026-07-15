@@ -7,18 +7,15 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { heroService } from '@/services/HeroService';
 import { HeroSection } from '@/types/api';
-import { resolveAssetUrl } from '@/lib/api-utils';
+import { getSafeNavigationHref } from '@/lib/utils';
 
 export default function Hero() {
   const [heroData, setHeroData] = useState<HeroSection | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchHero = async () => {
-      setIsLoading(true);
       const data = await heroService.getActive();
       setHeroData(data);
-      setIsLoading(false);
     };
     fetchHero();
   }, []);
@@ -27,9 +24,9 @@ export default function Hero() {
   const subtitle = heroData?.subtitle || 'توسعه نرم‌افزار';
   const description = heroData?.description || 'طراحی مدرن، سرعت بالا و تجربه‌ای متفاوت';
   const primaryButtonText = heroData?.primaryButtonText || 'شروع همکاری';
-  const primaryButtonUrl = heroData?.primaryButtonUrl || '/contact';
+  const primaryButtonUrl = getSafeNavigationHref(heroData?.primaryButtonUrl, '/#contact');
   const secondaryButtonText = heroData?.secondaryButtonText || 'نمونه کارها';
-  const secondaryButtonUrl = heroData?.secondaryButtonUrl || '/portfolio';
+  const secondaryButtonUrl = getSafeNavigationHref(heroData?.secondaryButtonUrl, '/portfolio');
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">

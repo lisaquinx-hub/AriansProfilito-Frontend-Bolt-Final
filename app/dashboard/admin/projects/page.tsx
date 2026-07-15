@@ -212,7 +212,6 @@ export default function AdminProjectsPage() {
           adminNote: form.adminNote.trim() || null,
           customerComment: form.customerComment.trim() || null,
         };
-        console.log('Admin project create payload:', payload);
         const created = await adminProjectsService.create(payload);
         if (created) setItems(prev => [...(Array.isArray(prev) ? prev : []), created]);
         toast.success('پروژه با موفقیت ایجاد شد');

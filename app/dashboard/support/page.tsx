@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LifeBuoy, Plus, AlertCircle, X, Send, Loader2, MessageSquare,
-  ChevronDown, ChevronUp, Lock,
+  Lock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

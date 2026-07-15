@@ -64,7 +64,7 @@ export function EntityFormModal({
       setValues(initial);
       setError(null);
     }
-  }, [open, initialValues]);
+  }, [open, initialValues, fields]);
 
   const handleChange = (key: string, value: unknown) => {
     setValues((prev) => ({ ...prev, [key]: value }));

@@ -11,10 +11,19 @@ export interface ApiError {
 
 const isBrowser = () => typeof window !== 'undefined';
 
+const AUTH_ROUTES = ['/login', '/register'];
+
+function isPublicAuthRoute(pathname: string): boolean {
+  return AUTH_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`)
+  );
+}
+
 export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
   withCredentials: false,
+  timeout: 15_000,
 });
 
 api.interceptors.request.use(
@@ -37,7 +46,12 @@ api.interceptors.response.use(
       if (isBrowser()) {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('user');
-        window.location.href = '/login';
+        window.dispatchEvent(new Event('auth-changed'));
+
+        if (!isPublicAuthRoute(window.location.pathname)) {
+          const redirect = `${window.location.pathname}${window.location.search}`;
+          window.location.replace(`/login?redirect=${encodeURIComponent(redirect)}`);
+        }
       }
     }
     return Promise.reject(error);

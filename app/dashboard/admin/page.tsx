@@ -57,11 +57,8 @@ export default function AdminDashboardPage() {
     pendingComments: 0,
     activityLogs: 0,
   });
-  const [isLoading, setIsLoading] = useState(true);
-
   useEffect(() => {
     const fetchStats = async () => {
-      setIsLoading(true);
       try {
         const [
           users,
@@ -96,7 +93,6 @@ export default function AdminDashboardPage() {
       } catch (error) {
         console.error('Failed to fetch dashboard stats:', error);
       }
-      setIsLoading(false);
     };
     fetchStats();
   }, []);
@@ -140,12 +136,12 @@ export default function AdminDashboardPage() {
             <CardTitle>دسترسی سریع</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
-            <Link href="/dashboard/admin/blog-posts/new">
+            <Link href="/dashboard/admin/blog-posts">
               <button className="px-4 py-2 rounded-lg bg-sky-500/10 text-sky-500 dark:text-cyan-400 hover:bg-sky-500/20 transition-colors">
                 مقاله جدید
               </button>
             </Link>
-            <Link href="/dashboard/admin/projects/new">
+            <Link href="/dashboard/admin/projects">
               <button className="px-4 py-2 rounded-lg bg-purple-500/10 text-purple-500 hover:bg-purple-500/20 transition-colors">
                 پروژه جدید
               </button>

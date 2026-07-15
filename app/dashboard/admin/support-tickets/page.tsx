@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LifeBuoy, RefreshCw, X, Send, Loader2, MessageSquare,
-  Lock, UserCheck, Settings, Trash2, Eye,
+  Lock, UserCheck, Settings,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';

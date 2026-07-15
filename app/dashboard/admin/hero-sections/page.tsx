@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Image, RefreshCw, Plus, ToggleLeft } from 'lucide-react';
+import { Image as ImageIcon, RefreshCw, Plus, ToggleLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
@@ -151,7 +151,7 @@ export default function AdminHeroSectionsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Image className="w-6 h-6" />
+            <ImageIcon className="w-6 h-6" />
             مدیریت هیرو سکشن‌ها
           </h1>
           <p className="text-muted-foreground text-sm mt-1">{items.length} رکورد</p>

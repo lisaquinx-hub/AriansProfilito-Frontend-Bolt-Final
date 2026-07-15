@@ -7,8 +7,6 @@ import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { servicesService } from '@/services/ServicesService';
-import { Service } from '@/types/api';
-import { resolveAssetUrl } from '@/lib/api-utils';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -34,11 +32,9 @@ interface DisplayService {
 
 export default function Services() {
   const [services, setServices] = useState<DisplayService[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchServices = async () => {
-      setIsLoading(true);
       const data = await servicesService.getAll();
       if (data && data.length > 0) {
         setServices(data.map(s => ({
@@ -48,7 +44,6 @@ export default function Services() {
           slug: s.slug || s.id,
         })));
       }
-      setIsLoading(false);
     };
     fetchServices();
   }, []);

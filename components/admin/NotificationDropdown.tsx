@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -30,7 +30,7 @@ export function NotificationDropdown({ isAdmin = false }: NotificationDropdownPr
   const [error, setError] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -47,13 +47,12 @@ export function NotificationDropdown({ isAdmin = false }: NotificationDropdownPr
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isAdmin]);
 
   useEffect(() => {
-    if (isOpen && notifications.length === 0 && !isLoading && !error) {
-      fetchNotifications();
-    }
-  }, [isOpen]);
+    if (!isOpen) return;
+    void fetchNotifications();
+  }, [fetchNotifications, isOpen]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {

@@ -10,7 +10,6 @@ import {
   Mail, Activity, ClipboardList, Receipt, CreditCard, HeadphonesIcon,
   Bell, Menu, X, ChevronLeft, LogOut,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { cn } from '@/lib/utils';
 import { authService } from '@/services/AuthService';

@@ -11,6 +11,7 @@ import { ArrowLeft, Calendar, Globe, Github, Loader2, AlertCircle } from 'lucide
 import { Button } from '@/components/ui/button';
 import { portfolioService } from '@/services/PortfolioService';
 import { PortfolioDetail } from '@/types/api';
+import { getSafeExternalUrl } from '@/lib/utils';
 
 export default function PortfolioDetailPage() {
   const params = useParams<{ slug: string }>();
@@ -60,6 +61,9 @@ export default function PortfolioDetailPage() {
       </main>
     );
   }
+
+  const websiteUrl = getSafeExternalUrl(item.websiteUrl);
+  const githubUrl = getSafeExternalUrl(item.githubUrl);
 
   return (
     <main className="min-h-screen pt-24 pb-16 relative overflow-x-hidden">
@@ -157,16 +161,16 @@ export default function PortfolioDetailPage() {
                 <div className="font-medium mt-1">{item.clientName}</div>
               </div>
 
-              {item.websiteUrl && (
-                <a href={item.websiteUrl} target="_blank" rel="noopener noreferrer">
+              {websiteUrl && (
+                <a href={websiteUrl} target="_blank" rel="noopener noreferrer">
                   <Button variant="outline" className="w-full rounded-full gap-2 mt-2">
                     <Globe className="w-4 h-4" />
                     مشاهده وب‌سایت
                   </Button>
                 </a>
               )}
-              {item.githubUrl && (
-                <a href={item.githubUrl} target="_blank" rel="noopener noreferrer">
+              {githubUrl && (
+                <a href={githubUrl} target="_blank" rel="noopener noreferrer">
                   <Button variant="outline" className="w-full rounded-full gap-2">
                     <Github className="w-4 h-4" />
                     GitHub

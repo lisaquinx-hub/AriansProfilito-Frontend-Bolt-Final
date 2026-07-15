@@ -1,6 +1,6 @@
 import { api, getApiErrorMessage } from '../api';
 import { ApiResponse } from '@/lib/api-utils';
-import { PricingPlan, PlanFeature } from '@/types/api';
+import { PricingPlan } from '@/types/api';
 
 export interface CreatePricingPlanDto {
   title: string;
