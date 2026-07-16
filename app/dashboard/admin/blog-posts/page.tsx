@@ -67,6 +67,21 @@ export default function AdminBlogPostsPage() {
     }
   };
 
+  const handleEdit = async (item: BlogPost) => {
+    try {
+      const detail = await adminBlogPostsService.getById(item.id);
+      if (!detail) {
+        toast.error('اطلاعات کامل پست دریافت نشد');
+        return;
+      }
+
+      setEditingItem(detail);
+      setIsFormOpen(true);
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
+    }
+  };
+
   const handleSubmit = async (data: Record<string, unknown>) => {
     const payload = {
       title: String(data.title || '').trim(),
@@ -90,7 +105,7 @@ export default function AdminBlogPostsPage() {
         await adminBlogPostsService.create(payload);
         toast.success('پست با موفقیت ایجاد شد');
       }
-      fetchData();
+      await fetchData();
     } catch (error) {
       toast.error(getApiErrorMessage(error));
       throw error;
@@ -107,13 +122,14 @@ export default function AdminBlogPostsPage() {
       required: true,
       options: categories.map(c => ({ value: c.id, label: c.name })),
     },
-    { key: 'excerpt', label: 'خلاصه', type: 'textarea', fullWidth: true },
-    { key: 'content', label: 'متن', type: 'textarea', fullWidth: true, rows: 8 },
+    { key: 'excerpt', label: 'خلاصه', type: 'textarea', required: true, fullWidth: true },
+    { key: 'content', label: 'متن', type: 'textarea', required: true, fullWidth: true, rows: 8 },
     {
       key: 'coverImage',
       label: 'تصویر شاخص',
       type: 'url',
       placeholder: 'لینک مستقیم HTTPS تصویر؛ نه لینک صفحه نتایج گوگل',
+      required: true,
       fullWidth: true,
     },
     { key: 'readTime', label: 'زمان مطالعه (دقیقه)', type: 'number' },
@@ -169,7 +185,7 @@ export default function AdminBlogPostsPage() {
             columns={columns}
             loading={isLoading}
             onView={handleView}
-            onEdit={(item) => { setEditingItem(item); setIsFormOpen(true); }}
+            onEdit={(item) => void handleEdit(item)}
             onDelete={(item) => setDeleteId(item.id)}
             idLookup={{
               entityLabel: 'پست وبلاگ',

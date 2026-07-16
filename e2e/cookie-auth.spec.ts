@@ -48,8 +48,34 @@ async function mockApi(page: Page, context: BrowserContext) {
   let authenticatedUser: typeof customer | typeof admin | null = null;
   let logoutSeen = false;
   let commentSeen = false;
+  let blogUpdateSeen = false;
   let commentsRequestUrl = '';
   const blogPostId = 'c95ac91f-4835-4f14-8587-9a511d1475a4';
+  const adminBlogPostId = '6de067c7-4f8f-4604-b495-127843afc970';
+  const blogCategoryId = 'f6a793ab-1e5a-4a86-bf5e-317b4a4fdf54';
+  const unsplashCoverImage = 'https://images.unsplash.com/photo-1504805572947-34fad45aed93?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
+  const adminBlogPostDetail = {
+    id: adminBlogPostId,
+    title: 'پست قابل ویرایش',
+    slug: 'editable-blog-post',
+    excerpt: 'خلاصه کامل پست قابل ویرایش',
+    content: 'متن کامل پست که فقط در اندپوینت جزئیات برمی‌گردد.',
+    coverImage: 'https://images.example.com/blog-cover.svg',
+    readTime: 4,
+    viewCount: 10,
+    isPublished: true,
+    publishedAt: '2026-07-16T10:00:00Z',
+    seoTitle: 'عنوان سئو',
+    seoDescription: 'توضیحات سئو',
+    keywords: 'تست,وبلاگ',
+    categoryId: blogCategoryId,
+    categoryName: 'فناوری',
+    categorySlug: 'technology',
+    authorId: admin.id,
+    authorName: admin.fullName,
+    createdAt: '2026-07-16T09:00:00Z',
+    updatedAt: null,
+  };
 
   await page.route('https://fonts.googleapis.com/**', async (route) => {
     await route.fulfill({ status: 200, contentType: 'text/css', body: '' });
@@ -209,14 +235,76 @@ async function mockApi(page: Page, context: BrowserContext) {
       return;
     }
 
+    if (pathname === `/api/admin/blog/posts/${adminBlogPostId}` && request.method() === 'GET') {
+      await json(route, { success: true, data: adminBlogPostDetail });
+      return;
+    }
+
+    if (pathname === `/api/admin/blog/posts/${adminBlogPostId}` && request.method() === 'PUT') {
+      const payload = request.postDataJSON();
+      expect(request.headers()['x-csrf-token']).toBe('csrf-e2e-5');
+      expect(payload).toMatchObject({
+        content: adminBlogPostDetail.content,
+        categoryId: blogCategoryId,
+        coverImage: unsplashCoverImage,
+      });
+      blogUpdateSeen = true;
+      await json(route, {
+        success: true,
+        data: { ...adminBlogPostDetail, ...payload, updatedAt: '2026-07-16T10:30:00Z' },
+      });
+      return;
+    }
+
+    if (pathname === '/api/admin/blog/posts' && request.method() === 'GET') {
+      const {
+        content: _content,
+        categoryId: _categoryId,
+        seoTitle: _seoTitle,
+        seoDescription: _seoDescription,
+        keywords: _keywords,
+        authorId: _authorId,
+        ...listItem
+      } = adminBlogPostDetail;
+      await json(route, {
+        success: true,
+        data: {
+          items: [listItem],
+          pageNumber: 1,
+          pageSize: 20,
+          totalCount: 1,
+          totalPages: 1,
+        },
+      });
+      return;
+    }
+
+    if (pathname === '/api/admin/blog-categories' && request.method() === 'GET') {
+      await json(route, {
+        success: true,
+        data: [{
+          id: blogCategoryId,
+          name: 'فناوری',
+          slug: 'technology',
+          description: 'دسته‌بندی فناوری',
+          isActive: true,
+        }],
+      });
+      return;
+    }
+
     await json(route, { success: true, data: [] });
   });
 
   return {
     wasLoggedOut: () => logoutSeen,
     wasCommentSubmitted: () => commentSeen,
+    wasBlogUpdated: () => blogUpdateSeen,
     adminCommentsRequestUrl: () => commentsRequestUrl,
     csrfCalls: () => csrfSequence,
+    adminBlogContent: adminBlogPostDetail.content,
+    blogCategoryId,
+    unsplashCoverImage,
   };
 }
 
@@ -299,4 +387,20 @@ test('ورود، ثبت نظر، نمایش ادمین و صفحات حقوقی 
   expect(commentsUrl.searchParams.get('take')).toBe('500');
   expect(commentsUrl.searchParams.get('cacheBuster')).toBeTruthy();
   expect(apiState.csrfCalls()).toBe(4);
+
+  await page.goto('/dashboard/admin/blog-posts', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('heading', { name: 'مدیریت پست‌های وبلاگ' })).toBeVisible();
+  await expect(page.getByText('پست قابل ویرایش')).toBeVisible();
+  await page.getByRole('button', { name: 'نمایش عملیات' }).click();
+  await page.getByRole('menuitem', { name: 'ویرایش' }).click();
+
+  await expect(page.getByRole('dialog', { name: 'ویرایش پست' })).toBeVisible();
+  await expect(page.locator('textarea[name="content"]')).toHaveValue(apiState.adminBlogContent);
+  await expect(page.locator('select[name="categoryId"]')).toHaveValue(apiState.blogCategoryId);
+  await page.locator('input[name="coverImage"]').fill(apiState.unsplashCoverImage);
+  await page.getByRole('button', { name: 'ذخیره' }).click();
+
+  await expect(page.getByText('پست با موفقیت ویرایش شد')).toBeVisible();
+  expect(apiState.wasBlogUpdated()).toBe(true);
+  expect(apiState.csrfCalls()).toBe(5);
 });
