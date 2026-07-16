@@ -3,10 +3,11 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Clock, ArrowLeft } from 'lucide-react';
-import { Product } from '@/lib/mock-data';
+import { Service } from '@/types/api';
+import { BlogCoverImage } from './BlogCoverImage';
 
 interface ProductCardProps {
-  product: Product;
+  product: Service;
   index?: number;
 }
 
@@ -21,14 +22,16 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
       <div className="relative overflow-hidden rounded-2xl glass transition-all duration-300 hover:shadow-glow">
         {/* Image */}
         <div className="relative h-48 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-sky-500/20 to-blue-500/20 dark:from-blue-500/20 dark:to-cyan-500/20" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-6xl font-bold text-foreground/10">{product.title[0]}</span>
-          </div>
+          <BlogCoverImage
+            src={product.thumbnail || product.coverImage}
+            alt={product.title}
+            className="absolute inset-0 h-full w-full"
+            fallbackClassName="text-6xl"
+          />
           {/* Category Badge */}
           <div className="absolute top-4 right-4">
             <span className="px-3 py-1 rounded-full text-xs font-medium bg-sky-500/20 dark:bg-cyan-500/20 text-sky-500 dark:text-cyan-400">
-              {getCategoryLabel(product.category)}
+              {product.isFeatured ? 'ویژه' : 'خدمت'}
             </span>
           </div>
         </div>
@@ -39,20 +42,21 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
             {product.title}
           </h3>
           <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-            {product.shortDescription}
+            {product.shortDescription || product.description || 'برای دریافت جزئیات این خدمت با ما تماس بگیرید.'}
           </p>
 
-          {/* Technologies */}
-          <div className="flex flex-wrap gap-2 mb-4">
-            {product.technologies.slice(0, 3).map((tech) => (
-              <span
-                key={tech}
-                className="px-2 py-1 rounded text-xs bg-muted text-muted-foreground"
-              >
-                {tech}
-              </span>
-            ))}
-          </div>
+          {product.features && product.features.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-4">
+              {product.features.slice(0, 3).map((feature, featureIndex) => (
+                <span
+                  key={feature.id || `${product.id}-${featureIndex}`}
+                  className="px-2 py-1 rounded text-xs bg-muted text-muted-foreground"
+                >
+                  {feature.title}
+                </span>
+              ))}
+            </div>
+          )}
 
           {/* CTA Button */}
           <Link href={`/products/${encodeURIComponent(product.slug)}`}>
@@ -69,23 +73,16 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
           <div className="flex items-center justify-between pt-4 border-t border-border">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Clock className="w-4 h-4" />
-              <span>{product.completionTime}</span>
+              <span>
+                {product.estimatedDeliveryDays
+                  ? `${product.estimatedDeliveryDays} روز`
+                  : 'زمان توافقی'}
+              </span>
             </div>
-            <span className="text-lg font-bold text-gradient">{product.startingPrice} تومان</span>
+            <span className="text-sm font-semibold text-gradient">استعلام قیمت</span>
           </div>
         </div>
       </div>
     </motion.div>
   );
-}
-
-function getCategoryLabel(category: string): string {
-  const labels: Record<string, string> = {
-    web: 'طراحی وب',
-    mobile: 'موبایل',
-    saas: 'SaaS',
-    ecommerce: 'فروشگاه',
-    dashboard: 'داشبورد',
-  };
-  return labels[category] || category;
 }

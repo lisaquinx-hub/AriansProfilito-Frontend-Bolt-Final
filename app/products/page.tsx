@@ -3,42 +3,66 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { ProductCard, PageHeader, CategoryFilter, SearchBox, Pagination, EmptyState } from '@/components/shared';
-import { products, productCategories } from '@/lib/mock-data';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { productService } from '@/services/ProductService';
+import { Service } from '@/types/api';
 
 export default function ProductsPage() {
+  const [products, setProducts] = useState<Service[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const itemsPerPage = 6;
 
   useEffect(() => {
-    setIsLoaded(true);
+    let cancelled = false;
+
+    void productService.getProducts()
+      .then((data) => {
+        if (!cancelled) setProducts(data);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const filteredProducts = useMemo(() => {
-    let result = products;
+    const q = searchQuery.trim().toLocaleLowerCase('fa-IR');
+    const categoryFiltered = products.filter((product) => {
+      if (selectedCategory === 'featured') return Boolean(product.isFeatured);
+      if (selectedCategory === 'standard') return !product.isFeatured;
+      return true;
+    });
 
-    // Filter by category
-    if (selectedCategory !== 'all') {
-      result = result.filter((p) => p.category === selectedCategory);
-    }
+    if (!q) return categoryFiltered;
 
-    // Filter by search
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (p) =>
-          p.title.toLowerCase().includes(q) ||
-          p.shortDescription.toLowerCase().includes(q) ||
-          p.technologies.some((t) => t.toLowerCase().includes(q))
-      );
-    }
+    return categoryFiltered.filter(
+      (product) =>
+        product.title.toLocaleLowerCase('fa-IR').includes(q) ||
+        (product.shortDescription || '').toLocaleLowerCase('fa-IR').includes(q) ||
+        (product.description || '').toLocaleLowerCase('fa-IR').includes(q) ||
+        (product.features || []).some((feature) =>
+          feature.title.toLocaleLowerCase('fa-IR').includes(q)
+        )
+    );
+  }, [products, searchQuery, selectedCategory]);
 
-    return result;
-  }, [selectedCategory, searchQuery]);
+  const productCategories = useMemo(() => {
+    const featuredCount = products.filter((product) => product.isFeatured).length;
+    const standardCount = products.length - featuredCount;
+
+    return [
+      { id: 'all', name: 'همه', count: products.length },
+      ...(featuredCount > 0 ? [{ id: 'featured', name: 'ویژه', count: featuredCount }] : []),
+      ...(standardCount > 0 ? [{ id: 'standard', name: 'سایر خدمات', count: standardCount }] : []),
+    ];
+  }, [products]);
 
   const paginatedProducts = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
@@ -47,12 +71,11 @@ export default function ProductsPage() {
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
-  // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedCategory, searchQuery]);
+  }, [searchQuery, selectedCategory]);
 
-  if (!isLoaded) {
+  if (isLoading) {
     return (
       <main className="pt-24 pb-16">
         <Navbar />

@@ -3,15 +3,50 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowUp, Instagram, Linkedin, Twitter, Facebook, Youtube, Github, Globe } from 'lucide-react';
+import { ArrowUp, Instagram, Linkedin, Twitter, Facebook, Youtube, Github, Globe, Send } from 'lucide-react';
 import { socialMediaService } from '@/services/SocialMediaService';
 import { siteSettingsService } from '@/services/SettingsService';
 import { SocialMedia, SiteSettings } from '@/types/api';
 import { getSafeExternalUrl } from '@/lib/utils';
+import { getTelephoneHref, siteContact } from '@/lib/site-contact';
 
 const iconMap: Record<string, React.ElementType> = {
-  Instagram, Twitter, Linkedin, Facebook, Youtube, Github, Globe,
+  Instagram, Twitter, Linkedin, Facebook, Youtube, Github, Telegram: Send, Globe,
 };
+
+function SocialIcon({ social }: { social: SocialMedia }) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const safeIconUrl = getSafeExternalUrl(social.icon);
+  const platform = social.platform || '';
+  const iconKey = Object.keys(iconMap).find((key) =>
+    platform.toLowerCase().includes(key.toLowerCase())
+  );
+  const Icon = iconKey ? iconMap[iconKey] : Globe;
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [safeIconUrl]);
+
+  if (safeIconUrl && !imageFailed) {
+    return (
+      // Admin-provided HTTPS icon URLs must work without a fixed Next.js host allowlist.
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={safeIconUrl}
+        alt=""
+        width={20}
+        height={20}
+        loading="lazy"
+        decoding="async"
+        referrerPolicy="no-referrer"
+        className="w-5 h-5 object-contain grayscale contrast-200 dark:invert"
+        onError={() => setImageFailed(true)}
+      />
+    );
+  }
+
+  return <Icon className="w-5 h-5" />;
+}
 
 const quickLinks = [
   { href: '/', label: 'خانه' },
@@ -49,6 +84,8 @@ export default function Footer() {
   const siteName = settings?.siteName || 'آریان‌لب';
   const footerDescription = settings?.footerText || 'استودیوی محصول دیجیتال ممتاز - طراحی مدرن، سرعت بالا و تجربه‌ای متفاوت';
   const copyright = settings?.copyright || `${siteName} © ۲۰۲۶`;
+  const contactEmail = settings?.email?.trim() || siteContact.email;
+  const contactPhone = settings?.phone?.trim() || siteContact.phone;
   const displaySocialLinks = socialLinks
     .filter((social) => social.isActive)
     .map((social) => ({ social, safeUrl: getSafeExternalUrl(social.url) }))
@@ -66,12 +103,20 @@ export default function Footer() {
               </motion.span>
             </Link>
             <p className="text-muted-foreground text-sm leading-relaxed">{footerDescription}</p>
-            {settings?.email && (
-              <p className="text-sm text-muted-foreground mt-3">{settings.email}</p>
-            )}
-            {settings?.phone && (
-              <p className="text-sm text-muted-foreground mt-1">{settings.phone}</p>
-            )}
+            <a
+              href={`mailto:${contactEmail}`}
+              className="block text-sm text-muted-foreground hover:text-foreground mt-3 transition-colors break-all"
+              dir="ltr"
+            >
+              {contactEmail}
+            </a>
+            <a
+              href={getTelephoneHref(contactPhone)}
+              className="block text-sm text-muted-foreground hover:text-foreground mt-1 transition-colors"
+              dir="ltr"
+            >
+              {contactPhone}
+            </a>
           </div>
 
           {/* Quick Links */}
@@ -122,9 +167,6 @@ export default function Footer() {
             {displaySocialLinks.length > 0 ? (
               <div className="flex flex-wrap gap-3">
                 {displaySocialLinks.map(({ social, safeUrl }) => {
-                  const platform = social.platform || '';
-                  const iconKey = Object.keys(iconMap).find(k => platform.toLowerCase().includes(k.toLowerCase()));
-                  const Icon = iconKey ? iconMap[iconKey] : Globe;
                   return (
                     <a
                       key={social.id}
@@ -134,7 +176,7 @@ export default function Footer() {
                       className="p-2 rounded-lg glass hover:glass-hover transition-all"
                       title={social.platform}
                     >
-                      <Icon className="w-5 h-5" />
+                      <SocialIcon social={social} />
                     </a>
                   );
                 })}

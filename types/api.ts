@@ -29,7 +29,7 @@ export interface Service {
   thumbnail?: string;
   coverImage?: string;
   shortDescription?: string;
-  description: string;
+  description?: string;
   estimatedDeliveryDays?: number;
   isFeatured?: boolean;
   displayOrder?: number;

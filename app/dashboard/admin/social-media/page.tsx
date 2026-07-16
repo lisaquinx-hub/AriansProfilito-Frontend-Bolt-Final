@@ -108,7 +108,12 @@ export default function AdminSocialMediaPage() {
   const fields: FormField[] = [
     { key: 'platform', label: 'پلتفرم', required: true },
     { key: 'url', label: 'لینک', type: 'url', required: true },
-    { key: 'icon', label: 'آیکون' },
+    {
+      key: 'icon',
+      label: 'لینک آیکون',
+      type: 'url',
+      placeholder: 'مثال: https://cdn.simpleicons.org/telegram/000000',
+    },
     { key: 'displayOrder', label: 'ترتیب نمایش', type: 'number' },
     { key: 'isActive', label: 'فعال', type: 'switch' },
   ];

@@ -53,6 +53,9 @@ async function mockApi(page: Page, context: BrowserContext) {
   const blogPostId = 'c95ac91f-4835-4f14-8587-9a511d1475a4';
   const adminBlogPostId = '6de067c7-4f8f-4604-b495-127843afc970';
   const blogCategoryId = 'f6a793ab-1e5a-4a86-bf5e-317b4a4fdf54';
+  const publicServiceId = 'd77a41de-da4e-41d1-8d33-565aef9f670f';
+  const publicServiceSlug = 'api-web-design';
+  const serviceImage = 'https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg';
   const unsplashCoverImage = 'https://images.unsplash.com/photo-1504805572947-34fad45aed93?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
   const adminBlogPostDetail = {
     id: adminBlogPostId,
@@ -88,6 +91,20 @@ async function mockApi(page: Page, context: BrowserContext) {
       status: 200,
       contentType: 'image/svg+xml',
       body: '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450"><rect width="100%" height="100%" fill="#0284c7"/></svg>',
+    });
+  });
+  await page.route('https://images.pexels.com/**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'image/svg+xml',
+      body: '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450"><rect width="100%" height="100%" fill="#0ea5e9"/></svg>',
+    });
+  });
+  await page.route('https://cdn.simpleicons.org/**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'image/svg+xml',
+      body: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M1 12 23 1 18 23 11 16 7 20 8 14Z"/></svg>',
     });
   });
 
@@ -293,6 +310,73 @@ async function mockApi(page: Page, context: BrowserContext) {
       return;
     }
 
+    if (pathname === '/api/services' && request.method() === 'GET') {
+      await json(route, {
+        success: true,
+        data: [{
+          id: publicServiceId,
+          title: 'سرویس واقعی API',
+          slug: publicServiceSlug,
+          thumbnail: serviceImage,
+          shortDescription: 'این خدمت از بک‌اند دریافت شده است.',
+          estimatedDeliveryDays: 21,
+          isFeatured: true,
+          displayOrder: 1,
+          icon: 'code',
+        }],
+      });
+      return;
+    }
+
+    if (pathname === `/api/services/${publicServiceSlug}` && request.method() === 'GET') {
+      await json(route, {
+        success: true,
+        data: {
+          id: publicServiceId,
+          title: 'سرویس واقعی API',
+          slug: publicServiceSlug,
+          thumbnail: serviceImage,
+          coverImage: serviceImage,
+          shortDescription: 'این خدمت از بک‌اند دریافت شده است.',
+          description: 'توضیحات کامل سرویس واقعی که از API دریافت شده است.',
+          estimatedDeliveryDays: 21,
+          isFeatured: true,
+          displayOrder: 1,
+          icon: 'code',
+          features: [{ id: '8bdf55d8-ab8e-44b8-9359-bf839714e40b', title: 'طراحی واکنش‌گرا', displayOrder: 1 }],
+        },
+      });
+      return;
+    }
+
+    if (pathname === '/api/site-settings/current' && request.method() === 'GET') {
+      await json(route, {
+        success: true,
+        data: {
+          id: 'a3973ed7-8cd4-459d-95ac-6aaf3288f0e4',
+          siteName: 'آریان‌لب',
+          email: 'arianbussineskh@gmail.com',
+          phone: '9917175937',
+        },
+      });
+      return;
+    }
+
+    if (pathname === '/api/social-media/active' && request.method() === 'GET') {
+      await json(route, {
+        success: true,
+        data: [{
+          id: '95820741-d534-4b23-9ee5-8297295c6798',
+          platform: 'Telegram',
+          url: 'https://t.me/arianslab',
+          icon: 'https://cdn.simpleicons.org/telegram/000000',
+          displayOrder: 1,
+          isActive: true,
+        }],
+      });
+      return;
+    }
+
     await json(route, { success: true, data: [] });
   });
 
@@ -308,7 +392,7 @@ async function mockApi(page: Page, context: BrowserContext) {
   };
 }
 
-test('ورود، ثبت نظر، نمایش ادمین و صفحات حقوقی درست کار می‌کنند', async ({ page, context }) => {
+test('ورود، خدمات واقعی، ثبت نظر، نمایش ادمین و صفحات حقوقی درست کار می‌کنند', async ({ page, context }) => {
   const apiState = await mockApi(page, context);
 
   await page.goto('/blog/e2e-comment-test', { waitUntil: 'domcontentloaded' });
@@ -403,4 +487,20 @@ test('ورود، ثبت نظر، نمایش ادمین و صفحات حقوقی 
   await expect(page.getByText('پست با موفقیت ویرایش شد')).toBeVisible();
   expect(apiState.wasBlogUpdated()).toBe(true);
   expect(apiState.csrfCalls()).toBe(5);
+
+  await page.goto('/products', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('heading', { name: 'محصولات', level: 1 })).toBeVisible();
+  await expect(page.getByText('سرویس واقعی API')).toBeVisible();
+  await expect(page.getByRole('img', { name: 'سرویس واقعی API' })).toBeVisible();
+  await expect(page.getByText('طراحی وب حرفه‌ای')).toHaveCount(0);
+
+  await page.goto('/products/api-web-design', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('heading', { name: 'سرویس واقعی API', level: 1 })).toBeVisible();
+  await expect(page.getByRole('img', { name: 'سرویس واقعی API' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'arianbussineskh@gmail.com' })).toHaveAttribute(
+    'href',
+    'mailto:arianbussineskh@gmail.com'
+  );
+  await expect(page.getByRole('link', { name: '9917175937' })).toHaveAttribute('href', 'tel:9917175937');
+  await expect(page.locator('a[title="Telegram"] img')).toBeVisible();
 });

@@ -40,7 +40,7 @@ export default function Services() {
         setServices(data.map(s => ({
           id: s.id,
           title: s.title,
-          description: s.shortDescription || s.description,
+          description: s.shortDescription || s.description || 'برای دریافت جزئیات این خدمت با ما تماس بگیرید.',
           slug: s.slug || s.id,
         })));
       }

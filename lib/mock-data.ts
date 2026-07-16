@@ -28,44 +28,6 @@ export interface Project {
   date?: string;
 }
 
-export interface Product {
-  id: string;
-  slug: string;
-  title: string;
-  shortDescription: string;
-  longDescription: string;
-  category: string;
-  startingPrice: string;
-  completionTime: string;
-  image: string;
-  gallery: string[];
-  technologies: string[];
-  features: ProductFeature[];
-  pricingPlans: ProductPricingPlan[];
-  faqs: ProductFAQ[];
-  relatedProductIds?: string[];
-}
-
-export interface ProductFeature {
-  title: string;
-  description: string;
-}
-
-export interface ProductPricingPlan {
-  id: string;
-  name: string;
-  price: string;
-  description: string;
-  features: string[];
-  isPopular?: boolean;
-}
-
-export interface ProductFAQ {
-  id: string;
-  question: string;
-  answer: string;
-}
-
 export interface Testimonial {
   id: string;
   quote: string;
@@ -112,23 +74,9 @@ export interface Category {
   count: number;
 }
 
-export interface Technology {
-  id: string;
-  name: string;
-  icon?: string;
-}
-
 // =============================================
 // CATEGORIES
 // =============================================
-
-export const productCategories: Category[] = [
-  { id: 'web', name: 'طراحی وب', count: 5 },
-  { id: 'mobile', name: 'اپلیکیشن موبایل', count: 3 },
-  { id: 'saas', name: 'SaaS', count: 4 },
-  { id: 'ecommerce', name: 'فروشگاه آنلاین', count: 3 },
-  { id: 'dashboard', name: 'داشبورد مدیریت', count: 2 },
-];
 
 export const blogCategories: Category[] = [
   { id: 'design', name: 'طراحی', count: 5 },
@@ -145,264 +93,6 @@ export const portfolioCategories: Category[] = [
   { id: 'saas', name: 'SaaS', count: 4 },
 ];
 
-// =============================================
-// TECHNOLOGIES
-// =============================================
-
-export const technologies: Technology[] = [
-  { id: 'react', name: 'React' },
-  { id: 'nextjs', name: 'Next.js' },
-  { id: 'typescript', name: 'TypeScript' },
-  { id: 'tailwind', name: 'Tailwind CSS' },
-  { id: 'aspnet', name: 'ASP.NET Core' },
-  { id: 'sqlserver', name: 'SQL Server' },
-  { id: 'docker', name: 'Docker' },
-  { id: 'kubernetes', name: 'Kubernetes' },
-  { id: 'aws', name: 'AWS' },
-  { id: 'figma', name: 'Figma' },
-  { id: 'nodejs', name: 'Node.js' },
-  { id: 'python', name: 'Python' },
-];
-
-// =============================================
-// PRODUCTS
-// =============================================
-
-export const products: Product[] = [
-  {
-    id: '1',
-    slug: 'web-design-package',
-    title: 'طراحی وب حرفه‌ای',
-    shortDescription: 'طراحی وب‌سایت مدرن با تمرکز بر تجربه کاربری و عملکرد بالا',
-    longDescription: `طراحی وب حرفه‌ای ما شامل یک فرآیند کامل از تحلیل نیازها تا اجرای نهایی است.
-
-ما با درک عمیق از کسب‌وکار و مخاطبان هدف، وب‌سایتی می‌سازیم که نه‌تنها زیبا است، بلکه عملکرد عالی هم دارد.
-
-فرآیند کار ما شامل:
-- تحلیل نیازمندی‌ها و رقبا
-- طراحی UI/UX با استانداردهای روز
-- توسعه با فریمورک‌های مدرن
-- بهینه‌سازی SEO
-- تست و بهینه‌سازی عملکرد`,
-    category: 'web',
-    startingPrice: '۱۵,۰۰۰,۰۰۰',
-    completionTime: '۴-۸ هفته',
-    image: 'https://images.pexels.com/photo/196644/pexels-photo-196644.jpeg',
-    gallery: [
-      'https://images.pexels.com/photo/196644/pexels-photo-196644.jpeg',
-      'https://images.pexels.com/photo/270348/pexels-photo-270348.jpeg',
-      'https://images.pexels.com/photo/3182851/pexels-photo-3182851.jpeg',
-    ],
-    technologies: ['React', 'Next.js', 'TypeScript', 'Tailwind CSS'],
-    features: [
-      { title: 'طراحی مدرن', description: 'طراحی با جدیدترین روندهای UI/UX' },
-      { title: 'رسپانسیو کامل', description: 'نمایش عالی در تمام دستگاه‌ها' },
-      { title: 'سرعت بالا', description: 'بهینه‌سازی حرفه‌ای برای لود سریع' },
-      { title: 'SEO اختصاصی', description: 'بهینه‌سازی موتور جست‌وجو' },
-      { title: 'امنیت', description: 'استانداردهای امنیتی روز' },
-    ],
-    pricingPlans: [
-      {
-        id: '1',
-        name: 'پایه',
-        price: '۱۵,۰۰۰,۰۰۰',
-        description: 'مناسب برای کسب‌وکارهای کوچک',
-        features: ['طراحی ۵ صفحه', 'فرم تماس', 'رسپانسیو', 'SEO پایه'],
-      },
-      {
-        id: '2',
-        name: 'حرفه‌ای',
-        price: '۳۵,۰۰۰,۰۰۰',
-        description: 'پکیج کامل برای رشد',
-        features: ['طراحی نامحدود', 'سیستم مدیریت محتوا', 'آنالیتیکس', 'SEO پیشرفته', 'پشتیبانی ۶ ماهه'],
-        isPopular: true,
-      },
-      {
-        id: '3',
-        name: 'سازمانی',
-        price: '۷۵,۰۰۰,۰۰۰',
-        description: 'راه‌حل سازمانی کامل',
-        features: ['همه امکانات', 'API سفارشی', 'ادغام سیستم‌ها', 'پشتیبانی ۱۲ ماهه', 'SLA تضمینی'],
-      },
-    ],
-    faqs: [
-      { id: '1', question: 'مدت‌زمان اجرای پروژه چقدر است؟', answer: 'معمولاً ۴ تا ۸ هفته بسته به پیچیدگی پروژه.' },
-      { id: '2', question: 'آیا پشتیبانی ارائه می‌دهید؟', answer: 'بله، پشتیبانی از ۳ تا ۱۲ ماه بسته به پکیج انتخابی.' },
-    ],
-    relatedProductIds: ['2', '3'],
-  },
-  {
-    id: '2',
-    slug: 'mobile-app-development',
-    title: 'توسعه اپلیکیشن موبایل',
-    shortDescription: 'اپلیکیشن iOS و Android با کیفیت بالا و کارایی عالی',
-    longDescription: `توسعه اپلیکیشن موبایل با رویکرد کاربرمحور و تکنولوژی‌های روز.
-
-ما اپلیکیشنی می‌سازیم که کاربران عاشق آن شوند. از طراحی تا انتشار در استورها.`,
-    category: 'mobile',
-    startingPrice: '۴۵,۰۰۰,۰۰۰',
-    completionTime: '۸-۱۲ هفته',
-    image: 'https://images.pexels.com/photo/607812/pexels-photo-607812.jpeg',
-    gallery: [
-      'https://images.pexels.com/photo/607812/pexels-photo-607812.jpeg',
-      'https://images.pexels.com/photo/1474217/pexels-photo-1474217.jpeg',
-    ],
-    technologies: ['React', 'TypeScript', 'Node.js', 'AWS'],
-    features: [
-      { title: 'کراس‌پلتفرم', description: 'یک کدبیس برای iOS و Android' },
-      { title: 'عملکرد بومی', description: 'سرعت و کارایی عالی' },
-      { title: 'به‌روزرسانی آسان', description: 'به‌روزرسانی بدون نیاز به انتشار دوباره در استور' },
-    ],
-    pricingPlans: [
-      {
-        id: '1',
-        name: 'MVP',
-        price: '۴۵,۰۰۰,۰۰۰',
-        description: 'نسخه اولیه سریع',
-        features: ['اپلیکیشن ساده', 'iOS و Android', 'ثبت در استور'],
-      },
-      {
-        id: '2',
-        name: 'استاندارد',
-        price: '۸۵,۰۰۰,۰۰۰',
-        description: 'اپلیکیشن کامل',
-        features: ['تمام امکانات MVP', 'اعلان پوش', 'آنالیتیکس', 'پشتیبانی ۶ ماهه'],
-        isPopular: true,
-      },
-    ],
-    faqs: [
-      { id: '1', question: 'هر دو پلتفرم را پشتیبانی می‌کنید؟', answer: 'بله، هم iOS و هم Android.' },
-    ],
-    relatedProductIds: ['1', '4'],
-  },
-  {
-    id: '3',
-    slug: 'saas-platform',
-    title: 'پلتفرم SaaS',
-    shortDescription: 'راه‌اندازی پلتفرم SaaS با معماری مقیاس‌پذیر',
-    longDescription: `ساخت پلتفرم SaaS از صفر تا صد. از معماری تا استقرار در کلود.
-
-معماری ما برای رشد طراحی شده و می‌تواند هزاران کاربر را هم‌زمان پشتیبانی کند.`,
-    category: 'saas',
-    startingPrice: '۱۲۰,۰۰۰,۰۰۰',
-    completionTime: '۱۲-۲۰ هفته',
-    image: 'https://images.pexels.com/photo/1460924/pexels-photo-1460924.jpeg',
-    gallery: [
-      'https://images.pexels.com/photo/1460924/pexels-photo-1460924.jpeg',
-      'https://images.pexels.com/photo/270348/pexels-photo-270348.jpeg',
-    ],
-    technologies: ['React', 'Next.js', 'ASP.NET Core', 'SQL Server', 'Docker', 'Kubernetes'],
-    features: [
-      { title: 'مقیاس‌پذیری', description: 'معماری برای میلیون‌ها کاربر' },
-      { title: 'Multi-tenancy', description: 'پشتیبانی از چند کاربر' },
-      { title: 'پرداخت', description: 'ادغام درگاه پرداخت' },
-    ],
-    pricingPlans: [
-      {
-        id: '1',
-        name: 'MVP',
-        price: '۱۲۰,۰۰۰,۰۰۰',
-        description: 'نسخه اولیه',
-        features: ['احراز هویت', 'داشبورد', 'پرداخت', '۱۰ ماژول اصلی'],
-      },
-      {
-        id: '2',
-        name: 'کامل',
-        price: '۲۵۰,۰۰۰,۰۰۰',
-        description: 'پلتفرم سازمانی کامل',
-        features: ['همه امکانات MVP', 'API کامل', 'وب‌هوک', 'گزارش‌گیری', 'پشتیبانی ۱۲ ماهه'],
-        isPopular: true,
-      },
-    ],
-    faqs: [
-      { id: '1', question: 'چه تکنولوژی‌هایی استفاده می‌کنید؟', answer: 'Next.js, ASP.NET Core, SQL Server, و Docker.' },
-    ],
-    relatedProductIds: ['1', '4'],
-  },
-  {
-    id: '4',
-    slug: 'ecommerce-full',
-    title: 'فروشگاه آنلاین کامل',
-    shortDescription: 'فروشگاه آنلاین با درگاه پرداخت و مدیریت حرفه‌ای',
-    longDescription: `فروشگاه آنلاین با تمام امکانات مورد نیاز برای فروش آنلاین.
-
-از درگاه پرداخت تا مدیریت موجودی و ارسال سفارش‌ها.`,
-    category: 'ecommerce',
-    startingPrice: '۳۵,۰۰۰,۰۰۰',
-    completionTime: '۶-۱۰ هفته',
-    image: 'https://images.pexels.com/photo/230544/pexels-photo-230544.jpeg',
-    gallery: [
-      'https://images.pexels.com/photo/230544/pexels-photo-230544.jpeg',
-      'https://images.pexels.com/photo/3182851/pexels-photo-3182851.jpeg',
-    ],
-    technologies: ['React', 'Next.js', 'TypeScript', 'Node.js'],
-    features: [
-      { title: 'درگاه پرداخت', description: 'اتصال به همه درگاه‌ها' },
-      { title: 'مدیریت محصول', description: 'افزودن و مدیریت محصولات' },
-      { title: 'گزارش فروش', description: 'گزارش‌گیری حرفه‌ای' },
-    ],
-    pricingPlans: [
-      {
-        id: '1',
-        name: 'استاندارد',
-        price: '۳۵,۰۰۰,۰۰۰',
-        description: 'فروشگاه کامل',
-        features: ['تا ۱۰۰ محصول', 'درگاه پرداخت', 'صورت‌حساب', 'سبد خرید'],
-      },
-      {
-        id: '2',
-        name: 'حرفه‌ای',
-        price: '۶۵,۰۰۰,۰۰۰',
-        description: 'فروشگاه پیشرفته',
-        features: ['محصول نامحدود', 'همه امکانات', 'تخفیف و کوپن', 'گزارش پیشرفته', 'پشتیبانی ۶ ماهه'],
-        isPopular: true,
-      },
-    ],
-    faqs: [],
-    relatedProductIds: ['1', '5'],
-  },
-  {
-    id: '5',
-    slug: 'admin-dashboard',
-    title: 'داشبورد مدیریت',
-    shortDescription: 'پنل مدیریت حرفه‌ای با گزارش‌گیری پیشرفته',
-    longDescription: `داشبورد مدیریت برای کنترل کامل کسب‌وکار شما.
-
-نمایش داده‌ها، مدیریت کاربران، و گزارش‌گیری پیشرفته.`,
-    category: 'dashboard',
-    startingPrice: '۴۵,۰۰۰,۰۰۰',
-    completionTime: '۶-۸ هفته',
-    image: 'https://images.pexels.com/photo/669615/pexels-photo-669615.jpeg',
-    gallery: [
-      'https://images.pexels.com/photo/669615/pexels-photo-669615.jpeg',
-    ],
-    technologies: ['React', 'TypeScript', 'ASP.NET Core', 'SQL Server'],
-    features: [
-      { title: 'نمای کلی', description: 'داشبورد با چارت‌ها' },
-      { title: 'مدیریت کاربران', description: 'سیستم کاربران و سطوح دسترسی' },
-      { title: 'گزارش‌گیری', description: 'گزارش‌های قابل چاپ' },
-    ],
-    pricingPlans: [
-      {
-        id: '1',
-        name: 'استاندارد',
-        price: '۴۵,۰۰۰,۰۰۰',
-        description: 'داشبورد پایه',
-        features: ['نمای کلی', 'مدیریت کاربران', 'گزارش ساده'],
-      },
-      {
-        id: '2',
-        name: 'پیشرفته',
-        price: '۸۵,۰۰۰,۰۰۰',
-        description: 'داشبورد کامل',
-        features: ['همه امکانات', 'چارت‌های پیشرفته', 'API', 'گزارش PDF', 'پشتیبانی ۱۲ ماهه'],
-        isPopular: true,
-      },
-    ],
-    faqs: [],
-    relatedProductIds: ['3', '4'],
-  },
-];
 
 // =============================================
 // PROJECTS/PORTFOLIO (Extended)
@@ -819,22 +509,12 @@ export const stats = {
 // HELPER FUNCTIONS
 // =============================================
 
-export function getProductBySlug(slug: string): Product | undefined {
-  return products.find((p) => p.slug === slug);
-}
-
 export function getProjectBySlug(slug: string): Project | undefined {
   return projects.find((p) => p.slug === slug);
 }
 
 export function getBlogPostBySlug(slug: string): BlogPost | undefined {
   return blogPosts.find((p) => p.slug === slug);
-}
-
-export function getRelatedProducts(productId: string): Product[] {
-  const product = products.find((p) => p.id === productId);
-  if (!product?.relatedProductIds) return [];
-  return products.filter((p) => product.relatedProductIds?.includes(p.id));
 }
 
 export function getFeaturedProjects(): Project[] {

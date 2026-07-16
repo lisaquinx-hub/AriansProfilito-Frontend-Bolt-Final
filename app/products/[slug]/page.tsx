@@ -1,7 +1,5 @@
 'use client';
 
-// Local catalog products and backend service slugs share this detail route.
-
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -9,6 +7,7 @@ import Link from 'next/link';
 import { ArrowRight, Check, Loader2, AlertCircle, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SectionTitle } from '@/components/shared';
+import { BlogCoverImage } from '@/components/shared/BlogCoverImage';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { productService } from '@/services/ProductService';
@@ -84,11 +83,13 @@ export default function ProductDetailsPage() {
         >
           <div className="grid lg:grid-cols-2 gap-8">
             <div className="relative aspect-video lg:aspect-square">
-              <div className="absolute inset-0 bg-gradient-to-br from-sky-500/20 to-blue-500/20 dark:from-blue-500/20 dark:to-cyan-500/20 flex items-center justify-center">
-                <span className="text-[150px] font-bold text-foreground/10">
-                  {service.title[0]}
-                </span>
-              </div>
+              <BlogCoverImage
+                src={service.coverImage || service.thumbnail}
+                alt={service.title}
+                className="absolute inset-0 h-full w-full"
+                fallbackClassName="text-[150px]"
+                eager
+              />
               {service.isFeatured && (
                 <span className="absolute top-4 right-4 px-4 py-2 rounded-full text-sm font-medium bg-sky-500/20 dark:bg-cyan-500/20 text-sky-500 dark:text-cyan-400">
                   ویژه

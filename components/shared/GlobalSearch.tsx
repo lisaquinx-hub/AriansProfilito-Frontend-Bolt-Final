@@ -5,10 +5,11 @@ import { motion } from 'framer-motion';
 import { Loader2, Search, X } from 'lucide-react';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
-import { products } from '@/lib/mock-data';
 import { blogPostService } from '@/services/BlogPostService';
 import { portfolioService } from '@/services/PortfolioService';
-import { BlogPost, PortfolioListItem } from '@/types/api';
+import { productService } from '@/services/ProductService';
+import { BlogPost, PortfolioListItem, Service } from '@/types/api';
+import { BlogCoverImage } from './BlogCoverImage';
 
 interface GlobalSearchProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ interface GlobalSearchProps {
 
 export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
   const [query, setQuery] = useState('');
+  const [products, setProducts] = useState<Service[]>([]);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [projects, setProjects] = useState<PortfolioListItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -38,14 +40,17 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
 
     setIsLoading(true);
     void Promise.all([
+      productService.getProducts(),
       blogPostService.getAll({ pageNumber: 1, pageSize: 50 }),
       portfolioService.getItems({ pageNumber: 1, pageSize: 50 }),
-    ]).then(([posts, portfolio]) => {
+    ]).then(([services, posts, portfolio]) => {
       if (cancelled) return;
+      setProducts(services);
       setBlogPosts(posts);
       setProjects(portfolio.items || []);
     }).catch(() => {
       if (cancelled) return;
+      setProducts([]);
       setBlogPosts([]);
       setProjects([]);
     }).finally(() => {
@@ -67,7 +72,9 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
       products: products.filter(
         (product) =>
           product.title.toLocaleLowerCase('fa-IR').includes(normalizedQuery) ||
-          product.shortDescription.toLocaleLowerCase('fa-IR').includes(normalizedQuery)
+          (product.shortDescription || product.description || '')
+            .toLocaleLowerCase('fa-IR')
+            .includes(normalizedQuery)
       ).slice(0, 3),
       blogPosts: blogPosts.filter(
         (post) =>
@@ -81,7 +88,7 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
           project.clientName.toLocaleLowerCase('fa-IR').includes(normalizedQuery)
       ).slice(0, 3),
     };
-  }, [blogPosts, projects, query]);
+  }, [blogPosts, products, projects, query]);
 
   const totalResults = results.products.length + results.blogPosts.length + results.projects.length;
 
@@ -153,12 +160,19 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                         onClick={onClose}
                         className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors"
                       >
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-sky-500/20 to-blue-500/20 flex items-center justify-center text-lg font-bold text-foreground/20">
-                          {product.title[0]}
-                        </div>
+                        <BlogCoverImage
+                          src={product.thumbnail || product.coverImage}
+                          alt={product.title}
+                          className="w-10 h-10 rounded-lg shrink-0"
+                          fallbackClassName="text-lg"
+                        />
                         <div>
                           <div className="font-medium">{product.title}</div>
-                          <div className="text-sm text-muted-foreground">{product.startingPrice} تومان</div>
+                          <div className="text-sm text-muted-foreground">
+                            {product.estimatedDeliveryDays
+                              ? `${product.estimatedDeliveryDays} روز`
+                              : 'زمان توافقی'}
+                          </div>
                         </div>
                       </Link>
                     ))}
