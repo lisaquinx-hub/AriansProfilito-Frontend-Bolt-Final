@@ -33,8 +33,16 @@ export default function RegisterPage() {
       setError('رمز عبور و تکرار آن مطابقت ندارند');
       return;
     }
-    if (formData.password.length < 6) {
-      setError('رمز عبور باید حداقل ۶ کاراکتر باشد');
+    if (!/^[a-zA-Z0-9._-]{3,100}$/.test(formData.userName.trim())) {
+      setError('نام کاربری باید ۳ تا ۱۰۰ کاراکتر و فقط شامل حروف انگلیسی، عدد، نقطه، خط تیره یا زیرخط باشد');
+      return;
+    }
+    if (formData.password.length < 12) {
+      setError('رمز عبور باید حداقل ۱۲ کاراکتر باشد');
+      return;
+    }
+    if (!/[A-Z]/.test(formData.password) || !/[a-z]/.test(formData.password) || !/[0-9]/.test(formData.password)) {
+      setError('رمز عبور باید شامل حرف بزرگ، حرف کوچک و عدد باشد');
       return;
     }
 
@@ -43,7 +51,7 @@ export default function RegisterPage() {
       await authService.register({
         fullName: formData.fullName.trim(),
         email: formData.email.trim(),
-        userName: formData.userName.trim() || formData.email.trim(),
+        userName: formData.userName.trim(),
         password: formData.password,
       });
       emitAuthChanged();
@@ -95,6 +103,7 @@ export default function RegisterPage() {
                   value={formData.fullName}
                   onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                   autoComplete="name"
+                  maxLength={150}
                   className="pr-10 bg-muted/50 border-border focus:border-sky-500"
                   required
                 />
@@ -112,6 +121,7 @@ export default function RegisterPage() {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   autoComplete="email"
+                  maxLength={256}
                   className="pr-10 bg-muted/50 border-border focus:border-sky-500"
                   required
                 />
@@ -125,11 +135,15 @@ export default function RegisterPage() {
                 <Input
                   id="userName"
                   type="text"
-                  placeholder="نام کاربری (اختیاری)"
+                  placeholder="مثلاً arian.dev"
                   value={formData.userName}
                   onChange={(e) => setFormData({ ...formData, userName: e.target.value })}
                   autoComplete="username"
+                  minLength={3}
+                  maxLength={100}
+                  pattern="[a-zA-Z0-9._-]+"
                   className="pr-10 bg-muted/50 border-border focus:border-sky-500"
+                  required
                 />
               </div>
             </div>
@@ -141,11 +155,12 @@ export default function RegisterPage() {
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="حداقل ۶ کاراکتر"
+                  placeholder="حداقل ۱۲ کاراکتر، شامل حروف بزرگ و کوچک و عدد"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   autoComplete="new-password"
-                  minLength={6}
+                  minLength={12}
+                  maxLength={128}
                   className="pr-10 pl-10 bg-muted/50 border-border focus:border-sky-500"
                   required
                 />
@@ -171,7 +186,8 @@ export default function RegisterPage() {
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                   autoComplete="new-password"
-                  minLength={6}
+                  minLength={12}
+                  maxLength={128}
                   className="pr-10 bg-muted/50 border-border focus:border-sky-500"
                   required
                 />
@@ -194,6 +210,18 @@ export default function RegisterPage() {
                 </>
               )}
             </Button>
+
+            <p className="text-center text-xs leading-6 text-muted-foreground">
+              با ایجاد حساب،{' '}
+              <Link href="/terms" className="text-sky-500 hover:text-sky-600 dark:text-cyan-400">
+                شرایط استفاده
+              </Link>{' '}
+              و{' '}
+              <Link href="/privacy" className="text-sky-500 hover:text-sky-600 dark:text-cyan-400">
+                حریم خصوصی
+              </Link>{' '}
+              را می‌پذیرید.
+            </p>
           </form>
 
           <p className="text-center text-muted-foreground mt-6">

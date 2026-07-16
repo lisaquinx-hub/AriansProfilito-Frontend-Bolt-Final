@@ -1,23 +1,24 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, Mail, Phone, Edit2, Save, AlertCircle, KeyRound, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { userService, UserProfile, UpdateProfileRequest } from '@/services/UserService';
-import { useAuth, emitAuthChanged } from '@/hooks/useAuth';
-import { getApiErrorMessage } from '@/services/api';
-import { setStoredUser } from '@/lib/auth';
+import { emitAuthChanged } from '@/hooks/useAuth';
+import { getApiErrorMessage, resetCsrfToken } from '@/services/api';
+import { clearAuthSession } from '@/lib/auth';
+import { toast } from 'sonner';
 
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [formData, setFormData] = useState<UpdateProfileRequest>({
     fullName: '',
@@ -75,11 +76,12 @@ export default function ProfilePage() {
         avatar: formData.avatar || undefined,
       });
       setProfile(updated);
-      setStoredUser({ ...(user || {}), fullName: updated.fullName, email: updated.email, avatar: updated.avatar });
+      clearAuthSession();
+      resetCsrfToken();
       emitAuthChanged();
       setIsEditing(false);
-      setSuccessMsg('پروفایل با موفقیت به‌روزرسانی شد');
-      setTimeout(() => setSuccessMsg(null), 3000);
+      toast.success('پروفایل به‌روزرسانی شد؛ لطفاً دوباره وارد شوید');
+      router.replace('/login');
     } catch (err) {
       setError(getApiErrorMessage(err));
     } finally {
@@ -97,8 +99,12 @@ export default function ProfilePage() {
       setPasswordError('رمز عبور جدید و تکرار آن مطابقت ندارند');
       return;
     }
-    if (passwordData.newPassword.length < 6) {
-      setPasswordError('رمز عبور جدید باید حداقل ۶ کاراکتر باشد');
+    if (passwordData.newPassword.length < 12) {
+      setPasswordError('رمز عبور جدید باید حداقل ۱۲ کاراکتر باشد');
+      return;
+    }
+    if (!/[A-Z]/.test(passwordData.newPassword) || !/[a-z]/.test(passwordData.newPassword) || !/[0-9]/.test(passwordData.newPassword)) {
+      setPasswordError('رمز عبور جدید باید شامل حرف بزرگ، حرف کوچک و عدد باشد');
       return;
     }
     setIsChangingPassword(true);
@@ -106,8 +112,11 @@ export default function ProfilePage() {
       await userService.changePassword({ currentPassword: passwordData.currentPassword, newPassword: passwordData.newPassword });
       setIsPasswordModalOpen(false);
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      setSuccessMsg('رمز عبور با موفقیت تغییر یافت');
-      setTimeout(() => setSuccessMsg(null), 3000);
+      clearAuthSession();
+      resetCsrfToken();
+      emitAuthChanged();
+      toast.success('رمز عبور تغییر کرد؛ لطفاً دوباره وارد شوید');
+      router.replace('/login');
     } catch (err) {
       setPasswordError(getApiErrorMessage(err));
     } finally {
@@ -140,13 +149,6 @@ export default function ProfilePage() {
           </Button>
         )}
       </div>
-
-      {successMsg && (
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-          className="p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-500 text-sm flex items-center gap-2">
-          <AlertCircle className="w-4 h-4" />{successMsg}
-        </motion.div>
-      )}
 
       {error && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
@@ -251,15 +253,15 @@ export default function ProfilePage() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label>رمز عبور فعلی</Label>
-                  <Input type="password" value={passwordData.currentPassword} onChange={e => setPasswordData(p => ({ ...p, currentPassword: e.target.value }))} className="bg-muted/50 border-border" />
+                  <Input type="password" value={passwordData.currentPassword} onChange={e => setPasswordData(p => ({ ...p, currentPassword: e.target.value }))} autoComplete="current-password" maxLength={128} className="bg-muted/50 border-border" />
                 </div>
                 <div className="space-y-2">
                   <Label>رمز عبور جدید</Label>
-                  <Input type="password" value={passwordData.newPassword} onChange={e => setPasswordData(p => ({ ...p, newPassword: e.target.value }))} className="bg-muted/50 border-border" />
+                  <Input type="password" value={passwordData.newPassword} onChange={e => setPasswordData(p => ({ ...p, newPassword: e.target.value }))} autoComplete="new-password" minLength={12} maxLength={128} placeholder="حداقل ۱۲ کاراکتر، شامل حروف بزرگ و کوچک و عدد" className="bg-muted/50 border-border" />
                 </div>
                 <div className="space-y-2">
                   <Label>تکرار رمز عبور جدید</Label>
-                  <Input type="password" value={passwordData.confirmPassword} onChange={e => setPasswordData(p => ({ ...p, confirmPassword: e.target.value }))} className="bg-muted/50 border-border" />
+                  <Input type="password" value={passwordData.confirmPassword} onChange={e => setPasswordData(p => ({ ...p, confirmPassword: e.target.value }))} autoComplete="new-password" minLength={12} maxLength={128} className="bg-muted/50 border-border" />
                 </div>
               </div>
               <div className="flex gap-3 mt-5">

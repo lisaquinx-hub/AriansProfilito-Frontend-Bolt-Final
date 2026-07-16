@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import {
-  getAccessToken,
+  clearAuthSession,
   getStoredUser,
-  removeAccessToken,
+  isAuthenticated,
   hasAdminRole,
   type StoredUser,
 } from '@/lib/auth';
@@ -31,9 +31,7 @@ export function useAuth(): AuthState & {
 
   const refresh = useCallback(() => {
     if (typeof window === 'undefined') return;
-    const token = getAccessToken();
-
-    if (!token) {
+    if (!isAuthenticated()) {
       setState({ isAuthenticated: false, user: null, isAdmin: false, isLoading: false });
       return;
     }
@@ -57,7 +55,7 @@ export function useAuth(): AuthState & {
   }, [refresh]);
 
   const logoutFn = useCallback(() => {
-    removeAccessToken();
+    clearAuthSession();
     setState({ isAuthenticated: false, user: null, isAdmin: false, isLoading: false });
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('auth-changed'));

@@ -1,6 +1,6 @@
 import { api, getApiErrorMessage } from './api';
 import { ApiResponse, normalizeArray, normalizeObject } from '@/lib/api-utils';
-import { FileAttachment } from '@/types/api';
+import { FileAttachment, PublicFileAttachment } from '@/types/api';
 
 class FileAttachmentsService {
   private endpoint = '/file-attachments';
@@ -15,12 +15,12 @@ class FileAttachmentsService {
     }
   }
 
-  async getPublicByReference(module: string, referenceId: string): Promise<FileAttachment[]> {
+  async getPublicByReference(module: string, referenceId: string): Promise<PublicFileAttachment[]> {
     try {
-      const response = await api.get<ApiResponse<FileAttachment[]>>(
+      const response = await api.get<ApiResponse<PublicFileAttachment[]>>(
         `${this.endpoint}/public/${encodeURIComponent(module)}/${referenceId}`
       );
-      return normalizeArray<FileAttachment>(response.data);
+      return normalizeArray<PublicFileAttachment>(response.data);
     } catch (error) {
       throw new Error(getApiErrorMessage(error));
     }

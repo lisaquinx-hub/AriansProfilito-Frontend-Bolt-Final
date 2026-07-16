@@ -374,6 +374,11 @@ export interface FileAttachment {
   updatedAt?: string;
 }
 
+export type PublicFileAttachment = Omit<
+  FileAttachment,
+  'uploadedByUserId' | 'uploadedByFullName' | 'uploadedByEmail' | 'isPublic'
+>;
+
 export interface ProjectFile {
   id: string;
   projectId: string;

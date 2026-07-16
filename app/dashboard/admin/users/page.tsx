@@ -152,6 +152,14 @@ export default function AdminUsersPage() {
 
   const handleResetPassword = async () => {
     if (!resetItem || !newPassword.trim()) return;
+    if (newPassword.length < 12 || newPassword.length > 128) {
+      setResetError('رمز عبور باید بین ۱۲ تا ۱۲۸ کاراکتر باشد');
+      return;
+    }
+    if (!/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
+      setResetError('رمز عبور باید شامل حرف بزرگ، حرف کوچک و عدد باشد');
+      return;
+    }
     setIsResetting(true);
     setResetError(null);
     try {
@@ -210,7 +218,7 @@ export default function AdminUsersPage() {
 
   const createFields: FormField[] = [
     ...editFields.slice(0, 4),
-    { key: 'password', label: 'رمز عبور', type: 'password', required: true },
+    { key: 'password', label: 'رمز عبور', type: 'password', required: true, placeholder: 'حداقل ۱۲ کاراکتر، شامل حروف بزرگ و کوچک و عدد' },
     ...editFields.slice(4),
   ];
 
@@ -356,7 +364,10 @@ export default function AdminUsersPage() {
                     value={newPassword}
                     onChange={e => setNewPassword(e.target.value)}
                     className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
-                    placeholder="رمز عبور جدید را وارد کنید"
+                    minLength={12}
+                    maxLength={128}
+                    autoComplete="new-password"
+                    placeholder="حداقل ۱۲ کاراکتر، شامل حروف بزرگ و کوچک و عدد"
                     onKeyDown={e => e.key === 'Enter' && handleResetPassword()}
                   />
                 </div>

@@ -18,6 +18,7 @@ export function AuthGuard({ children, requireAdmin = false }: AuthGuardProps) {
   const router = useRouter();
   const [isChecking, setIsChecking] = useState(true);
   const [authState, setAuthState] = useState<'authenticated' | 'denied' | 'unauthenticated'>('unauthenticated');
+  const [roleDenied, setRoleDenied] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -36,30 +37,28 @@ export function AuthGuard({ children, requireAdmin = false }: AuthGuardProps) {
         return;
       }
 
-      if (requireAdmin) {
-        try {
-          const user = await authService.getMe();
-          if (!hasAdminRole(user)) {
-            if (cancelled) return;
-            setAuthState('denied');
-            setIsChecking(false);
-            return;
-          }
-        } catch {
-          // Never grant the admin UI from locally cached role data when the
-          // server cannot verify the current user.
-          if (!isAuthenticated()) {
-            if (cancelled) return;
-            setAuthState('unauthenticated');
-            setIsChecking(false);
-            redirectToLogin();
-            return;
-          }
+      try {
+        const user = await authService.getMe();
+        if (requireAdmin && !hasAdminRole(user)) {
           if (cancelled) return;
+          setRoleDenied(true);
           setAuthState('denied');
           setIsChecking(false);
           return;
         }
+      } catch {
+        if (!isAuthenticated()) {
+          if (cancelled) return;
+          setAuthState('unauthenticated');
+          setIsChecking(false);
+          redirectToLogin();
+          return;
+        }
+        if (cancelled) return;
+        setRoleDenied(false);
+        setAuthState('denied');
+        setIsChecking(false);
+        return;
       }
 
       if (cancelled) return;
@@ -98,7 +97,9 @@ export function AuthGuard({ children, requireAdmin = false }: AuthGuardProps) {
             شما به این بخش دسترسی ندارید.
           </p>
           <p className="text-muted-foreground text-sm mb-8">
-            برای ورود به پنل مدیریت نیاز به نقش مدیر دارید.
+            {roleDenied
+              ? 'برای ورود به پنل مدیریت نیاز به نقش مدیر دارید.'
+              : 'تأیید نشست شما از سمت سرور امکان‌پذیر نیست؛ دوباره تلاش کنید.'}
           </p>
           <div className="flex flex-col gap-3">
             <Button asChild className="btn-primary w-full shadow-glow">

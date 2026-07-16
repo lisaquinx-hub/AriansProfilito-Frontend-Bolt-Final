@@ -1,7 +1,13 @@
-import axios, { AxiosError, AxiosResponse } from 'axios';
-import { getAccessToken, removeAccessToken } from '@/lib/auth';
+import axios, {
+  AxiosError,
+  AxiosHeaders,
+  AxiosResponse,
+  InternalAxiosRequestConfig,
+} from 'axios';
+import { clearAuthSession } from '@/lib/auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://localhost:7297/api';
+const CSRF_HEADER_NAME = 'X-CSRF-TOKEN';
 
 export interface ApiError {
   success?: false;
@@ -10,7 +16,28 @@ export interface ApiError {
   data?: unknown;
 }
 
+interface RetryableRequestConfig extends InternalAxiosRequestConfig {
+  _authRetry?: boolean;
+}
+
+interface CsrfResponse {
+  data?: { token?: string };
+}
+
 const isBrowser = () => typeof window !== 'undefined';
+const UNSAFE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+const AUTH_ROUTES = ['/login', '/register'];
+const NO_REFRESH_ENDPOINTS = [
+  '/Auth/login',
+  '/Auth/register',
+  '/Auth/refresh-token',
+  '/Auth/logout',
+  '/Auth/csrf-token',
+];
+
+let csrfToken: string | null = null;
+let csrfRequest: Promise<string> | null = null;
+let refreshRequest: Promise<void> | null = null;
 
 function isApiOrigin(url?: string): boolean {
   try {
@@ -22,28 +49,80 @@ function isApiOrigin(url?: string): boolean {
   }
 }
 
-const AUTH_ROUTES = ['/login', '/register'];
-
 function isPublicAuthRoute(pathname: string): boolean {
-  return AUTH_ROUTES.some(
-    (route) => pathname === route || pathname.startsWith(`${route}/`)
-  );
+  return AUTH_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
+}
+
+function isUnsafeMethod(method?: string): boolean {
+  return UNSAFE_METHODS.has((method || 'GET').toUpperCase());
+}
+
+function isRefreshExcluded(url?: string): boolean {
+  return NO_REFRESH_ENDPOINTS.some((endpoint) => (url || '').includes(endpoint));
+}
+
+const sessionApi = axios.create({
+  baseURL: API_BASE_URL,
+  headers: { 'Content-Type': 'application/json' },
+  withCredentials: true,
+  timeout: 15_000,
+});
+
+async function fetchCsrfToken(): Promise<string> {
+  if (csrfToken) return csrfToken;
+  if (!csrfRequest) {
+    csrfRequest = sessionApi
+      .get<CsrfResponse>('/Auth/csrf-token')
+      .then((response) => {
+        const token = response.data?.data?.token;
+        if (!token) throw new Error('توکن امنیتی درخواست دریافت نشد');
+        csrfToken = token;
+        return token;
+      })
+      .finally(() => {
+        csrfRequest = null;
+      });
+  }
+  return csrfRequest;
+}
+
+async function refreshSession(): Promise<void> {
+  if (!refreshRequest) {
+    resetCsrfToken();
+    refreshRequest = fetchCsrfToken()
+      .then((token) => sessionApi.post(
+        '/Auth/refresh-token',
+        null,
+        { headers: { [CSRF_HEADER_NAME]: token } }
+      ))
+      .then(() => {
+        resetCsrfToken();
+      })
+      .finally(() => {
+        refreshRequest = null;
+      });
+  }
+  return refreshRequest;
+}
+
+export function resetCsrfToken(): void {
+  csrfToken = null;
+  csrfRequest = null;
 }
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
-  withCredentials: false,
+  withCredentials: true,
   timeout: 15_000,
 });
 
 api.interceptors.request.use(
-  (config) => {
-    if (isBrowser()) {
-      const token = getAccessToken();
-      if (token && config.headers && isApiOrigin(config.url)) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
+  async (config) => {
+    if (isBrowser() && isUnsafeMethod(config.method) && isApiOrigin(config.url)) {
+      const token = await fetchCsrfToken();
+      config.headers = AxiosHeaders.from(config.headers);
+      config.headers.set(CSRF_HEADER_NAME, token);
     }
     return config;
   },
@@ -52,18 +131,32 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response: AxiosResponse) => response,
-  (error: AxiosError<ApiError>) => {
-    if (error.response?.status === 401) {
-      if (isBrowser()) {
-        removeAccessToken();
-        window.dispatchEvent(new Event('auth-changed'));
-
-        if (!isPublicAuthRoute(window.location.pathname)) {
-          const redirect = `${window.location.pathname}${window.location.search}`;
-          window.location.replace(`/login?redirect=${encodeURIComponent(redirect)}`);
-        }
+  async (error: AxiosError<ApiError>) => {
+    const config = error.config as RetryableRequestConfig | undefined;
+    if (
+      error.response?.status === 401 &&
+      config &&
+      !config._authRetry &&
+      !isRefreshExcluded(config.url)
+    ) {
+      config._authRetry = true;
+      try {
+        await refreshSession();
+        return await api.request(config);
+      } catch {
+        // Continue through the shared unauthenticated path.
       }
     }
+
+    if (error.response?.status === 401 && isBrowser()) {
+      clearAuthSession();
+      window.dispatchEvent(new Event('auth-changed'));
+      if (!isPublicAuthRoute(window.location.pathname)) {
+        const redirect = `${window.location.pathname}${window.location.search}`;
+        window.location.replace(`/login?redirect=${encodeURIComponent(redirect)}`);
+      }
+    }
+
     return Promise.reject(error);
   }
 );
@@ -84,17 +177,9 @@ function isSafeErrorText(value: string): boolean {
 
 function flattenErrors(value: unknown, depth = 0): string[] {
   if (depth > 3 || value === null || value === undefined) return [];
-
-  if (typeof value === 'string') {
-    return isSafeErrorText(value) ? [value.trim()] : [];
-  }
-
-  if (Array.isArray(value)) {
-    return value.flatMap((item) => flattenErrors(item, depth + 1));
-  }
-
+  if (typeof value === 'string') return isSafeErrorText(value) ? [value.trim()] : [];
+  if (Array.isArray(value)) return value.flatMap((item) => flattenErrors(item, depth + 1));
   if (typeof value !== 'object') return [];
-
   return Object.entries(value as Record<string, unknown>)
     .filter(([key]) => !HIDDEN_ERROR_KEYS.has(key))
     .flatMap(([, item]) => flattenErrors(item, depth + 1));
@@ -109,7 +194,6 @@ export function getApiErrorMessage(error: unknown): string {
     if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
       return 'زمان پاسخ‌گویی سرور به پایان رسید؛ دوباره تلاش کنید';
     }
-
     if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
       return 'خطای شبکه - اتصال خود را بررسی کنید';
     }
@@ -125,7 +209,6 @@ export function getApiErrorMessage(error: unknown): string {
     if (data) {
       const messages = flattenErrors(data.errors);
       if (messages.length > 0) return Array.from(new Set(messages)).join(' | ');
-
       if (
         typeof data.message === 'string' &&
         data.message !== 'An unexpected error occurred.' &&
@@ -134,6 +217,7 @@ export function getApiErrorMessage(error: unknown): string {
         return data.message.trim();
       }
     }
+
     if (status === 400) return 'اطلاعات ارسالی نامعتبر است';
     if (status === 409) return 'این اطلاعات با داده‌های موجود تداخل دارد';
     if (status === 422) return 'اطلاعات واردشده قابل پردازش نیست';

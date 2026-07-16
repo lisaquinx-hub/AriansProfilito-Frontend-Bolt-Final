@@ -1,6 +1,12 @@
-import { api, getApiErrorMessage } from './api';
+import { api, getApiErrorMessage, resetCsrfToken } from './api';
 import { ApiResponse, normalizeObject } from '@/lib/api-utils';
-import { setAccessToken, removeAccessToken, setStoredUser, getStoredUser, isAuthenticated } from '@/lib/auth';
+import {
+  clearAuthSession,
+  getStoredUser,
+  isAuthenticated,
+  setAuthSession,
+  setStoredUser,
+} from '@/lib/auth';
 
 export interface LoginRequest {
   emailOrUserName: string;
@@ -27,10 +33,8 @@ export interface AuthUser {
 }
 
 export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
-  accessTokenExpiresAt: string;
-  refreshTokenExpiresAt: string;
+  accessTokenExpiresAt?: string;
+  refreshTokenExpiresAt?: string;
   user: AuthUser;
 }
 
@@ -39,30 +43,21 @@ class AuthService {
 
   private parseAuthResponse(value: unknown): AuthResponse {
     const responseData = normalizeObject<AuthResponse>(value);
-    if (!responseData?.accessToken || !responseData.user) {
+    if (!responseData?.user?.id) {
       throw new Error('پاسخ احراز هویت سرور نامعتبر است');
     }
     return responseData;
   }
 
-  private storeAuth(responseData: AuthResponse, persistent: boolean): void {
-    setAccessToken(responseData.accessToken, persistent);
-    setStoredUser({
-      id: responseData.user.id,
-      fullName: responseData.user.fullName,
-      email: responseData.user.email,
-      userName: responseData.user.userName,
-      role: responseData.user.role,
-      avatar: responseData.user.avatar,
-      isActive: responseData.user.isActive,
-    });
-  }
-
   async login(data: LoginRequest, persistent = false): Promise<AuthResponse> {
     try {
-      const response = await api.post<ApiResponse<AuthResponse>>(`${this.endpoint}/login`, data);
+      const response = await api.post<ApiResponse<AuthResponse>>(
+        `${this.endpoint}/login`,
+        { ...data, rememberMe: persistent }
+      );
       const responseData = this.parseAuthResponse(response.data);
-      this.storeAuth(responseData, persistent);
+      resetCsrfToken();
+      setAuthSession(responseData.user, persistent);
       return responseData;
     } catch (error) {
       throw new Error(getApiErrorMessage(error));
@@ -73,7 +68,8 @@ class AuthService {
     try {
       const response = await api.post<ApiResponse<AuthResponse>>(`${this.endpoint}/register`, data);
       const responseData = this.parseAuthResponse(response.data);
-      this.storeAuth(responseData, false);
+      resetCsrfToken();
+      setAuthSession(responseData.user, false);
       return responseData;
     } catch (error) {
       throw new Error(getApiErrorMessage(error));
@@ -81,15 +77,22 @@ class AuthService {
   }
 
   async logout(): Promise<void> {
-    // Swagger does not expose a logout endpoint; ending the local bearer session is sufficient.
-    removeAccessToken();
+    resetCsrfToken();
+    try {
+      await api.post(`${this.endpoint}/logout`);
+    } catch {
+      // Local state is still cleared if the server is unavailable.
+    } finally {
+      clearAuthSession();
+      resetCsrfToken();
+    }
   }
 
   async getMe(): Promise<AuthUser> {
     try {
       const response = await api.get<ApiResponse<AuthUser>>(`${this.endpoint}/me`);
       const user = normalizeObject<AuthUser>(response.data);
-      if (!user) throw new Error('پاسخ اطلاعات کاربر نامعتبر است');
+      if (!user?.id) throw new Error('پاسخ اطلاعات کاربر نامعتبر است');
       setStoredUser(user);
       return user;
     } catch (error) {
