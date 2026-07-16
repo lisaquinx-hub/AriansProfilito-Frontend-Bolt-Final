@@ -8,7 +8,9 @@
     "build": "npm run clean && next build",
     "start": "next start",
     "lint": "eslint app components hooks lib services types --ext .ts,.tsx --max-warnings=0",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "npm run clean && tsc --noEmit",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "verify": "npm run typecheck && npm run lint && npm audit --audit-level=low && npm run build"
   },
   "dependencies": {
@@ -63,6 +65,7 @@
   "devDependencies": {
     "@netlify/plugin-nextjs": "^5.15.1",
     "@next/swc-wasm-nodejs": "15.5.18",
+    "@playwright/test": "^1.61.1",
     "@types/node": "20.6.2",
     "@types/react": "18.2.22",
     "@types/react-dom": "18.2.7",

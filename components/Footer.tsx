@@ -26,6 +26,8 @@ const quickLinks = [
 const helpLinks = [
   { href: '/#faq', label: 'سؤالات متداول' },
   { href: '/#contact', label: 'تماس و پشتیبانی' },
+  { href: '/privacy', label: 'حریم خصوصی' },
+  { href: '/terms', label: 'شرایط استفاده' },
 ];
 
 export default function Footer() {
