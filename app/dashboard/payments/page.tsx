@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CreditCard, AlertCircle, X, Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { EntityIdLookup } from '@/components/admin/EntityIdLookup';
 import { paymentService, PaymentListItem, PaymentDetail } from '@/services/PaymentService';
 import { getApiErrorMessage } from '@/services/api';
 
@@ -73,13 +72,6 @@ export default function PaymentsPage() {
           به‌روزرسانی
         </Button>
       </div>
-
-      <EntityIdLookup<PaymentDetail>
-        entityLabel="پرداخت شما"
-        getById={(id) => paymentService.getMyPaymentById(id)}
-        onResult={(item) => setPayments(item ? [item] : [])}
-        onClear={() => void fetchPayments()}
-      />
 
       {error && (
         <div className="glass rounded-xl p-6 text-center">

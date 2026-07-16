@@ -104,10 +104,6 @@ export default function NotificationsPage() {
           onView={handleView}
           onDelete={(item) => setDeleteId(item.id)}
           extraActions={[{ label: 'علامت‌گذاری به‌عنوان خوانده‌شده', icon: <CheckCheck className="w-4 h-4 ml-2" />, onClick: (item) => void markRead(item) }]}
-          idLookup={{
-            entityLabel: 'اعلان شما',
-            getById: (id) => notificationsService.getById(id),
-          }}
           emptyMessage="اعلانی یافت نشد"
         />
       </CardContent></Card>

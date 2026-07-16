@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FileText, AlertCircle, X, Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { EntityIdLookup } from '@/components/admin/EntityIdLookup';
 import { invoiceService, InvoiceListItem, InvoiceDetail } from '@/services/InvoiceService';
 import { getApiErrorMessage } from '@/services/api';
 
@@ -73,13 +72,6 @@ export default function InvoicesPage() {
           به‌روزرسانی
         </Button>
       </div>
-
-      <EntityIdLookup<InvoiceDetail>
-        entityLabel="فاکتور شما"
-        getById={(id) => invoiceService.getMyInvoiceById(id)}
-        onResult={(item) => setInvoices(item ? [item] : [])}
-        onClear={() => void fetchInvoices()}
-      />
 
       {error && (
         <div className="glass rounded-xl p-6 text-center">

@@ -151,20 +151,23 @@ export interface BlogPost {
   updatedAt?: string;
 }
 
-export interface Comment {
+export interface PublicComment {
   id: string;
   blogPostId: string;
+  parentCommentId?: string;
+  fullName: string;
+  message: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface Comment extends PublicComment {
   blogPostTitle?: string;
   userId?: string;
   userFullName?: string;
   userEmail?: string;
-  parentCommentId?: string;
-  fullName: string;
   email: string;
-  message: string;
   isApproved: boolean;
-  createdAt: string;
-  updatedAt?: string;
 }
 
 export interface Technology {

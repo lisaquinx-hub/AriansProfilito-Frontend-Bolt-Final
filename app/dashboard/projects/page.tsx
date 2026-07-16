@@ -6,7 +6,6 @@ import { FolderKanban, Calendar, AlertCircle, Loader2, MessageSquare, X } from '
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { EntityIdLookup } from '@/components/admin/EntityIdLookup';
 import Link from 'next/link';
 import { projectService } from '@/services/ProjectService';
 import { Project } from '@/types/api';
@@ -77,13 +76,6 @@ export default function ProjectsPage() {
         <h1 className="text-3xl font-bold">پروژه‌ها</h1>
         <p className="text-muted-foreground mt-1">مشاهده وضعیت پروژه‌های شما</p>
       </div>
-
-      <EntityIdLookup<Project>
-        entityLabel="پروژه شما"
-        getById={(id) => projectService.getMyProjectById(id)}
-        onResult={(item) => setProjects(item ? [item] : [])}
-        onClear={() => void fetchProjects()}
-      />
 
       {error && !isLoading && (
         <div className="glass rounded-xl p-6 text-center">

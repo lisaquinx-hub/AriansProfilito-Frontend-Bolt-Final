@@ -1,15 +1,23 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Files, Paperclip, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
-import { EntityIdLookup } from '@/components/admin/EntityIdLookup';
 import { ViewDetailModal } from '@/components/admin/ViewDetailModal';
 import { fileAttachmentsService } from '@/services/FileAttachmentsService';
 import { projectFilesService } from '@/services/ProjectFilesService';
-import { FileAttachment, ProjectFile } from '@/types/api';
+import { projectService } from '@/services/ProjectService';
+import { FileAttachment, Project, ProjectFile } from '@/types/api';
 import { getApiErrorMessage } from '@/services/api';
 import { toast } from 'sonner';
 
@@ -21,8 +29,12 @@ const formatSize = (size: number) => {
 
 export default function FilesPage() {
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState('');
   const [projectFiles, setProjectFiles] = useState<ProjectFile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [projectFilesLoading, setProjectFilesLoading] = useState(false);
+  const [projectFilesError, setProjectFilesError] = useState<string | null>(null);
   const [viewAttachment, setViewAttachment] = useState<FileAttachment | null>(null);
   const [viewProjectFile, setViewProjectFile] = useState<ProjectFile | null>(null);
   const [viewError, setViewError] = useState<string | null>(null);
@@ -30,13 +42,46 @@ export default function FilesPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const fetchAttachments = async () => {
-    setIsLoading(true);
-    setAttachments(await fileAttachmentsService.getMy());
-    setIsLoading(false);
-  };
+  const fetchProjectFiles = useCallback(async (projectId: string) => {
+    setProjectFilesLoading(true);
+    setProjectFilesError(null);
+    try {
+      setProjectFiles(await projectFilesService.getMyByProjectId(projectId));
+    } catch (error) {
+      setProjectFiles([]);
+      setProjectFilesError(getApiErrorMessage(error));
+    } finally {
+      setProjectFilesLoading(false);
+    }
+  }, []);
 
-  useEffect(() => { void fetchAttachments(); }, []);
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    const [attachmentItems, projectItems] = await Promise.all([
+      fileAttachmentsService.getMy(),
+      projectService.getMyProjects(),
+    ]);
+    setAttachments(attachmentItems);
+    setProjects(projectItems);
+
+    const projectId = projectItems[0]?.id || '';
+
+    setSelectedProjectId(projectId);
+    if (projectId) {
+      await fetchProjectFiles(projectId);
+    } else {
+      setProjectFiles([]);
+      setProjectFilesError(null);
+    }
+    setIsLoading(false);
+  }, [fetchProjectFiles]);
+
+  useEffect(() => { void fetchData(); }, [fetchData]);
+
+  const handleProjectChange = (projectId: string) => {
+    setSelectedProjectId(projectId);
+    void fetchProjectFiles(projectId);
+  };
 
   const showAttachment = async (item: FileAttachment) => {
     setViewAttachment(item);
@@ -104,7 +149,7 @@ export default function FilesPage() {
           <h1 className="text-3xl font-bold flex items-center gap-2"><Files className="w-7 h-7" />فایل‌ها</h1>
           <p className="text-muted-foreground mt-1">مشاهده پیوست‌ها و فایل‌های پروژه‌های شما</p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => void fetchAttachments()}><RefreshCw className="w-4 h-4 ml-1" />به‌روزرسانی</Button>
+        <Button variant="outline" size="sm" onClick={() => void fetchData()}><RefreshCw className="w-4 h-4 ml-1" />به‌روزرسانی</Button>
       </div>
 
       <Card className="glass">
@@ -116,10 +161,6 @@ export default function FilesPage() {
             loading={isLoading}
             onView={showAttachment}
             onDelete={(item) => setDeleteId(item.id)}
-            idLookup={{
-              entityLabel: 'پیوست شما',
-              getById: (id) => fileAttachmentsService.getMyById(id),
-            }}
             emptyMessage="پیوستی یافت نشد"
           />
         </CardContent>
@@ -127,22 +168,35 @@ export default function FilesPage() {
 
       <Card className="glass">
         <CardHeader><CardTitle>فایل‌های پروژه</CardTitle></CardHeader>
-        <CardContent>
-          <EntityIdLookup<ProjectFile[]>
-            entityLabel="پروژه شما"
-            getById={(projectId) => projectFilesService.getMyByProjectId(projectId)}
-            onResult={(files) => setProjectFiles(files || [])}
-            onClear={() => setProjectFiles([])}
-          />
+        <CardContent className="space-y-5">
+          {projects.length > 0 ? (
+            <div className="space-y-2">
+              <Label htmlFor="project-file-selector">انتخاب پروژه</Label>
+              <Select value={selectedProjectId} onValueChange={handleProjectChange}>
+                <SelectTrigger id="project-file-selector">
+                  <SelectValue placeholder="یک پروژه را انتخاب کنید" />
+                </SelectTrigger>
+                <SelectContent>
+                  {projects.map((project) => (
+                    <SelectItem key={project.id} value={project.id}>
+                      {project.title}{project.projectCode ? ` — ${project.projectCode}` : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">پروژه‌ای برای شما ثبت نشده است.</p>
+          )}
+          {projectFilesError && (
+            <p className="text-sm text-red-500">{projectFilesError}</p>
+          )}
           <DataTable
             data={projectFiles}
             columns={projectFileColumns}
+            loading={projectFilesLoading}
             onView={showProjectFile}
-            idLookup={{
-              entityLabel: 'فایل پروژه شما',
-              getById: (id) => projectFilesService.getMyById(id),
-            }}
-            emptyMessage="برای مشاهده فایل‌ها، شناسه پروژه را وارد کنید"
+            emptyMessage={selectedProjectId ? 'فایلی برای این پروژه ثبت نشده است' : 'ابتدا یک پروژه را انتخاب کنید'}
           />
         </CardContent>
       </Card>

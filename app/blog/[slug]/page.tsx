@@ -15,14 +15,14 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { blogPostService } from '@/services/BlogPostService';
 import { commentsService } from '@/services/CommentsService';
-import { BlogPost, Comment as CommentType } from '@/types/api';
+import { BlogPost, PublicComment } from '@/types/api';
 
 export default function BlogPostPage() {
   const params = useParams<{ slug: string }>();
   const slug = (Array.isArray(params?.slug) ? params.slug[0] : params?.slug) as string;
 
   const [post, setPost] = useState<BlogPost | null>(null);
-  const [comments, setComments] = useState<CommentType[]>([]);
+  const [comments, setComments] = useState<PublicComment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [notFoundState, setNotFoundState] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -56,9 +56,9 @@ export default function BlogPostPage() {
     try {
       await commentsService.create({
         blogPostId: post.id,
-        fullName: commentForm.fullName,
-        email: commentForm.email,
-        message: commentForm.message,
+        fullName: commentForm.fullName.trim(),
+        email: commentForm.email.trim(),
+        message: commentForm.message.trim(),
       });
       setCommentForm({ fullName: '', email: '', message: '' });
       setCommentSuccess(true);
@@ -207,6 +207,7 @@ export default function BlogPostPage() {
                       id="fullName"
                       value={commentForm.fullName}
                       onChange={(e) => setCommentForm({ ...commentForm, fullName: e.target.value })}
+                      maxLength={150}
                       required
                       className="bg-muted/50"
                     />
@@ -218,6 +219,7 @@ export default function BlogPostPage() {
                       type="email"
                       value={commentForm.email}
                       onChange={(e) => setCommentForm({ ...commentForm, email: e.target.value })}
+                      maxLength={256}
                       required
                       className="bg-muted/50"
                     />
@@ -230,6 +232,7 @@ export default function BlogPostPage() {
                     rows={4}
                     value={commentForm.message}
                     onChange={(e) => setCommentForm({ ...commentForm, message: e.target.value })}
+                    maxLength={3000}
                     required
                     className="bg-muted/50"
                   />
