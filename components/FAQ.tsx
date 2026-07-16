@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
 import { ChevronDown, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -11,6 +10,7 @@ import { FAQ as FAQType } from '@/types/api';
 
 export default function FAQ() {
   const [openId, setOpenId] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
   const [faqs, setFaqs] = useState<FAQType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -26,8 +26,15 @@ export default function FAQ() {
     fetchFaqs();
   }, []);
 
-  // Show first 4 FAQs on homepage
-  const displayedFaqs = faqs.slice(0, 4);
+  const displayedFaqs = showAll ? faqs : faqs.slice(0, 4);
+
+  const handleToggleAll = () => {
+    if (showAll && openId && !faqs.slice(0, 4).some((faq) => faq.id === openId)) {
+      setOpenId(null);
+    }
+
+    setShowAll((current) => !current);
+  };
 
   if (displayedFaqs.length === 0 && !isLoading) {
     return null;
@@ -56,6 +63,7 @@ export default function FAQ() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
+          id="faq-list"
           className="max-w-2xl mx-auto space-y-4"
         >
           {displayedFaqs.map((faq) => (
@@ -111,11 +119,21 @@ export default function FAQ() {
             className="flex justify-center mt-12"
           >
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button asChild variant="outline" className="rounded-full gap-2 group">
-                <Link href="/#faq">
-                  همه سؤالات
-                  <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-                </Link>
+              <Button
+                type="button"
+                variant="outline"
+                className="rounded-full gap-2 group"
+                onClick={handleToggleAll}
+                aria-expanded={showAll}
+                aria-controls="faq-list"
+              >
+                {showAll ? 'نمایش کمتر' : 'همه سؤالات'}
+                <ArrowLeft
+                  className={cn(
+                    'w-4 h-4 transition-transform',
+                    showAll ? 'rotate-90 group-hover:translate-y-1' : 'group-hover:-translate-x-1'
+                  )}
+                />
               </Button>
             </motion.div>
           </motion.div>

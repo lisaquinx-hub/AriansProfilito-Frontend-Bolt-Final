@@ -377,6 +377,20 @@ async function mockApi(page: Page, context: BrowserContext) {
       return;
     }
 
+    if (pathname === '/api/faqs' && request.method() === 'GET') {
+      await json(route, {
+        success: true,
+        data: Array.from({ length: 5 }, (_, index) => ({
+          id: `faq-${index + 1}`,
+          question: `سؤال متداول تست ${index + 1}`,
+          answer: `پاسخ سؤال متداول تست ${index + 1}`,
+          displayOrder: index + 1,
+          isActive: true,
+        })),
+      });
+      return;
+    }
+
     await json(route, { success: true, data: [] });
   });
 
@@ -394,6 +408,13 @@ async function mockApi(page: Page, context: BrowserContext) {
 
 test('ورود، خدمات واقعی، ثبت نظر، نمایش ادمین و صفحات حقوقی درست کار می‌کنند', async ({ page, context }) => {
   const apiState = await mockApi(page, context);
+
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByText('سؤال متداول تست 4')).toBeVisible();
+  await expect(page.getByText('سؤال متداول تست 5')).toHaveCount(0);
+  await page.getByRole('button', { name: 'همه سؤالات' }).click();
+  await expect(page.getByText('سؤال متداول تست 5')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'نمایش کمتر' })).toBeVisible();
 
   await page.goto('/blog/e2e-comment-test', { waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('heading', { name: 'مقاله تست نظر', level: 1 })).toBeVisible();
