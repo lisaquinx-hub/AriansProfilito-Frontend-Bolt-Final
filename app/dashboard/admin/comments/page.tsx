@@ -23,13 +23,18 @@ export default function AdminCommentsPage() {
 
   const fetchComments = async () => {
     setIsLoading(true);
-    const data = await adminCommentsService.getAll();
-    setComments(data);
-    setIsLoading(false);
+    try {
+      const data = await adminCommentsService.getAll();
+      setComments(data);
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
-    fetchComments();
+    void fetchComments();
   }, []);
 
   const handleDelete = async () => {

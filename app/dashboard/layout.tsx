@@ -255,8 +255,10 @@ function DashboardContent({ children }: DashboardLayoutProps) {
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
+  const pathname = usePathname();
+
   return (
-    <AuthGuard>
+    <AuthGuard requireAdmin={pathname.startsWith('/dashboard/admin')}>
       <DashboardContent>{children}</DashboardContent>
     </AuthGuard>
   );

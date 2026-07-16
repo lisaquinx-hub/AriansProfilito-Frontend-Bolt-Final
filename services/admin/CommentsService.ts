@@ -7,11 +7,16 @@ class AdminCommentsService {
 
   async getAll(): Promise<Comment[]> {
     try {
-      const response = await api.get<ApiResponse<Comment[]>>(this.endpoint);
+      const response = await api.get<ApiResponse<Comment[]>>(this.endpoint, {
+        params: {
+          skip: 0,
+          take: 500,
+          cacheBuster: Date.now(),
+        },
+      });
       return normalizeArray<Comment>(response.data);
     } catch (error) {
-      console.warn('Failed to fetch comments:', getApiErrorMessage(error));
-      return [];
+      throw new Error(getApiErrorMessage(error));
     }
   }
 
