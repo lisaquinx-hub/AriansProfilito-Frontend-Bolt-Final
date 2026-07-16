@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { PageHeader, CategoryFilter, SearchBox, Pagination, EmptyState } from '@/components/shared';
 import { BlogCardSkeleton } from '@/components/shared/SkeletonLoaders';
+import { BlogCoverImage } from '@/components/shared/BlogCoverImage';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { TrendingUp, Eye } from 'lucide-react';
@@ -141,8 +142,13 @@ export default function BlogPage() {
                         className="group glass rounded-2xl overflow-hidden"
                       >
                         <Link href={`/blog/${encodeURIComponent(post.slug)}`}>
-                          <div className="relative aspect-video bg-gradient-to-br from-sky-500/20 to-blue-500/20 dark:from-blue-500/20 dark:to-cyan-500/20 flex items-center justify-center">
-                            <span className="text-5xl font-bold text-foreground/10">{post.title[0]}</span>
+                          <div className="relative aspect-video">
+                            <BlogCoverImage
+                              src={post.coverImage}
+                              alt={post.title}
+                              className="h-full w-full"
+                              fallbackClassName="text-5xl"
+                            />
                             {post.categoryName && (
                               <div className="absolute top-4 right-4">
                                 <span className="px-3 py-1 rounded-full text-xs font-medium bg-sky-500/20 dark:bg-cyan-500/20 text-sky-500 dark:text-cyan-400">

@@ -57,6 +57,13 @@ async function mockApi(page: Page, context: BrowserContext) {
   await page.route('https://fonts.gstatic.com/**', async (route) => {
     await route.abort();
   });
+  await page.route('https://images.example.com/**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'image/svg+xml',
+      body: '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450"><rect width="100%" height="100%" fill="#0284c7"/></svg>',
+    });
+  });
 
   await page.route(apiPattern, async (route) => {
     const request = route.request();
@@ -145,6 +152,7 @@ async function mockApi(page: Page, context: BrowserContext) {
           slug: 'e2e-comment-test',
           excerpt: 'تست ثبت نظر',
           content: 'محتوای تست ثبت نظر',
+          coverImage: 'https://images.example.com/blog-cover.svg',
           readTime: 1,
           isPublished: true,
           publishedAt: '2026-07-16T10:00:00Z',
@@ -217,6 +225,7 @@ test('ورود، ثبت نظر، نمایش ادمین و صفحات حقوقی 
 
   await page.goto('/blog/e2e-comment-test', { waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('heading', { name: 'مقاله تست نظر', level: 1 })).toBeVisible();
+  await expect(page.getByRole('img', { name: 'مقاله تست نظر' })).toBeVisible();
   await page.getByLabel('نام و نام خانوادگی').fill('کاربر تست نظر');
   await page.getByLabel('ایمیل').fill('comment@example.com');
   await page.getByLabel('پیام').fill('این یک نظر تستی است.');

@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { blogPostService } from '@/services/BlogPostService';
 import { commentsService } from '@/services/CommentsService';
+import { BlogCoverImage } from '@/components/shared/BlogCoverImage';
 import { BlogPost, PublicComment } from '@/types/api';
 
 export default function BlogPostPage() {
@@ -136,11 +137,13 @@ export default function BlogPostPage() {
               animate={{ opacity: 1, scale: 1 }}
               className="relative aspect-video rounded-2xl overflow-hidden glass p-2 mb-12"
             >
-              <div className="relative aspect-video rounded-xl bg-gradient-to-br from-sky-500/20 to-blue-500/20 dark:from-blue-500/20 dark:to-cyan-500/20 flex items-center justify-center">
-                <span className="text-8xl md:text-[120px] font-bold text-foreground/5">
-                  {post!.title[0]}
-                </span>
-              </div>
+              <BlogCoverImage
+                src={post!.coverImage}
+                alt={post!.title}
+                className="aspect-video rounded-xl"
+                fallbackClassName="text-8xl md:text-[120px] text-foreground/5"
+                eager
+              />
               {post!.categoryName && (
                 <div className="absolute top-6 right-6">
                   <span className="px-4 py-2 rounded-full text-sm font-medium glass">
