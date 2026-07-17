@@ -71,7 +71,7 @@ export function NotificationDropdown({ isAdmin = false }: NotificationDropdownPr
     <div ref={ref} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-lg hover:bg-muted transition-colors"
+        className="relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full hover:bg-muted transition-colors"
         aria-label="اعلان‌ها"
       >
         <Bell className="w-5 h-5 text-muted-foreground" />
@@ -89,9 +89,9 @@ export function NotificationDropdown({ isAdmin = false }: NotificationDropdownPr
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute left-0 mt-2 w-80 sm:w-96 z-50"
+            className="absolute left-0 z-50 mt-2 w-[min(24rem,calc(100vw-2rem))]"
           >
-            <div className="glass rounded-2xl shadow-xl border border-border dark:border-white/5 overflow-hidden">
+            <div className="overflow-hidden rounded-2xl border border-border bg-popover text-popover-foreground shadow-2xl dark:border-white/10 dark:bg-[#0f1115]">
               <div className="flex items-center justify-between p-4 border-b border-border dark:border-white/5">
                 <h3 className="text-sm font-semibold">اعلان‌ها</h3>
                 <div className="flex items-center gap-2">

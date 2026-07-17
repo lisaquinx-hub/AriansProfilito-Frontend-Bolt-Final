@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BlogCoverImage } from '@/components/shared/BlogCoverImage';
+import { ServiceIcon } from '@/components/shared/ServiceIcon';
 import { cn } from '@/lib/utils';
 import { servicesService } from '@/services/ServicesService';
 
@@ -32,6 +33,7 @@ interface DisplayService {
   title: string;
   description: string;
   slug?: string;
+  icon?: string;
 }
 
 export default function Services() {
@@ -46,6 +48,7 @@ export default function Services() {
           title: s.title,
           description: s.shortDescription || s.description || 'برای دریافت جزئیات این خدمت با ما تماس بگیرید.',
           slug: s.slug || s.id,
+          icon: s.icon,
         })));
       }
     };
@@ -92,17 +95,13 @@ export default function Services() {
               imageClassName="transition-transform duration-700 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-6 text-white md:p-8">
+            <div className="absolute inset-x-0 bottom-0 p-6 text-white md:p-8">
               <div>
                 <h4 className="mb-2 text-2xl font-bold md:text-3xl">خدمات آریان‌لب</h4>
                 <p className="text-sm text-white/85 md:text-base">
                   طراحی و توسعه راهکارهای حرفه‌ای متناسب با کسب‌وکار شما
                 </p>
               </div>
-              <span className="hidden items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-medium backdrop-blur-sm sm:inline-flex">
-                مشاهده خدمات
-                <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-              </span>
             </div>
           </Link>
         </motion.div>
@@ -128,9 +127,11 @@ export default function Services() {
               {/* Icon */}
               <div className="mb-6">
                 <div className="w-14 h-14 rounded-xl bg-sky-500/10 dark:bg-sky-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <span className="text-2xl font-bold text-sky-500 dark:text-cyan-400">
-                    {service.title[0]}
-                  </span>
+                  <ServiceIcon
+                    icon={service.icon}
+                    title={service.title}
+                    className="text-sky-500 dark:text-cyan-400"
+                  />
                 </div>
               </div>
 

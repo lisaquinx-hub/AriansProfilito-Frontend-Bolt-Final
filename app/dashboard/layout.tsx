@@ -42,14 +42,12 @@ interface DashboardLayoutProps {
 
 function DashboardContent({ children }: DashboardLayoutProps) {
   const router = useRouter();
-  const pathname = usePathname();
   const { user } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const displayName = user?.fullName || user?.email || 'کاربر';
   const displayEmail = user?.email || '-';
-  const isAdminRoute = pathname.startsWith('/dashboard/admin');
 
   const handleLogout = async () => {
     await authService.logout();
@@ -230,13 +228,13 @@ function DashboardContent({ children }: DashboardLayoutProps) {
                 <span className="hidden sm:inline">بازگشت به سایت</span>
               </Link>
             </div>
-            <div className="flex items-center gap-2 md:gap-4">
-              <NotificationDropdown isAdmin={isAdminRoute} />
+            <div className="flex items-center gap-4 sm:gap-5">
+              <NotificationDropdown />
               <ThemeToggle />
               {/* Avatar in header — also links to profile */}
               <Link
                 href="/dashboard/profile"
-                className="w-9 h-9 rounded-full bg-gradient-to-br from-sky-500 to-blue-600 dark:from-blue-500 dark:to-cyan-500 flex items-center justify-center hover:ring-2 hover:ring-sky-400 transition-all"
+                className="w-10 h-10 flex-shrink-0 rounded-full bg-gradient-to-br from-sky-500 to-blue-600 dark:from-blue-500 dark:to-cyan-500 flex items-center justify-center hover:ring-2 hover:ring-sky-400 transition-all"
                 title="پروفایل"
               >
                 <User className="w-4 h-4 text-white" />
@@ -256,10 +254,11 @@ function DashboardContent({ children }: DashboardLayoutProps) {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
+  const isAdminRoute = pathname.startsWith('/dashboard/admin');
 
   return (
-    <AuthGuard requireAdmin={pathname.startsWith('/dashboard/admin')}>
-      <DashboardContent>{children}</DashboardContent>
+    <AuthGuard requireAdmin={isAdminRoute}>
+      {isAdminRoute ? children : <DashboardContent>{children}</DashboardContent>}
     </AuthGuard>
   );
 }

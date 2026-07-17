@@ -16,7 +16,7 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <Button variant="ghost" size="icon" className="rounded-full">
+      <Button variant="ghost" size="icon" className="h-10 w-10 flex-shrink-0 rounded-full">
         <div className="w-5 h-5" />
       </Button>
     );
@@ -27,7 +27,7 @@ export function ThemeToggle() {
       variant="ghost"
       size="icon"
       onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-      className="rounded-full hover:bg-accent"
+      className="h-10 w-10 flex-shrink-0 rounded-full hover:bg-accent"
       aria-label={theme === 'dark' ? 'تغییر به حالت روشن' : 'تغییر به حالت تاریک'}
     >
       <motion.div

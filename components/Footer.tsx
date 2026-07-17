@@ -84,8 +84,9 @@ export default function Footer() {
   const siteName = settings?.siteName || 'آریان‌لب';
   const footerDescription = settings?.footerText || 'استودیوی محصول دیجیتال ممتاز - طراحی مدرن، سرعت بالا و تجربه‌ای متفاوت';
   const copyright = settings?.copyright || `${siteName} © ۲۰۲۶`;
-  const contactEmail = settings?.email?.trim() || siteContact.email;
-  const contactPhone = settings?.phone?.trim() || siteContact.phone;
+  // Keep the public contact details canonical even when older values still exist in site settings.
+  const contactEmail = siteContact.email;
+  const contactPhone = siteContact.phone;
   const displaySocialLinks = socialLinks
     .filter((social) => social.isActive)
     .map((social) => ({ social, safeUrl: getSafeExternalUrl(social.url) }))

@@ -8,11 +8,13 @@ import {
   LayoutDashboard, Users, Image, Briefcase, DollarSign, HelpCircle,
   Settings, Share2, FolderOpen, FileText, MessageSquare, Code,
   Mail, Activity, ClipboardList, Receipt, CreditCard, HeadphonesIcon,
-  Bell, Menu, X, ChevronLeft, LogOut, Files, Paperclip,
+  Bell, Menu, X, ChevronLeft, LogOut, Files, Paperclip, User,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { authService } from '@/services/AuthService';
 import { useAuth } from '@/hooks/useAuth';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { NotificationDropdown } from '@/components/admin/NotificationDropdown';
 
 const adminLinks = [
   { href: '/dashboard/admin', icon: LayoutDashboard, label: 'داشبورد' },
@@ -161,11 +163,22 @@ function AdminLayoutContent({ children }: AdminLayoutContentProps) {
       {/* Main Content */}
       <div className={cn('flex-1 min-w-0 transition-all duration-300', isSidebarOpen ? 'lg:mr-[280px]' : 'lg:mr-[80px]')}>
         <header className="h-16 border-b border-border dark:border-white/5 bg-card/30 backdrop-blur-xl sticky top-0 z-30">
-          <div className="h-full px-4 lg:px-6 flex items-center justify-between">
+          <div className="h-full px-4 lg:px-6 flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <button type="button" onClick={() => setIsMobileMenuOpen(true)} className="p-2 rounded-lg hover:bg-muted transition-colors lg:hidden" aria-label="باز کردن منو"><Menu className="w-5 h-5" /></button>
-              <Link href="/dashboard" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-                <ChevronLeft className="w-4 h-4" /><span className="hidden sm:inline">بازگشت به داشبورد</span>
+              <Link href="/" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+                <ChevronLeft className="w-4 h-4" /><span className="hidden sm:inline">بازگشت به سایت</span>
+              </Link>
+            </div>
+            <div className="flex flex-shrink-0 items-center gap-4 sm:gap-5">
+              <NotificationDropdown isAdmin />
+              <ThemeToggle />
+              <Link
+                href="/dashboard/profile"
+                className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-blue-600 transition-all hover:ring-2 hover:ring-sky-400 dark:from-blue-500 dark:to-cyan-500"
+                title="پروفایل"
+              >
+                <User className="h-5 w-5 text-white" />
               </Link>
             </div>
           </div>
