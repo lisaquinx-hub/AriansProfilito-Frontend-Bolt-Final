@@ -13,7 +13,7 @@ import { useAuth, emitAuthChanged } from '@/hooks/useAuth';
 import { authService } from '@/services/AuthService';
 
 const navLinks = [
-  { href: '/#services', label: 'خدمات' },
+  { href: '/products', label: 'خدمات' },
   { href: '/portfolio', label: 'نمونه‌کارها' },
   { href: '/#about', label: 'درباره ما' },
   { href: '/pricing', label: 'تعرفه‌ها' },
