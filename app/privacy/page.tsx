@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import LegalPage, { type LegalSection } from '@/components/legal/LegalPage';
 
 export const metadata: Metadata = {
-  title: 'حریم خصوصی | آریان‌لب',
-  description: 'نحوه جمع‌آوری، استفاده و نگهداری اطلاعات در آریان‌لب',
+  title: 'حریم خصوصی | آریان پژوهش',
+  description: 'نحوه جمع‌آوری، استفاده و نگهداری اطلاعات در آریان پژوهش',
 };
 
 const sections: LegalSection[] = [
@@ -13,7 +13,7 @@ const sections: LegalSection[] = [
     content: (
       <p>
         این سیاست درباره اطلاعاتی است که هنگام استفاده از وب‌سایت، ساخت حساب، ارسال فرم تماس،
-        ثبت تیکت و دریافت خدمات آریان‌لب پردازش می‌شود. سرویس‌های مستقل اشخاص ثالث تابع سیاست
+        ثبت تیکت و دریافت خدمات آریان پژوهش پردازش می‌شود. سرویس‌های مستقل اشخاص ثالث تابع سیاست
         حریم خصوصی خودشان هستند.
       </p>
     ),

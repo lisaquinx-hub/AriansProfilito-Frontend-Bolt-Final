@@ -1,6 +1,6 @@
 # AriansProfilito Frontend
 
-فرانت‌اند وب‌سایت و پنل کاربری/مدیریت آریان‌لب، ساخته‌شده با Next.js، TypeScript و Tailwind CSS.
+فرانت‌اند وب‌سایت و پنل کاربری/مدیریت آریان پژوهش، ساخته‌شده با Next.js، TypeScript و Tailwind CSS.
 
 ## پیش‌نیازها
 

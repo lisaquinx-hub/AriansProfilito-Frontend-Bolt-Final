@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { heroService } from '@/services/HeroService';
 import { HeroSection } from '@/types/api';
 import { getSafeNavigationHref } from '@/lib/utils';
+import GradientText from '@/components/effects/GradientText';
 
 export default function Hero() {
   const [heroData, setHeroData] = useState<HeroSection | null>(null);
@@ -52,17 +53,25 @@ export default function Hero() {
             <span className="text-sm text-foreground/80">استودیوی محصول دیجیتال ممتاز</span>
           </motion.div>
 
-          {/* Main Heading */}
+          {/* Landing brand — the animated gradient is intentionally used only here. */}
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6"
+            className="mb-5 text-4xl font-black leading-tight tracking-tight md:text-6xl lg:text-7xl"
           >
-            <span className="text-gradient">{title}</span>
-            <br />
-            <span className="text-foreground">{subtitle}</span>
+            <GradientText animationSpeed={7}>ArianPazhoohesh</GradientText>
           </motion.h1>
+
+          <motion.h2
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.16 }}
+            className="mb-6 text-2xl font-bold leading-tight text-foreground md:text-4xl"
+          >
+            <span className="text-gradient">{title}</span>{' '}
+            <span>{subtitle}</span>
+          </motion.h2>
 
           {/* Subtitle */}
           <motion.p

@@ -248,7 +248,7 @@ export default function RegisterPage() {
 
             <TravelingLightBeams />
 
-            <div className="relative overflow-hidden rounded-3xl border border-white/45 bg-background/75 p-6 shadow-2xl backdrop-blur-2xl dark:border-white/[0.08] dark:bg-card/65 md:p-8">
+            <div data-magic-bento className="relative overflow-hidden rounded-3xl border border-white/45 bg-background/75 p-6 shadow-2xl backdrop-blur-2xl dark:border-white/[0.08] dark:bg-card/65 md:p-8">
               <div
                 className="pointer-events-none absolute inset-0 opacity-[0.035] dark:opacity-[0.025]"
                 style={{
@@ -274,7 +274,7 @@ export default function RegisterPage() {
                   transition={{ delay: 0.2 }}
                   className="mt-3 text-2xl font-bold"
                 >
-                  ایجاد حساب آریان‌لب
+                  ایجاد حساب آریان پژوهش
                 </motion.h1>
                 <motion.p
                   initial={{ opacity: 0 }}

@@ -14,7 +14,7 @@ import {
   LogOut,
   Menu,
   X,
-  ChevronLeft,
+  Home,
   Files,
   Bell,
 } from 'lucide-react';
@@ -75,7 +75,7 @@ function DashboardContent({ children }: DashboardLayoutProps) {
               'text-xl font-bold text-gradient transition-opacity',
               isSidebarOpen ? 'opacity-100' : 'opacity-0'
             )}>
-              آریان‌لب
+              آریان پژوهش
             </span>
           </Link>
           <button
@@ -156,7 +156,7 @@ function DashboardContent({ children }: DashboardLayoutProps) {
             >
               <div className="p-6 flex items-center justify-between border-b border-border">
                 <Link href="/">
-                  <span className="text-xl font-bold text-gradient">آریان‌لب</span>
+                  <span className="text-xl font-bold text-gradient">آریان پژوهش</span>
                 </Link>
                 <button
                   type="button"
@@ -224,7 +224,7 @@ function DashboardContent({ children }: DashboardLayoutProps) {
                 <Menu className="w-5 h-5" />
               </button>
               <Link href="/" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-                <ChevronLeft className="w-4 h-4" />
+                <Home className="w-4 h-4" />
                 <span className="hidden sm:inline">بازگشت به سایت</span>
               </Link>
             </div>

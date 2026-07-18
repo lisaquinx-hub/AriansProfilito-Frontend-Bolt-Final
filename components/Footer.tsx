@@ -65,6 +65,11 @@ const helpLinks = [
   { href: '/terms', label: 'شرایط استفاده' },
 ];
 
+const normalizeBrandText = (value: string) =>
+  value
+    .replace(/آریان[‌ ]?لب/g, 'آریان پژوهش')
+    .replace(/Arians?Lab/gi, 'ArianPazhoohesh');
+
 export default function Footer() {
   const [socialLinks, setSocialLinks] = useState<SocialMedia[]>([]);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
@@ -81,9 +86,11 @@ export default function Footer() {
     fetchData();
   }, []);
 
-  const siteName = settings?.siteName || 'آریان‌لب';
-  const footerDescription = settings?.footerText || 'استودیوی محصول دیجیتال ممتاز - طراحی مدرن، سرعت بالا و تجربه‌ای متفاوت';
-  const copyright = settings?.copyright || `${siteName} © ۲۰۲۶`;
+  const siteName = normalizeBrandText(settings?.siteName || 'آریان پژوهش');
+  const footerDescription = normalizeBrandText(
+    settings?.footerText || 'استودیوی محصول دیجیتال ممتاز - طراحی مدرن، سرعت بالا و تجربه‌ای متفاوت'
+  );
+  const copyright = normalizeBrandText(settings?.copyright || `${siteName} © ۲۰۲۶`);
   // Keep the public contact details canonical even when older values still exist in site settings.
   const contactEmail = siteContact.email;
   const contactPhone = siteContact.phone;

@@ -261,12 +261,12 @@ export default function PricingPage() {
             transition={{ duration: 0.65 }}
             className="mx-auto mb-10 max-w-3xl text-center"
           >
-            <span className="text-sm font-medium text-sky-600 dark:text-cyan-400">تعرفه‌های آریان‌لب</span>
+            <span className="text-sm font-medium text-sky-600 dark:text-cyan-400">تعرفه‌های آریان پژوهش</span>
             <h1 className="mt-3 text-4xl font-bold leading-tight md:text-6xl">
               پلنی که با نیاز کسب‌وکار شما هماهنگ است
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-muted-foreground md:text-lg">
-              قیمت‌ها، زمان تحویل و امکانات هر پلن مستقیماً از سامانه آریان‌لب دریافت می‌شوند.
+              قیمت‌ها، زمان تحویل و امکانات هر پلن مستقیماً از سامانه آریان پژوهش دریافت می‌شوند.
             </p>
           </motion.header>
 

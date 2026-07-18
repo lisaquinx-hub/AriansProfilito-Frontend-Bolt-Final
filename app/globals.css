@@ -272,3 +272,246 @@
 *, *::before, *::after {
   transition: background-color 300ms, color 300ms, border-color 300ms, box-shadow 300ms;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Shared interactive surfaces                                                */
+/* -------------------------------------------------------------------------- */
+
+:root {
+  --magic-glow-rgb: 30, 64, 175;
+  --magic-glow-soft: rgba(30, 64, 175, 0.16);
+  --magic-card-tint: rgba(255, 255, 255, 0.42);
+  --specular-rim-rgb: 30, 64, 175;
+}
+
+.dark {
+  --magic-glow-rgb: 56, 189, 248;
+  --magic-glow-soft: rgba(56, 189, 248, 0.16);
+  --magic-card-tint: rgba(2, 6, 23, 0.2);
+  --specular-rim-rgb: 186, 230, 253;
+}
+
+/* Magic Bento is layered over the existing card instead of replacing its
+   background. That keeps all public cards glassy and all dashboard cards
+   compatible with the current light/dark palette. */
+.magic-bento-card,
+[data-magic-bento],
+.magic-bento-ready {
+  --magic-x: 50%;
+  --magic-y: 50%;
+  --magic-intensity: 0;
+  isolation: isolate;
+  background-image:
+    radial-gradient(
+      360px circle at var(--magic-x) var(--magic-y),
+      rgba(var(--magic-glow-rgb), calc(var(--magic-intensity) * 0.14)) 0%,
+      rgba(var(--magic-glow-rgb), calc(var(--magic-intensity) * 0.055)) 34%,
+      transparent 68%
+    ),
+    linear-gradient(135deg, var(--magic-card-tint), transparent 58%);
+  background-blend-mode: screen, normal;
+}
+
+.magic-bento-ready {
+  --magic-intensity: 0;
+  will-change: box-shadow, transform;
+}
+
+.magic-bento-ready::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  padding: 1px;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    280px circle at var(--magic-x) var(--magic-y),
+    rgba(var(--magic-glow-rgb), 0.95),
+    rgba(var(--magic-glow-rgb), 0.3) 34%,
+    transparent 70%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  transition: opacity 220ms ease;
+}
+
+.magic-bento-ready.magic-bento-active {
+  --magic-intensity: 1;
+  border-color: rgba(var(--magic-glow-rgb), 0.42);
+  box-shadow:
+    0 14px 34px rgba(var(--magic-glow-rgb), 0.12),
+    0 0 26px var(--magic-glow-soft),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.magic-bento-ready.magic-bento-active::after {
+  opacity: 1;
+}
+
+.magic-bento-fx-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.magic-bento-particle,
+.magic-bento-ripple {
+  position: fixed;
+  display: block;
+  pointer-events: none;
+}
+
+.magic-bento-particle {
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 999px;
+  background: rgb(var(--magic-glow-rgb));
+  box-shadow: 0 0 9px 2px rgba(var(--magic-glow-rgb), 0.72);
+  opacity: 0;
+  animation: magic-bento-particle 1.25s cubic-bezier(0.2, 0.75, 0.25, 1) var(--particle-delay) forwards;
+}
+
+.magic-bento-ripple {
+  width: var(--ripple-size);
+  height: var(--ripple-size);
+  margin: calc(var(--ripple-size) / -2) 0 0 calc(var(--ripple-size) / -2);
+  border: 1px solid rgba(var(--magic-glow-rgb), 0.62);
+  border-radius: 999px;
+  box-shadow: 0 0 22px rgba(var(--magic-glow-rgb), 0.18);
+  animation: magic-bento-ripple 650ms ease-out forwards;
+}
+
+@keyframes magic-bento-particle {
+  0% { opacity: 0; transform: translate3d(0, 0, 0) scale(0.2); }
+  24% { opacity: 1; }
+  100% { opacity: 0; transform: translate3d(var(--particle-x), var(--particle-y), 0) scale(1.15); }
+}
+
+@keyframes magic-bento-ripple {
+  from { opacity: 0.75; transform: scale(0.08); }
+  to { opacity: 0; transform: scale(1); }
+}
+
+/* Specular Button treatment. The shared Button component receives the full
+   animated rim; native icon buttons get a lightweight highlight without any
+   layout or positioning changes. */
+.specular-button {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transform: translateZ(0);
+}
+
+.specular-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  padding: 1px;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.68;
+  background: linear-gradient(
+    110deg,
+    transparent 0%,
+    transparent 36%,
+    rgba(var(--specular-rim-rgb), 0.16) 43%,
+    rgba(var(--specular-rim-rgb), 0.98) 50%,
+    rgba(var(--specular-rim-rgb), 0.18) 57%,
+    transparent 64%,
+    transparent 100%
+  );
+  background-size: 280% 100%;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  animation: specular-button-sweep 3.2s linear infinite;
+}
+
+.specular-button:hover::before,
+.specular-button:focus-visible::before {
+  opacity: 1;
+  filter: drop-shadow(0 0 7px rgba(var(--specular-rim-rgb), 0.9));
+}
+
+.specular-button:active {
+  transform: scale(0.975);
+}
+
+button:not(.specular-button):not([data-no-specular]) {
+  background-image: linear-gradient(
+    112deg,
+    transparent 0%,
+    transparent 42%,
+    rgba(var(--specular-rim-rgb), 0.16) 49%,
+    transparent 58%,
+    transparent 100%
+  );
+  background-size: 260% 100%;
+}
+
+button:not(.specular-button):not([data-no-specular]):hover,
+button:not(.specular-button):not([data-no-specular]):focus-visible {
+  animation: specular-button-sweep 1.2s ease-out;
+  box-shadow: inset 0 0 0 1px rgba(var(--specular-rim-rgb), 0.22);
+}
+
+@keyframes specular-button-sweep {
+  from { background-position: 130% 50%; }
+  to { background-position: -130% 50%; }
+}
+
+/* Gradient Text is deliberately scoped to the landing brand component. */
+.animated-gradient-text {
+  --gradient-text-colors: #0284c7, #2563eb, #22d3ee, #1d4ed8, #0284c7;
+  --gradient-text-speed: 7s;
+  position: relative;
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1.25rem;
+}
+
+.animated-gradient-text--bordered {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid rgba(var(--magic-glow-rgb), 0.35);
+  backdrop-filter: blur(10px);
+}
+
+.animated-gradient-text__content {
+  display: inline-block;
+  color: transparent;
+  background-image: linear-gradient(to left, var(--gradient-text-colors));
+  background-size: 300% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  animation: animated-gradient-text var(--gradient-text-speed) ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 18px rgba(var(--magic-glow-rgb), 0.18));
+}
+
+@keyframes animated-gradient-text {
+  from { background-position: 0% 50%; }
+  to { background-position: 100% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .magic-bento-particle,
+  .magic-bento-ripple,
+  .specular-button::before,
+  .animated-gradient-text__content {
+    animation: none !important;
+  }
+
+  .magic-bento-ready.magic-bento-active {
+    transform: none;
+  }
+}

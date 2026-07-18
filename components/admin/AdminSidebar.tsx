@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Users, Image, Briefcase, DollarSign, HelpCircle,
   Settings, Share2, FolderOpen, FileText, MessageSquare, Code,
   Mail, Activity, ClipboardList, Receipt, CreditCard, HeadphonesIcon,
-  Bell, Menu, X, ChevronLeft, LogOut, Files, Paperclip, User,
+  Bell, Menu, X, Home, LogOut, Files, Paperclip, User,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { authService } from '@/services/AuthService';
@@ -167,7 +167,7 @@ function AdminLayoutContent({ children }: AdminLayoutContentProps) {
             <div className="flex items-center gap-4">
               <button type="button" onClick={() => setIsMobileMenuOpen(true)} className="p-2 rounded-lg hover:bg-muted transition-colors lg:hidden" aria-label="باز کردن منو"><Menu className="w-5 h-5" /></button>
               <Link href="/" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-                <ChevronLeft className="w-4 h-4" /><span className="hidden sm:inline">بازگشت به سایت</span>
+                <Home className="w-4 h-4" /><span className="hidden sm:inline">بازگشت به سایت</span>
               </Link>
             </div>
             <div className="flex flex-shrink-0 items-center gap-4 sm:gap-5">

@@ -8,8 +8,9 @@ const Card = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
+    data-magic-bento
     className={cn(
-      'rounded-lg border bg-card text-card-foreground shadow-sm',
+      'magic-bento-card rounded-lg border bg-card text-card-foreground shadow-sm',
       className
     )}
     {...props}
