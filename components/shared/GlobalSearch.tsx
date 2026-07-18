@@ -110,22 +110,23 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
         className="container mx-auto px-4 pt-20 max-w-3xl"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="relative">
-          <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+        <div className="fancy-search-shell fancy-search-shell--global">
+          <Search className="fancy-search-icon right-4" />
           <Input
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="جست‌وجو در محصولات، مقالات و پروژه‌ها..."
-            className="pr-12 pl-12 h-14 text-lg bg-card border-border"
+            className="fancy-search-input fancy-search-input--global"
             aria-label="عبارت جست‌وجو"
             autoFocus
           />
           <button
             type="button"
             onClick={onClose}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            className="fancy-search-action left-4"
             aria-label="بستن جست‌وجو"
+            data-no-specular
           >
             <X className="w-5 h-5" />
           </button>

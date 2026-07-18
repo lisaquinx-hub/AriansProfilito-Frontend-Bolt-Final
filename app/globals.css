@@ -253,9 +253,9 @@
 .public-site-surface .bg-gradient-hero {
   background: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.68) 0%,
-    rgba(255, 255, 255, 0.42) 50%,
-    rgba(239, 246, 255, 0.62) 100%
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(255, 255, 255, 0.16) 50%,
+    rgba(239, 246, 255, 0.28) 100%
   );
 }
 
@@ -513,5 +513,241 @@ button:not(.specular-button):not([data-no-specular]):focus-visible {
 
   .magic-bento-ready.magic-bento-active {
     transform: none;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Supplied light-theme controls                                              */
+/* -------------------------------------------------------------------------- */
+
+/* Neumorphic light button from LIGHT THEME BUTTONS.TXT. Existing sizes and
+   icon layouts remain untouched so table actions and responsive CTAs do not
+   shift when the theme changes. */
+html:not(.dark) .specular-button {
+  color: #7e97b8 !important;
+  background-color: #e0e8ef !important;
+  background-image: none !important;
+  border: 2px solid rgba(255, 255, 255, 0.333) !important;
+  border-radius: 40px;
+  box-shadow:
+    -4px -2px 16px 0 #ffffff,
+    4px 2px 16px 0 rgb(95 157 231 / 48%) !important;
+  letter-spacing: 0.025em;
+  transition: color 200ms, background-color 200ms, box-shadow 200ms, transform 200ms;
+}
+
+html:not(.dark) .specular-button::before {
+  display: none;
+}
+
+html:not(.dark) .specular-button:hover,
+html:not(.dark) .specular-button:focus-visible {
+  color: #516d91 !important;
+  background-color: #e5edf5 !important;
+  box-shadow:
+    -2px -1px 8px 0 #ffffff,
+    2px 1px 8px 0 rgb(95 157 231 / 48%) !important;
+}
+
+html:not(.dark) .specular-button:active {
+  box-shadow: none !important;
+}
+
+/* TurnOnButton from TURNONBUTTON.TXT, centralized through ThemeToggle. */
+.theme-turnon-shell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-width: 3em;
+  min-height: 1.5em;
+  line-height: 1;
+}
+
+.theme-turnon-input,
+.theme-turnon-placeholder {
+  display: inline-flex;
+  width: 3em;
+  height: 1.5em;
+  box-sizing: border-box;
+  border-radius: 0.75em;
+}
+
+.theme-turnon-input {
+  direction: ltr;
+  align-items: center;
+  margin: 0;
+  padding: 0.15em;
+  color: #fdea7b;
+  background-color: rgba(0, 0, 0, 0.7);
+  border: 0;
+  box-shadow: 0.125em 0.125em 0 0.125em rgba(0, 0, 0, 0.3) inset;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition:
+    background-color 100ms 300ms ease-out,
+    box-shadow 100ms 300ms ease-out;
+}
+
+.theme-turnon-input::before,
+.theme-turnon-input::after {
+  content: '';
+  display: block;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+}
+
+.theme-turnon-input::before {
+  z-index: 1;
+  width: 1.2em;
+  height: 1.2em;
+  border-radius: 50%;
+  background-color: #d7d7d7;
+  transition: background-color 100ms 300ms ease-out, transform 300ms ease-out;
+}
+
+.theme-turnon-input::after {
+  width: 1.2em;
+  height: 1em;
+  border: 0.25em solid transparent;
+  border-left: 0.4em solid #d8d8d8;
+  border-right: 0;
+  background:
+    linear-gradient(transparent 50%, rgba(0, 0, 0, 0.15) 0) 0 50% / 50% 100%,
+    repeating-linear-gradient(90deg, #bbb 0, #bbb 20%, #999 20%, #999 40%) 0 50% / 50% 100%,
+    radial-gradient(circle at 50% 50%, #888 25%, transparent 26%);
+  background-repeat: no-repeat;
+  transform: translateX(-22.5%);
+  transform-origin: 25% 50%;
+  transition: border-left-color 100ms 300ms ease-out, transform 300ms ease-out;
+}
+
+.theme-turnon-input:checked {
+  background-color: rgba(0, 0, 0, 0.45);
+  box-shadow: 0.125em 0.125em 0 0.125em rgba(0, 0, 0, 0.1) inset;
+}
+
+.theme-turnon-input:checked::before {
+  background-color: currentColor;
+  transform: translateX(125%);
+}
+
+.theme-turnon-input:checked::after {
+  border-left-color: currentColor;
+  transform: translateX(-2.5%) rotateY(180deg);
+}
+
+.theme-turnon-input:focus-visible {
+  outline: 2px solid #0ea5e9;
+  outline-offset: 3px;
+}
+
+.theme-turnon-placeholder {
+  opacity: 0.55;
+  background: rgba(0, 0, 0, 0.55);
+  box-shadow: 0.125em 0.125em 0 0.125em rgba(0, 0, 0, 0.18) inset;
+}
+
+/* SearchBox from SEARCHBOX.TXT with a matching dark variant. */
+.fancy-search-shell {
+  position: relative;
+  display: block;
+  width: min(100%, 200px);
+  margin: 7px auto;
+  transition: width 500ms ease;
+}
+
+.fancy-search-shell:hover {
+  width: min(100%, 240px);
+}
+
+.fancy-search-shell:focus-within {
+  width: min(100%, 280px);
+}
+
+.fancy-search-shell--global,
+.fancy-search-shell--global:hover,
+.fancy-search-shell--global:focus-within {
+  width: 100%;
+  max-width: 42rem;
+}
+
+.fancy-search-input[type='text'],
+.fancy-search-input[type='search'] {
+  display: block;
+  width: 100% !important;
+  height: 56px !important;
+  margin: 0 auto;
+  padding: 18px 48px !important;
+  color: rgb(34, 34, 34);
+  text-align: center;
+  background: linear-gradient(142.99deg, rgba(217, 217, 217, 0.63) 15.53%, rgba(243, 243, 243, 0.63) 88.19%);
+  border: 1px solid transparent !important;
+  border-radius: 50px !important;
+  box-shadow: 0 12px 24px -1px rgba(0, 0, 0, 0.18) !important;
+  outline: none;
+  transition: background 300ms, border-color 300ms, box-shadow 300ms;
+}
+
+.fancy-search-input--global[type='search'] {
+  font-size: 1.05rem;
+}
+
+.fancy-search-input[type='text']:focus,
+.fancy-search-input[type='search']:focus {
+  border-color: rgba(29, 78, 216, 0.34) !important;
+  box-shadow: 0 15px 30px -4px rgba(30, 64, 175, 0.3) !important;
+}
+
+.dark .fancy-search-input[type='text'],
+.dark .fancy-search-input[type='search'] {
+  color: #f8fafc;
+  background: linear-gradient(142.99deg, rgba(30, 41, 59, 0.92) 15.53%, rgba(8, 15, 29, 0.9) 88.19%);
+  border-color: rgba(56, 189, 248, 0.14) !important;
+  box-shadow:
+    0 12px 28px -4px rgba(0, 0, 0, 0.62),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+.dark .fancy-search-input[type='text']:focus,
+.dark .fancy-search-input[type='search']:focus {
+  border-color: rgba(56, 189, 248, 0.5) !important;
+  box-shadow:
+    0 14px 32px -5px rgba(2, 132, 199, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07) !important;
+}
+
+.fancy-search-icon,
+.fancy-search-action {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: #64748b;
+  transform: translateY(-50%);
+}
+
+.fancy-search-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.dark .fancy-search-icon,
+.dark .fancy-search-action {
+  color: #94a3b8;
+}
+
+@media (max-width: 420px) {
+  .fancy-search-shell,
+  .fancy-search-shell:hover,
+  .fancy-search-shell:focus-within {
+    width: 100%;
   }
 }

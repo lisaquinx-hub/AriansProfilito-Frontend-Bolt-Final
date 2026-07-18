@@ -1,0 +1,19 @@
+.grainient-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 28% 20%, rgba(134, 5, 255, 0.46), transparent 38%),
+    linear-gradient(135deg, #fefefe 0%, #dfe7ff 42%, #301b86 100%);
+}
+
+.grainient-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.grainient-container[data-grainient-status='fallback'] .grainient-canvas {
+  display: none;
+}

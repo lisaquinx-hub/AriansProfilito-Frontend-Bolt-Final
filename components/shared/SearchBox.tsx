@@ -37,8 +37,8 @@ export function SearchBox({
       onSubmit={handleSubmit}
       className={className}
     >
-      <div className="relative">
-        <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+      <div className="fancy-search-shell">
+        <Search className="fancy-search-icon right-4" />
         <Input
           type="text"
           value={query}
@@ -46,14 +46,15 @@ export function SearchBox({
           placeholder={placeholder}
           autoFocus={autoFocus}
           aria-label={placeholder}
-          className="pr-10 pl-10 bg-muted/50 border-border focus:border-sky-500"
+          className="fancy-search-input"
         />
         {query && (
           <button
             type="button"
             onClick={handleClear}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            className="fancy-search-action left-4"
             aria-label="پاک کردن جست‌وجو"
+            data-no-specular
           >
             <X className="w-4 h-4" />
           </button>
