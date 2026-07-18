@@ -183,7 +183,7 @@ export default function RegisterPage() {
 
   return (
     <main className="relative flex min-h-screen w-full items-center justify-center overflow-hidden px-4 py-20 md:px-6">
-      <div className="absolute inset-0 bg-gradient-to-b from-sky-100 via-blue-50 to-background dark:from-sky-950/70 dark:via-blue-950/55 dark:to-background" />
+      <div className="absolute inset-0 bg-gradient-to-b from-sky-100/70 via-blue-50/55 to-white/60 dark:from-sky-950/45 dark:via-blue-950/30 dark:to-black/20" />
 
       <div
         className="absolute inset-0 opacity-[0.035] mix-blend-multiply dark:mix-blend-soft-light"

@@ -229,7 +229,7 @@ export default function PricingPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-transparent">
       <Navbar />
 
       <section className="relative min-h-screen overflow-hidden px-6 pb-24 pt-32">

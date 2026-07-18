@@ -249,6 +249,25 @@
   animation: scaleIn 0.4s ease-out forwards;
 }
 
+/* Keep the animated public backdrop visible without weakening cards or forms. */
+.public-site-surface .bg-gradient-hero {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.68) 0%,
+    rgba(255, 255, 255, 0.42) 50%,
+    rgba(239, 246, 255, 0.62) 100%
+  );
+}
+
+.dark .public-site-surface .bg-gradient-hero {
+  background: linear-gradient(
+    135deg,
+    rgba(6, 182, 212, 0.06) 0%,
+    rgba(3, 7, 18, 0.18) 50%,
+    rgba(59, 130, 246, 0.06) 100%
+  );
+}
+
 /* Smooth transitions for theme switching */
 *, *::before, *::after {
   transition: background-color 300ms, color 300ms, border-color 300ms, box-shadow 300ms;

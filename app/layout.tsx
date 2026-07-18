@@ -2,6 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { Toaster } from '@/components/ui/sonner';
+import PublicSiteFrame from '@/components/PublicSiteFrame';
 
 export const metadata: Metadata = {
   title: 'آریان‌لب | استودیوی محصول دیجیتال',
@@ -35,7 +36,7 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange={false}
         >
-          {children}
+          <PublicSiteFrame>{children}</PublicSiteFrame>
           <Toaster position="top-center" dir="rtl" />
         </ThemeProvider>
       </body>
