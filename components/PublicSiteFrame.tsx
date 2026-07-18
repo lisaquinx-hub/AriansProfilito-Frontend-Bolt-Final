@@ -4,7 +4,18 @@ import type { ReactNode } from 'react';
 import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 
-const DarkVeil = dynamic(() => import('@/components/DarkVeil'), { ssr: false });
+const DarkVeil = dynamic(
+  async () => {
+    try {
+      return (await import('@/components/DarkVeil')).default;
+    } catch {
+      return function DarkVeilFallback() {
+        return null;
+      };
+    }
+  },
+  { ssr: false }
+);
 
 interface PublicSiteFrameProps {
   children: ReactNode;
