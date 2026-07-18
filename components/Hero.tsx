@@ -127,7 +127,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="flex items-center justify-center gap-8 md:gap-16 mt-16"
+            className="mt-16 flex items-center justify-center gap-8 md:gap-16"
           >
             {[
               { value: 'UX', label: 'تجربه روان' },
@@ -135,8 +135,8 @@ export default function Hero() {
               { value: 'SaaS', label: 'آماده رشد' },
             ].map((stat, index) => (
               <div key={index} className="text-center">
-                <div className="text-2xl md:text-3xl font-bold text-gradient">{stat.value}</div>
-                <div className="text-sm text-muted-foreground mt-1">{stat.label}</div>
+                <div className="text-2xl font-bold md:text-3xl">{stat.value}</div>
+                <div className="mt-1 text-sm font-medium">{stat.label}</div>
               </div>
             ))}
           </motion.div>

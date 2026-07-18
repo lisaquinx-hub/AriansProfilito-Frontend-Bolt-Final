@@ -118,9 +118,8 @@ export default function RadialOrbitalTimeline({
     const x = orbitRadius * Math.cos(radian);
     const y = orbitRadius * Math.sin(radian);
     const zIndex = Math.round(100 + 50 * Math.cos(radian));
-    const opacity = Math.max(0.5, Math.min(1, 0.5 + 0.5 * ((1 + Math.sin(radian)) / 2)));
 
-    return { x, y, zIndex, opacity };
+    return { x, y, zIndex };
   };
 
   const isRelatedToActive = (itemId: number) =>
@@ -139,7 +138,7 @@ export default function RadialOrbitalTimeline({
 
   return (
     <div
-      className="relative flex h-[650px] w-full items-center justify-center overflow-hidden"
+      className="relative flex h-[650px] w-full items-center justify-center overflow-hidden rounded-[2rem] border-2 border-sky-500/30 bg-background/45 shadow-[inset_0_0_90px_rgba(14,165,233,0.08),0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur-sm dark:border-cyan-300/35 dark:bg-slate-950/45 dark:shadow-[inset_0_0_90px_rgba(34,211,238,0.08),0_20px_70px_rgba(0,0,0,0.35)]"
       ref={containerRef}
       onClick={handleContainerClick}
     >
@@ -148,17 +147,17 @@ export default function RadialOrbitalTimeline({
         ref={orbitRef}
         style={{ perspective: '1000px' }}
       >
-        <div className="absolute z-10 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 via-blue-500 to-cyan-500 shadow-glow animate-pulse">
-          <div className="absolute h-20 w-20 animate-ping rounded-full border border-sky-500/25 opacity-70" />
+        <div className="absolute z-10 flex h-20 w-20 items-center justify-center rounded-full border border-white/40 bg-gradient-to-br from-sky-400 via-blue-500 to-cyan-500 shadow-[0_0_45px_rgba(14,165,233,0.45)]">
+          <div className="absolute h-24 w-24 animate-ping rounded-full border border-sky-400/40 opacity-70" />
           <div
-            className="absolute h-24 w-24 animate-ping rounded-full border border-blue-500/15 opacity-50"
+            className="absolute h-28 w-28 animate-ping rounded-full border border-blue-400/25 opacity-50"
             style={{ animationDelay: '0.5s' }}
           />
-          <div className="h-8 w-8 rounded-full bg-white/90 shadow-inner" />
+          <div className="h-9 w-9 rounded-full bg-white shadow-inner shadow-slate-400/50" />
         </div>
 
         <div
-          className="absolute rounded-full border border-sky-500/20 dark:border-cyan-400/15"
+          className="absolute rounded-full border-2 border-sky-500/55 shadow-[0_0_40px_rgba(14,165,233,0.14)] dark:border-cyan-300/60 dark:shadow-[0_0_45px_rgba(34,211,238,0.16)]"
           style={{ width: orbitRadius * 2, height: orbitRadius * 2 }}
         />
 
@@ -175,11 +174,11 @@ export default function RadialOrbitalTimeline({
               ref={(element) => {
                 nodeRefs.current[item.id] = element;
               }}
-              className="absolute cursor-pointer transition-all duration-700"
+              className="absolute cursor-pointer transition-[transform,opacity] duration-100 ease-linear"
               style={{
                 transform: `translate(${position.x}px, ${position.y}px)`,
                 zIndex: isExpanded ? 200 : position.zIndex,
-                opacity: isExpanded ? 1 : position.opacity,
+                opacity: 1,
               }}
               onClick={(event) => {
                 event.stopPropagation();
@@ -199,20 +198,22 @@ export default function RadialOrbitalTimeline({
               />
 
               <div
-                className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-300 ${
+                className={`flex h-12 w-12 items-center justify-center rounded-full border-2 transition-all duration-300 ${
                   isExpanded
                     ? 'scale-150 border-sky-400 bg-sky-500 text-white shadow-lg shadow-sky-500/30'
                     : isRelated
                       ? 'animate-pulse border-cyan-400 bg-cyan-500/80 text-white'
-                      : 'border-sky-500/40 bg-card text-sky-600 shadow-md dark:bg-background dark:text-cyan-300'
+                      : 'border-sky-500 bg-background text-sky-700 shadow-lg shadow-sky-500/30 dark:border-cyan-200/90 dark:bg-slate-950 dark:text-white dark:shadow-cyan-400/25'
                 }`}
               >
-                <Icon size={16} />
+                <Icon size={19} strokeWidth={2.4} />
               </div>
 
               <div
-                className={`absolute top-12 -translate-x-1/2 whitespace-nowrap text-xs font-semibold transition-all duration-300 ${
-                  isExpanded ? 'scale-125 text-sky-600 dark:text-cyan-300' : 'text-muted-foreground'
+                className={`absolute top-14 -translate-x-1/2 whitespace-nowrap rounded-lg border px-2.5 py-1.5 text-sm font-bold shadow-lg backdrop-blur-md transition-all duration-300 ${
+                  isExpanded
+                    ? 'scale-110 border-sky-500/50 bg-background text-sky-700 dark:bg-slate-950 dark:text-cyan-200'
+                    : 'border-sky-500/35 bg-background text-foreground dark:border-cyan-200/35 dark:bg-slate-950 dark:text-white'
                 }`}
                 style={{ left: '50%' }}
               >

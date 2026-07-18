@@ -120,6 +120,13 @@
     @apply from-sky-500 via-blue-500 to-blue-600;
   }
 
+  /* Per-pixel contrast for unboxed copy drawn directly over animated backdrops.
+     It is intentionally light-theme only; the dark palette keeps its authored colors. */
+  html.light .adaptive-backdrop-text {
+    color: white;
+    mix-blend-mode: difference;
+  }
+
   /* Theme-aware background gradients */
   .bg-gradient-hero {
     @apply transition-all duration-300;
@@ -266,6 +273,50 @@
     rgba(3, 7, 18, 0.18) 50%,
     rgba(59, 130, 246, 0.06) 100%
   );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Light-theme text contrast                                                  */
+/* -------------------------------------------------------------------------- */
+
+/* Grainient moves underneath the page, so a fixed foreground color cannot
+   remain readable. Difference blending is evaluated per rendered glyph pixel:
+   the part crossing a light area becomes dark and the part crossing the
+   blue/purple area becomes light. Background-bearing controls are excluded so
+   their surfaces are never inverted. */
+@supports (mix-blend-mode: difference) {
+  html.light [data-public-site]
+    :where(h1, h2, h3, h4, h5, h6, p, label, legend, caption, dt, dd, figcaption, time, small)
+    :not(:has(.animated-gradient-text__content)),
+  html.light [data-public-site]
+    :where(th, td):not(:has(*)),
+  html.light [data-public-site]
+    li:not(:has(a, button, input, textarea, select)),
+  html.light [data-public-site]
+    a:not(:where(h1, h2, h3, h4, h5, h6, p, label, legend, th, td, dt, dd, figcaption) a):not(.specular-button):not(.glass):not([class*='bg-']):not(:has(:where(div, article, section, figure, form))),
+  html.light [data-public-site]
+    span:not(:where(h1, h2, h3, h4, h5, h6, p, label, legend, th, td, dt, dd, blockquote, figcaption, a, button) span):not(.animated-gradient-text):not(.animated-gradient-text__content):not(:has(.animated-gradient-text__content)):not(.glass):not([class*='bg-']),
+  html.light [data-public-site]
+    div:not(:has(*)):not(.glass):not([class*='bg-']):not([role='progressbar']) {
+    color: #fff !important;
+    mix-blend-mode: difference;
+    text-shadow: none;
+  }
+}
+
+/* In dark mode only the requested public footer and blog copy are forced to
+   white. Other dark-theme text keeps its component-specific palette. */
+.dark [data-site-footer]
+  :where(h1, h2, h3, h4, h5, h6, p, span, a, li, div, label, small, time, button),
+.dark [data-blog-surface]
+  :where(h1, h2, h3, h4, h5, h6, p, span, a, li, div, label, small, time, button, input, textarea, select, option) {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff;
+}
+
+.dark [data-blog-surface] :where(input, textarea)::placeholder {
+  color: rgb(255 255 255 / 65%);
+  -webkit-text-fill-color: rgb(255 255 255 / 65%);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -72,7 +72,7 @@ export default function BlogPostPage() {
 
   if (isLoading) {
     return (
-      <main className="min-h-screen pt-24 pb-16 relative overflow-x-hidden">
+      <main data-blog-surface className="min-h-screen pt-24 pb-16 relative overflow-x-hidden">
         <Navbar />
         <div className="container mx-auto px-6 relative">
           <div className="animate-pulse">
@@ -90,7 +90,7 @@ export default function BlogPostPage() {
   }
 
   return (
-    <main className="min-h-screen pt-24 pb-16 relative overflow-x-hidden">
+    <main data-blog-surface className="min-h-screen pt-24 pb-16 relative overflow-x-hidden">
       <Navbar />
       <div className="absolute top-0 right-0 w-64 md:w-96 h-64 md:h-96 bg-sky-500/10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2 pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-64 md:w-96 h-64 md:h-96 bg-blue-500/10 rounded-full blur-3xl -translate-x-1/2 translate-y-1/2 pointer-events-none" />

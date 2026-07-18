@@ -100,7 +100,7 @@ export default function Footer() {
     .filter((item): item is { social: SocialMedia; safeUrl: string } => Boolean(item.safeUrl));
 
   return (
-    <footer className="relative pt-24 pb-8 border-t border-border">
+    <footer data-site-footer className="relative pt-24 pb-8 border-t border-border">
       <div className="container mx-auto px-6">
         <div className="grid md:grid-cols-4 gap-12 mb-12">
           {/* Brand */}
