@@ -120,11 +120,10 @@
     @apply from-sky-500 via-blue-500 to-blue-600;
   }
 
-  /* Per-pixel contrast for unboxed copy drawn directly over animated backdrops.
-     It is intentionally light-theme only; the dark palette keeps its authored colors. */
+  /* Light mode uses a pale backdrop, so adaptive text stays dark. */
   html.light .adaptive-backdrop-text {
-    color: white;
-    mix-blend-mode: difference;
+    color: hsl(var(--foreground));
+    mix-blend-mode: normal;
   }
 
   /* Theme-aware background gradients */
@@ -275,33 +274,10 @@
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* Light-theme text contrast                                                  */
-/* -------------------------------------------------------------------------- */
-
-/* Grainient moves underneath the page, so a fixed foreground color cannot
-   remain readable. Difference blending is evaluated per rendered glyph pixel:
-   the part crossing a light area becomes dark and the part crossing the
-   blue/purple area becomes light. Background-bearing controls are excluded so
-   their surfaces are never inverted. */
-@supports (mix-blend-mode: difference) {
-  html.light [data-public-site]
-    :where(h1, h2, h3, h4, h5, h6, p, label, legend, caption, dt, dd, figcaption, time, small)
-    :not(:has(.animated-gradient-text__content)),
-  html.light [data-public-site]
-    :where(th, td):not(:has(*)),
-  html.light [data-public-site]
-    li:not(:has(a, button, input, textarea, select)),
-  html.light [data-public-site]
-    a:not(:where(h1, h2, h3, h4, h5, h6, p, label, legend, th, td, dt, dd, figcaption) a):not(.specular-button):not(.glass):not([class*='bg-']):not(:has(:where(div, article, section, figure, form))),
-  html.light [data-public-site]
-    span:not(:where(h1, h2, h3, h4, h5, h6, p, label, legend, th, td, dt, dd, blockquote, figcaption, a, button) span):not(.animated-gradient-text):not(.animated-gradient-text__content):not(:has(.animated-gradient-text__content)):not(.glass):not([class*='bg-']),
-  html.light [data-public-site]
-    div:not(:has(*)):not(.glass):not([class*='bg-']):not([role='progressbar']) {
-    color: #fff !important;
-    mix-blend-mode: difference;
-    text-shadow: none;
-  }
+/* The light Grainient no longer contains dark purple. Explicit white utility
+   text is therefore changed to the normal dark foreground in light mode only. */
+html.light [data-public-site] [class*='text-white'] {
+  color: hsl(var(--foreground)) !important;
 }
 
 /* In dark mode only the requested public footer and blog copy are forced to

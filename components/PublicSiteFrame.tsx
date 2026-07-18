@@ -54,16 +54,16 @@ export default function PublicSiteFrame({ children }: PublicSiteFrameProps) {
       data-dashboard-surface={isDashboard ? 'true' : undefined}
     >
       <div
-        className={`pointer-events-none fixed inset-0 z-0 overflow-hidden ${isLight ? 'bg-[#eef3fb]' : 'bg-[#030008]'}`}
+        className={`pointer-events-none fixed inset-0 z-0 overflow-hidden ${isLight ? 'bg-[#f8fafc]' : 'bg-[#030008]'}`}
         aria-hidden="true"
         data-public-backdrop={isLight ? 'grainient' : 'darkveil'}
       >
         {isLight ? (
           <>
             <Grainient
-              color1="#fefefe"
-              color2="#301b86"
-              color3="#8605ff"
+              color1="#ffffff"
+              color2="#eef4fb"
+              color3="#dfeaf7"
               timeSpeed={3.05}
               colorBalance={0}
               warpStrength={1}
@@ -74,18 +74,18 @@ export default function PublicSiteFrame({ children }: PublicSiteFrameProps) {
               blendSoftness={0.05}
               rotationAmount={500}
               noiseScale={2}
-              grainAmount={0.1}
+              grainAmount={0.06}
               grainScale={2}
               grainAnimated={false}
-              contrast={1.5}
+              contrast={1.08}
               gamma={1}
-              saturation={1}
+              saturation={0.35}
               centerX={0}
               centerY={0}
               zoom={0.9}
             />
-            <div className="absolute inset-0 bg-white/36" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_12%,transparent_0%,rgba(255,255,255,0.12)_50%,rgba(15,23,42,0.16)_100%)]" />
+            <div className="absolute inset-0 bg-white/20" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_12%,transparent_0%,rgba(255,255,255,0.16)_50%,rgba(148,163,184,0.1)_100%)]" />
           </>
         ) : (
           <>
