@@ -1,9 +1,6 @@
 /** @type {import('next').NextConfig} */
 const isDevelopment = process.env.NODE_ENV === 'development';
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://localhost:7297/api';
-const splineSceneUrl =
-  process.env.NEXT_PUBLIC_SPLINE_ROBOT_SCENE ||
-  'https://prod.spline.design/PyzDhpQ9E5f1E3MT/scene.splinecode';
 
 function getApiOrigin(value) {
   try {
@@ -14,11 +11,9 @@ function getApiOrigin(value) {
 }
 
 const apiOrigin = getApiOrigin(apiBaseUrl);
-const splineOrigin = getApiOrigin(splineSceneUrl);
 const connectSources = [
   "'self'",
   ...(apiOrigin ? [apiOrigin] : []),
-  ...(splineOrigin ? [splineOrigin] : []),
   ...(isDevelopment ? ['ws:', 'wss:'] : []),
 ];
 

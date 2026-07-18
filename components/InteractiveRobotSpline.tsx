@@ -1,6 +1,7 @@
 'use client';
 
-import { Suspense, lazy } from 'react';
+import { Component, Suspense, lazy, useState, type ReactNode } from 'react';
+
 const Spline = lazy(() => import('@splinetool/react-spline'));
 
 interface InteractiveRobotSplineProps {
@@ -8,23 +9,81 @@ interface InteractiveRobotSplineProps {
   className?: string;
 }
 
-export function InteractiveRobotSpline({ scene, className }: InteractiveRobotSplineProps) {
+interface SplineErrorBoundaryProps {
+  children: ReactNode;
+  fallback: ReactNode;
+}
+
+interface SplineErrorBoundaryState {
+  hasError: boolean;
+}
+
+class SplineErrorBoundary extends Component<
+  SplineErrorBoundaryProps,
+  SplineErrorBoundaryState
+> {
+  state: SplineErrorBoundaryState = { hasError: false };
+
+  static getDerivedStateFromError(): SplineErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  render() {
+    return this.state.hasError ? this.props.fallback : this.props.children;
+  }
+}
+
+function RobotLoader({ className }: { className?: string }) {
   return (
-    <Suspense
+    <div
+      className={`flex h-full w-full items-center justify-center bg-transparent ${className ?? ''}`}
+      role="status"
+      aria-label="در حال بارگذاری ربات سه‌بعدی"
+    >
+      <span className="h-8 w-8 animate-spin rounded-full border-2 border-primary/25 border-t-primary" />
+    </div>
+  );
+}
+
+function RobotFallback({
+  className,
+  onRetry,
+}: {
+  className?: string;
+  onRetry: () => void;
+}) {
+  return (
+    <div
+      className={`flex h-full w-full items-center justify-center bg-transparent px-6 ${className ?? ''}`}
+      data-testid="spline-fallback"
+    >
+      <div className="rounded-2xl border border-border/60 bg-background/70 px-6 py-5 text-center shadow-lg backdrop-blur-xl">
+        <p className="text-sm text-muted-foreground">مدل سه‌بعدی موقتاً بارگذاری نشد.</p>
+        <button
+          type="button"
+          onClick={onRetry}
+          className="mt-3 rounded-full border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
+          تلاش دوباره
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export function InteractiveRobotSpline({ scene, className }: InteractiveRobotSplineProps) {
+  const [attempt, setAttempt] = useState(0);
+
+  return (
+    <SplineErrorBoundary
+      key={`${scene}:${attempt}`}
       fallback={
-        <div className={`w-full h-full flex items-center justify-center bg-gray-900 text-white ${className}`}>
-          <svg className="animate-spin h-5 w-5 text-white mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l2-2.647z"></path>
-          </svg>
-        </div>
+        <RobotFallback className={className} onRetry={() => setAttempt((value) => value + 1)} />
       }
     >
-      
-      <Spline
-        scene={scene}
-        className={className} 
-      />
-    </Suspense>
+      <Suspense fallback={<RobotLoader className={className} />}>
+        <Spline scene={scene} className={className} />
+      </Suspense>
+    </SplineErrorBoundary>
   );
 }
