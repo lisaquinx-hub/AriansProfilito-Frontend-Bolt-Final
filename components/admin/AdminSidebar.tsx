@@ -68,22 +68,22 @@ function AdminLayoutContent({ children }: AdminLayoutContentProps) {
         initial={{ x: -280 }}
         animate={{ x: 0, width: isSidebarOpen ? 280 : 80 }}
         className={cn(
-          'hidden lg:flex flex-col fixed h-screen backdrop-blur-xl border-l z-50',
+          'fixed right-0 top-0 z-50 hidden h-screen flex-col border-l backdrop-blur-xl lg:flex',
           'transition-all duration-300',
           'bg-card/50 border-border',
           'dark:bg-card/50 dark:border-white/5'
         )}
       >
-        <div className="p-6 flex items-center justify-between">
-          <Link href="/dashboard/admin">
-            <span className={cn('text-xl font-bold text-gradient transition-opacity', isSidebarOpen ? 'opacity-100' : 'opacity-0')}>
-              پنل مدیریت
-            </span>
-          </Link>
+        <div className={cn('flex h-16 flex-shrink-0 items-center px-4', isSidebarOpen ? 'justify-between' : 'justify-center')}>
+          {isSidebarOpen && (
+            <Link href="/dashboard/admin">
+              <span className="text-xl font-bold text-gradient">پنل مدیریت</span>
+            </Link>
+          )}
           <button
             type="button"
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-2 rounded-lg hover:bg-muted transition-colors"
+            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg transition-colors hover:bg-muted"
             aria-label={isSidebarOpen ? 'بستن نوار کناری' : 'باز کردن نوار کناری'}
           >
             {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -166,8 +166,13 @@ function AdminLayoutContent({ children }: AdminLayoutContentProps) {
           <div className="h-full px-4 lg:px-6 flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <button type="button" onClick={() => setIsMobileMenuOpen(true)} className="p-2 rounded-lg hover:bg-muted transition-colors lg:hidden" aria-label="باز کردن منو"><Menu className="w-5 h-5" /></button>
-              <Link href="/" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-                <Home className="w-4 h-4" /><span className="hidden sm:inline">بازگشت به سایت</span>
+              <Link
+                href="/"
+                className="flex h-10 w-10 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                aria-label="صفحه اصلی"
+                title="صفحه اصلی"
+              >
+                <Home className="h-4 w-4" />
               </Link>
             </div>
             <div className="flex flex-shrink-0 items-center gap-4 sm:gap-5">
