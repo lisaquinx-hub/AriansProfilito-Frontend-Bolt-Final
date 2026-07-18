@@ -26,7 +26,10 @@ Copy-Item .env.example .env.local
 
 ```env
 NEXT_PUBLIC_API_BASE_URL=https://localhost:7297/api
+NEXT_PUBLIC_SPLINE_ROBOT_SCENE=https://prod.spline.design/PyzDhpQ9E5f1E3MT/scene.splinecode
 ```
+
+متغیر دوم آدرس صحنه ربات Spline است و در صورت نیاز می‌توانید آن را با خروجی صحنه خودتان جایگزین کنید.
 
 سپس پروژه را اجرا کنید:
 

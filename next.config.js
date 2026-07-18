@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const isDevelopment = process.env.NODE_ENV === 'development';
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://localhost:7297/api';
+const splineSceneUrl =
+  process.env.NEXT_PUBLIC_SPLINE_ROBOT_SCENE ||
+  'https://prod.spline.design/PyzDhpQ9E5f1E3MT/scene.splinecode';
 
 function getApiOrigin(value) {
   try {
@@ -11,9 +14,11 @@ function getApiOrigin(value) {
 }
 
 const apiOrigin = getApiOrigin(apiBaseUrl);
+const splineOrigin = getApiOrigin(splineSceneUrl);
 const connectSources = [
   "'self'",
   ...(apiOrigin ? [apiOrigin] : []),
+  ...(splineOrigin ? [splineOrigin] : []),
   ...(isDevelopment ? ['ws:', 'wss:'] : []),
 ];
 
@@ -23,7 +28,7 @@ const contentSecurityPolicy = [
   "form-action 'self'",
   "frame-ancestors 'none'",
   "object-src 'none'",
-  `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ''}`,
+  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'${isDevelopment ? " 'unsafe-eval'" : ''}`,
   "script-src-attr 'none'",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' data: https://fonts.gstatic.com",

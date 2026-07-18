@@ -49,6 +49,7 @@ async function mockApi(page: Page, context: BrowserContext) {
   let logoutSeen = false;
   let commentSeen = false;
   let blogUpdateSeen = false;
+  let registerSeen = false;
   let commentsRequestUrl = '';
   const blogPostId = 'c95ac91f-4835-4f14-8587-9a511d1475a4';
   const adminBlogPostId = '6de067c7-4f8f-4604-b495-127843afc970';
@@ -84,6 +85,9 @@ async function mockApi(page: Page, context: BrowserContext) {
     await route.fulfill({ status: 200, contentType: 'text/css', body: '' });
   });
   await page.route('https://fonts.gstatic.com/**', async (route) => {
+    await route.abort();
+  });
+  await page.route('https://prod.spline.design/**', async (route) => {
     await route.abort();
   });
   await page.route('https://images.example.com/**', async (route) => {
@@ -161,6 +165,46 @@ async function mockApi(page: Page, context: BrowserContext) {
           accessTokenExpiresAt: '2026-07-16T12:15:00Z',
           refreshTokenExpiresAt: '2026-08-15T12:00:00Z',
           user,
+        },
+      });
+      return;
+    }
+
+    if (pathname === '/api/Auth/register') {
+      const payload = request.postDataJSON();
+      expect(request.headers()['x-csrf-token']).toBe('csrf-e2e-1');
+      expect(payload).toEqual({
+        fullName: 'کاربر ثبت‌نام تست',
+        email: 'register-e2e@example.com',
+        userName: 'register-e2e',
+        password: 'StrongPass123',
+      });
+
+      authenticatedUser = {
+        ...customer,
+        fullName: payload.fullName,
+        email: payload.email,
+        userName: payload.userName,
+      };
+      registerSeen = true;
+
+      await context.addCookies([
+        {
+          name: '__Host-AriansLab.Access',
+          value: 'opaque-access-cookie',
+          url: `${apiOrigin}/`,
+          httpOnly: true,
+          secure: true,
+          sameSite: 'None',
+        },
+      ]);
+
+      await json(route, {
+        success: true,
+        data: {
+          accessTokenExpiresAt: '2026-07-16T12:15:00Z',
+          refreshTokenExpiresAt: '2026-08-15T12:00:00Z',
+          user: authenticatedUser,
         },
       });
       return;
@@ -391,6 +435,27 @@ async function mockApi(page: Page, context: BrowserContext) {
       return;
     }
 
+    if (pathname === '/api/pricing/plans' && request.method() === 'GET') {
+      await json(route, {
+        success: true,
+        data: [
+          {
+            id: 'pricing-plan-e2e',
+            title: 'پلن API تست',
+            description: 'این پلن مستقیماً از پاسخ API تست دریافت شده است.',
+            price: 50000000,
+            duration: 45,
+            deliveryDays: 30,
+            isPopular: true,
+            displayOrder: 1,
+            isActive: true,
+            features: [{ feature: 'پشتیبانی و راه‌اندازی' }],
+          },
+        ],
+      });
+      return;
+    }
+
     await json(route, { success: true, data: [] });
   });
 
@@ -398,6 +463,7 @@ async function mockApi(page: Page, context: BrowserContext) {
     wasLoggedOut: () => logoutSeen,
     wasCommentSubmitted: () => commentSeen,
     wasBlogUpdated: () => blogUpdateSeen,
+    wasRegistered: () => registerSeen,
     adminCommentsRequestUrl: () => commentsRequestUrl,
     csrfCalls: () => csrfSequence,
     adminBlogContent: adminBlogPostDetail.content,
@@ -476,6 +542,14 @@ test('ورود، خدمات واقعی، ثبت نظر، نمایش ادمین �
   await expect(page.getByRole('link', { name: 'شرایط استفاده' })).toHaveAttribute('href', '/terms');
   await expect(page.getByRole('link', { name: 'حریم خصوصی' })).toHaveAttribute('href', '/privacy');
 
+  await page.goto('/pricing', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('heading', { name: 'پلن API تست' })).toBeVisible();
+  await expect(page.getByText('پشتیبانی و راه‌اندازی')).toBeVisible();
+  await expect(page.getByRole('link', { name: /تماس برای ثبت پروژه/ })).toHaveAttribute(
+    'href',
+    '/#contact-form'
+  );
+
   await page.goto('/login');
   await page.getByLabel('ایمیل یا نام کاربری').fill(admin.email);
   await page.getByLabel('رمز عبور', { exact: true }).fill('StrongPass123');
@@ -524,4 +598,21 @@ test('ورود، خدمات واقعی، ثبت نظر، نمایش ادمین �
   );
   await expect(page.getByRole('link', { name: '9917175937' })).toHaveAttribute('href', 'tel:9917175937');
   await expect(page.locator('a[title="Telegram"] img')).toBeVisible();
+});
+
+test('فرم متحرک ثبت‌نام به API واقعی متصل است', async ({ page, context }) => {
+  const apiState = await mockApi(page, context);
+
+  await page.goto('/register', { waitUntil: 'domcontentloaded' });
+  await page.getByLabel('نام و نام خانوادگی').fill('کاربر ثبت‌نام تست');
+  await page.getByLabel('نام کاربری').fill('register-e2e');
+  await page.getByLabel('ایمیل').fill('register-e2e@example.com');
+  await page.getByLabel('رمز عبور', { exact: true }).fill('StrongPass123');
+  await page.getByLabel('تکرار رمز عبور').fill('StrongPass123');
+  await page.getByRole('button', { name: /^ثبت‌نام$/ }).click();
+
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page.getByRole('heading', { name: 'داشبورد' })).toBeVisible();
+  expect(apiState.wasRegistered()).toBe(true);
+  expect(apiState.csrfCalls()).toBe(1);
 });
