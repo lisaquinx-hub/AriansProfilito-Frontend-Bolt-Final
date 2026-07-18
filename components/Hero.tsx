@@ -38,24 +38,7 @@ export default function Hero() {
   const secondaryButtonUrl = getSafeNavigationHref(heroData?.secondaryButtonUrl, '/portfolio');
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-      {/* Background Effects */}
-      <div className="absolute inset-0 bg-gradient-hero" />
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 right-1/4 w-64 md:w-96 h-64 md:h-96 bg-sky-500/10 dark:bg-cyan-500/10 rounded-full blur-3xl animate-pulse-slow" />
-        <div className="absolute bottom-1/4 left-1/4 w-64 md:w-96 h-64 md:h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse-slow delay-1000" />
-      </div>
-
-      {/* Grid Pattern */}
-      <div
-        className="absolute inset-0 opacity-5 dark:opacity-10"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(14, 165, 233, 0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(14, 165, 233, 0.2) 1px, transparent 1px)',
-          backgroundSize: '50px 50px',
-        }}
-      />
-
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-transparent pt-20">
       <div className="container mx-auto px-6 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
           {/* Badge */}
@@ -150,9 +133,6 @@ export default function Hero() {
           </motion.div>
         </div>
       </div>
-
-      {/* Bottom Gradient */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
     </section>
   );
 }

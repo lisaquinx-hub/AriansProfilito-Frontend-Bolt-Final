@@ -87,9 +87,6 @@ async function mockApi(page: Page, context: BrowserContext) {
   await page.route('https://fonts.gstatic.com/**', async (route) => {
     await route.abort();
   });
-  await page.route('**/api/spline/robot', async (route) => {
-    await route.abort();
-  });
   await page.route('https://images.example.com/**', async (route) => {
     await route.fulfill({
       status: 200,
@@ -477,8 +474,6 @@ test('ورود، خدمات واقعی، ثبت نظر، نمایش ادمین �
 
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('[data-public-darkveil] canvas.darkveil-canvas')).toHaveCount(1);
-  await expect(page.getByTestId('spline-fallback')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'تلاش دوباره' })).toBeVisible();
   await expect(page.getByText('سؤال متداول تست 4')).toBeVisible();
   await expect(page.getByText('سؤال متداول تست 5')).toHaveCount(0);
   await page.getByRole('button', { name: 'همه سؤالات' }).click();

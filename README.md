@@ -26,11 +26,7 @@ Copy-Item .env.example .env.local
 
 ```env
 NEXT_PUBLIC_API_BASE_URL=https://localhost:7297/api
-SPLINE_ROBOT_SCENE_URL=https://prod.spline.design/PyzDhpQ9E5f1E3MT/scene.splinecode
 ```
-
-متغیر دوم آدرس صحنه ربات Spline است. صحنه از مسیر داخلی امن `/api/spline/robot`
-بارگذاری می‌شود تا قطع ارتباط مستقیم مرورگر با CDN باعث از کار افتادن صفحه اصلی نشود.
 
 سپس پروژه را اجرا کنید:
 
