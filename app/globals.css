@@ -268,11 +268,6 @@
   );
 }
 
-/* Smooth transitions for theme switching */
-*, *::before, *::after {
-  transition: background-color 300ms, color 300ms, border-color 300ms, box-shadow 300ms;
-}
-
 /* -------------------------------------------------------------------------- */
 /* Shared interactive surfaces                                                */
 /* -------------------------------------------------------------------------- */

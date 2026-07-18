@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 
 const CARD_SELECTOR = '[data-magic-bento], .magic-bento-card, .glass';
+const PARTICLE_COUNT = 5;
 
 function getCard(target: EventTarget | null): HTMLElement | null {
   return target instanceof Element ? target.closest<HTMLElement>(CARD_SELECTOR) : null;
@@ -28,7 +29,7 @@ function addParticle(layer: HTMLElement, card: HTMLElement, index: number) {
   if (rect.width === 0 || rect.height === 0) return;
 
   const particle = document.createElement('i');
-  const angle = (Math.PI * 2 * index) / 8 + Math.random() * 0.5;
+  const angle = (Math.PI * 2 * index) / PARTICLE_COUNT + Math.random() * 0.5;
   const distance = 18 + Math.random() * 34;
 
   particle.className = 'magic-bento-particle';
@@ -100,7 +101,7 @@ export default function MagicBentoProvider() {
       card.classList.add('magic-bento-active');
 
       if (finePointer.matches && !reducedMotion.matches) {
-        Array.from({ length: 8 }, (_, index) => addParticle(layer, card, index));
+        Array.from({ length: PARTICLE_COUNT }, (_, index) => addParticle(layer, card, index));
       }
     };
 

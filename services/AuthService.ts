@@ -1,4 +1,4 @@
-import { api, getApiErrorMessage, resetCsrfToken } from './api';
+import { api, getApiErrorMessage, getApiStatus, resetCsrfToken } from './api';
 import { ApiResponse, normalizeObject } from '@/lib/api-utils';
 import {
   clearAuthSession,
@@ -72,6 +72,9 @@ class AuthService {
       setAuthSession(responseData.user, false);
       return responseData;
     } catch (error) {
+      if (getApiStatus(error) === 409) {
+        throw new Error('این ایمیل یا نام کاربری قبلاً ثبت شده است؛ وارد حساب خود شوید یا اطلاعات دیگری انتخاب کنید');
+      }
       throw new Error(getApiErrorMessage(error));
     }
   }

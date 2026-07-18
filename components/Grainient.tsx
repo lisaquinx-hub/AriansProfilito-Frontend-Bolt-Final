@@ -187,7 +187,7 @@ export default function Grainient({
         webgl: 2,
         alpha: true,
         antialias: false,
-        dpr: Math.min(window.devicePixelRatio || 1, 2),
+        dpr: Math.min(window.devicePixelRatio || 1, 1.25),
       });
       const gl = renderer.gl;
       canvas = gl.canvas as HTMLCanvasElement;
@@ -233,11 +233,18 @@ export default function Grainient({
       };
 
       const startedAt = performance.now();
+      const minimumFrameTime = 1000 / 30;
+      let lastRenderedAt = startedAt - minimumFrameTime;
       const loop = (time: number) => {
         if (!active) return;
-        uniforms.iTime.value = (time - startedAt) * 0.001;
-        renderer.render({ scene: mesh });
-        container.dataset.grainientStatus = 'ready';
+
+        if (time - lastRenderedAt >= minimumFrameTime) {
+          lastRenderedAt = time;
+          uniforms.iTime.value = (time - startedAt) * 0.001;
+          renderer.render({ scene: mesh });
+          container.dataset.grainientStatus = 'ready';
+        }
+
         frame = requestAnimationFrame(loop);
       };
 

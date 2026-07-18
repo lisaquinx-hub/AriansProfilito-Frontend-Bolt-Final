@@ -3,12 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import {
-  AnimatePresence,
-  motion,
-  useMotionValue,
-  useTransform,
-} from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowLeft, Eye, EyeOff, Lock, Mail, User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,76 +22,6 @@ interface RegisterFormData {
 
 type RegisterField = keyof RegisterFormData;
 
-function TravelingLightBeams() {
-  const beams = [
-    {
-      className: 'left-0 top-0 h-[3px] w-1/2 bg-gradient-to-r',
-      animate: { left: ['-50%', '100%'] },
-      delay: 0,
-    },
-    {
-      className: 'right-0 top-0 h-1/2 w-[3px] bg-gradient-to-b',
-      animate: { top: ['-50%', '100%'] },
-      delay: 0.6,
-    },
-    {
-      className: 'bottom-0 right-0 h-[3px] w-1/2 bg-gradient-to-l',
-      animate: { right: ['-50%', '100%'] },
-      delay: 1.2,
-    },
-    {
-      className: 'bottom-0 left-0 h-1/2 w-[3px] bg-gradient-to-t',
-      animate: { bottom: ['-50%', '100%'] },
-      delay: 1.8,
-    },
-  ];
-
-  return (
-    <div className="pointer-events-none absolute -inset-px overflow-hidden rounded-3xl">
-      {beams.map((beam, index) => (
-        <motion.div
-          key={index}
-          className={cn(
-            'absolute from-transparent via-sky-500 to-transparent opacity-70 blur-[0.5px] dark:via-cyan-300',
-            beam.className
-          )}
-          animate={{
-            ...beam.animate,
-            opacity: [0.25, 0.8, 0.25],
-            filter: ['blur(1px)', 'blur(2.5px)', 'blur(1px)'],
-          }}
-          transition={{
-            duration: 2.5,
-            ease: 'easeInOut',
-            repeat: Infinity,
-            repeatDelay: 1,
-            delay: beam.delay,
-          }}
-        />
-      ))}
-
-      {['left-0 top-0', 'right-0 top-0', 'bottom-0 right-0', 'bottom-0 left-0'].map(
-        (position, index) => (
-          <motion.span
-            key={position}
-            className={cn(
-              'absolute h-2 w-2 rounded-full bg-sky-400/70 blur-[2px] dark:bg-cyan-300/70',
-              position
-            )}
-            animate={{ opacity: [0.2, 0.7, 0.2] }}
-            transition={{
-              duration: 2 + index * 0.2,
-              repeat: Infinity,
-              repeatType: 'mirror',
-              delay: index * 0.45,
-            }}
-          />
-        )
-      )}
-    </div>
-  );
-}
-
 export default function RegisterPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
@@ -111,22 +36,6 @@ export default function RegisterPage() {
     password: '',
     confirmPassword: '',
   });
-
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const rotateX = useTransform(mouseY, [-300, 300], [10, -10]);
-  const rotateY = useTransform(mouseX, [-300, 300], [-10, 10]);
-
-  const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    mouseX.set(event.clientX - rect.left - rect.width / 2);
-    mouseY.set(event.clientY - rect.top - rect.height / 2);
-  };
-
-  const handleMouseLeave = () => {
-    mouseX.set(0);
-    mouseY.set(0);
-  };
 
   const updateField = (field: RegisterField, value: string) => {
     setFormData((current) => ({ ...current, [field]: value }));
@@ -195,18 +104,10 @@ export default function RegisterPage() {
       />
 
       <div className="absolute left-1/2 top-0 h-[60vh] w-[120vh] -translate-x-1/2 rounded-b-[50%] bg-sky-400/20 blur-[80px] dark:bg-cyan-400/15" />
-      <motion.div
-        className="absolute left-1/2 top-0 h-[60vh] w-[100vh] -translate-x-1/2 rounded-b-full bg-blue-400/20 blur-[60px] dark:bg-blue-500/20"
-        animate={{ opacity: [0.15, 0.35, 0.15], scale: [0.98, 1.02, 0.98] }}
-        transition={{ duration: 8, repeat: Infinity, repeatType: 'mirror' }}
-      />
-      <motion.div
-        className="absolute bottom-0 left-1/2 h-[90vh] w-[90vh] -translate-x-1/2 rounded-t-full bg-cyan-400/20 blur-[70px] dark:bg-sky-500/20"
-        animate={{ opacity: [0.2, 0.45, 0.2], scale: [1, 1.1, 1] }}
-        transition={{ duration: 6, repeat: Infinity, repeatType: 'mirror', delay: 1 }}
-      />
-      <div className="absolute left-1/4 top-1/4 h-96 w-96 animate-pulse rounded-full bg-white/20 opacity-50 blur-[100px] dark:bg-white/5" />
-      <div className="absolute bottom-1/4 right-1/4 h-96 w-96 animate-pulse rounded-full bg-sky-200/30 opacity-50 blur-[100px] dark:bg-cyan-300/5" />
+      <div className="absolute left-1/2 top-0 h-[60vh] w-[100vh] -translate-x-1/2 rounded-b-full bg-blue-400/20 blur-[60px] dark:bg-blue-500/20" />
+      <div className="absolute bottom-0 left-1/2 h-[90vh] w-[90vh] -translate-x-1/2 rounded-t-full bg-cyan-400/20 blur-[70px] dark:bg-sky-500/20" />
+      <div className="absolute left-1/4 top-1/4 h-96 w-96 rounded-full bg-white/20 opacity-50 blur-[100px] dark:bg-white/5" />
+      <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-sky-200/30 opacity-50 blur-[100px] dark:bg-cyan-300/5" />
 
       <div className="absolute right-4 top-5 z-30 flex items-center gap-2 md:right-6">
         <ThemeToggle />
@@ -223,32 +124,10 @@ export default function RegisterPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
         className="relative z-10 w-full max-w-2xl"
-        style={{ perspective: 1500 }}
       >
-        <motion.div
-          className="relative"
-          style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
-          whileHover={{ z: 10 }}
-        >
-          <div className="group relative">
-            <motion.div
-              className="absolute -inset-px rounded-3xl opacity-40 transition-opacity duration-700 group-hover:opacity-80"
-              animate={{
-                boxShadow: [
-                  '0 0 12px 2px rgba(14,165,233,0.08)',
-                  '0 0 28px 7px rgba(14,165,233,0.16)',
-                  '0 0 12px 2px rgba(14,165,233,0.08)',
-                ],
-                opacity: [0.25, 0.55, 0.25],
-              }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', repeatType: 'mirror' }}
-            />
-
-            <TravelingLightBeams />
-
-            <div data-magic-bento className="relative overflow-hidden rounded-3xl border border-white/45 bg-background/75 p-6 shadow-2xl backdrop-blur-2xl dark:border-white/[0.08] dark:bg-card/65 md:p-8">
+        <div className="relative">
+          <div className="relative">
+            <div className="relative overflow-hidden rounded-3xl border border-white/45 bg-background/75 p-6 shadow-2xl backdrop-blur-2xl dark:border-white/[0.08] dark:bg-card/65 md:p-8">
               <div
                 className="pointer-events-none absolute inset-0 opacity-[0.035] dark:opacity-[0.025]"
                 style={{
@@ -288,7 +167,7 @@ export default function RegisterPage() {
 
               <form onSubmit={handleSubmit} className="relative space-y-5" noValidate>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <motion.div whileHover={{ scale: 1.01 }} className="space-y-2">
+                  <div className="space-y-2">
                     <Label htmlFor="fullName">نام و نام خانوادگی</Label>
                     <div className="relative">
                       <User className="absolute right-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -306,9 +185,9 @@ export default function RegisterPage() {
                         required
                       />
                     </div>
-                  </motion.div>
+                  </div>
 
-                  <motion.div whileHover={{ scale: 1.01 }} className="space-y-2">
+                  <div className="space-y-2">
                     <Label htmlFor="userName">نام کاربری</Label>
                     <div className="relative">
                       <User className="absolute right-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -323,15 +202,15 @@ export default function RegisterPage() {
                         autoComplete="username"
                         minLength={3}
                         maxLength={100}
-                        pattern="[a-zA-Z0-9._-]+"
+                        pattern={'[A-Za-z0-9._\\-]+'}
                         className={inputClassName('userName')}
                         required
                       />
                     </div>
-                  </motion.div>
+                  </div>
                 </div>
 
-                <motion.div whileHover={{ scale: 1.01 }} className="space-y-2">
+                <div className="space-y-2">
                   <Label htmlFor="email">ایمیل</Label>
                   <div className="relative">
                     <Mail className="absolute right-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -349,10 +228,10 @@ export default function RegisterPage() {
                       required
                     />
                   </div>
-                </motion.div>
+                </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
-                  <motion.div whileHover={{ scale: 1.01 }} className="space-y-2">
+                  <div className="space-y-2">
                     <Label htmlFor="password">رمز عبور</Label>
                     <div className="relative">
                       <Lock className="absolute right-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -379,9 +258,9 @@ export default function RegisterPage() {
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
-                  </motion.div>
+                  </div>
 
-                  <motion.div whileHover={{ scale: 1.01 }} className="space-y-2">
+                  <div className="space-y-2">
                     <Label htmlFor="confirmPassword">تکرار رمز عبور</Label>
                     <div className="relative">
                       <Lock className="absolute right-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -408,7 +287,7 @@ export default function RegisterPage() {
                         {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
-                  </motion.div>
+                  </div>
                 </div>
 
                 <p className="text-xs leading-6 text-muted-foreground">
@@ -429,9 +308,7 @@ export default function RegisterPage() {
                   )}
                 </AnimatePresence>
 
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                <button
                   type="submit"
                   disabled={isLoading}
                   className="group/button relative h-12 w-full overflow-hidden rounded-xl bg-gradient-to-l from-sky-500 to-blue-600 font-medium text-white shadow-glow disabled:cursor-not-allowed disabled:opacity-70 dark:from-blue-600 dark:to-cyan-600"
@@ -466,7 +343,7 @@ export default function RegisterPage() {
                       </motion.span>
                     )}
                   </AnimatePresence>
-                </motion.button>
+                </button>
 
                 <p className="text-center text-xs leading-6 text-muted-foreground">
                   با ایجاد حساب،{' '}
@@ -495,7 +372,7 @@ export default function RegisterPage() {
               </motion.p>
             </div>
           </div>
-        </motion.div>
+        </div>
       </motion.div>
     </main>
   );

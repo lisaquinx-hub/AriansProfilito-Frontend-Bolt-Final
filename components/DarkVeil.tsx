@@ -125,7 +125,7 @@ export default function DarkVeil({
       }
 
       const renderer = new Renderer({
-        dpr: Math.min(window.devicePixelRatio || 1, 2),
+        dpr: Math.min(window.devicePixelRatio || 1, 1.25),
         canvas,
       });
 
@@ -165,7 +165,9 @@ export default function DarkVeil({
       };
 
       const start = performance.now();
-      const loop = () => {
+      const minimumFrameTime = 1000 / 30;
+      let lastRenderedAt = start - minimumFrameTime;
+      const loop = (time: number) => {
         if (!active) return;
 
         if (document.hidden) {
@@ -173,8 +175,15 @@ export default function DarkVeil({
           return;
         }
 
+        if (time - lastRenderedAt < minimumFrameTime) {
+          frame = requestAnimationFrame(loop);
+          return;
+        }
+
+        lastRenderedAt = time;
+
         try {
-          program.uniforms.uTime.value = ((performance.now() - start) / 1000) * speed;
+          program.uniforms.uTime.value = ((time - start) / 1000) * speed;
           program.uniforms.uHueShift.value = hueShift;
           program.uniforms.uNoise.value = noiseIntensity;
           program.uniforms.uScan.value = scanlineIntensity;
@@ -193,7 +202,7 @@ export default function DarkVeil({
       resize();
 
       if (active) {
-        loop();
+        frame = requestAnimationFrame(loop);
       }
 
       return () => {
