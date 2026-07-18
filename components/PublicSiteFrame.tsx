@@ -45,14 +45,14 @@ export default function PublicSiteFrame({ children }: PublicSiteFrameProps) {
     setMounted(true);
   }, []);
 
-  if (isDashboard) {
-    return children;
-  }
-
   const isLight = mounted && resolvedTheme === 'light';
 
   return (
-    <div className="public-site-surface relative isolate min-h-screen" data-public-site>
+    <div
+      className={`public-site-surface relative isolate min-h-screen ${isDashboard ? 'dashboard-theme-surface' : ''}`}
+      data-public-site
+      data-dashboard-surface={isDashboard ? 'true' : undefined}
+    >
       <div
         className={`pointer-events-none fixed inset-0 z-0 overflow-hidden ${isLight ? 'bg-[#eef3fb]' : 'bg-[#030008]'}`}
         aria-hidden="true"

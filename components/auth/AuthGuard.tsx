@@ -72,7 +72,7 @@ export function AuthGuard({ children, requireAdmin = false }: AuthGuardProps) {
 
   if (isChecking) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-background/20 dark:bg-background/20">
         <div className="flex flex-col items-center gap-4">
           <div className="w-8 h-8 border-4 border-sky-500 border-t-transparent rounded-full animate-spin" />
           <p className="text-muted-foreground text-sm">در حال بررسی احراز هویت...</p>
@@ -83,7 +83,7 @@ export function AuthGuard({ children, requireAdmin = false }: AuthGuardProps) {
 
   if (authState === 'denied') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="min-h-screen flex items-center justify-center bg-background/20 p-4 dark:bg-background/20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

@@ -56,7 +56,7 @@ function DashboardContent({ children }: DashboardLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen flex bg-background overflow-x-hidden">
+    <div className="min-h-screen flex bg-background/20 dark:bg-background/20 overflow-x-hidden">
       {/* Desktop Sidebar */}
       <motion.aside
         initial={{ x: -280 }}

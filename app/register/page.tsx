@@ -92,23 +92,6 @@ export default function RegisterPage() {
 
   return (
     <main className="relative flex min-h-screen w-full items-center justify-center overflow-hidden px-4 py-20 md:px-6">
-      <div className="absolute inset-0 bg-gradient-to-b from-sky-100/70 via-blue-50/55 to-white/60 dark:from-sky-950/45 dark:via-blue-950/30 dark:to-black/20" />
-
-      <div
-        className="absolute inset-0 opacity-[0.035] mix-blend-multiply dark:mix-blend-soft-light"
-        style={{
-          backgroundImage:
-            'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")',
-          backgroundSize: '200px 200px',
-        }}
-      />
-
-      <div className="absolute left-1/2 top-0 h-[60vh] w-[120vh] -translate-x-1/2 rounded-b-[50%] bg-sky-400/20 blur-[80px] dark:bg-cyan-400/15" />
-      <div className="absolute left-1/2 top-0 h-[60vh] w-[100vh] -translate-x-1/2 rounded-b-full bg-blue-400/20 blur-[60px] dark:bg-blue-500/20" />
-      <div className="absolute bottom-0 left-1/2 h-[90vh] w-[90vh] -translate-x-1/2 rounded-t-full bg-cyan-400/20 blur-[70px] dark:bg-sky-500/20" />
-      <div className="absolute left-1/4 top-1/4 h-96 w-96 rounded-full bg-white/20 opacity-50 blur-[100px] dark:bg-white/5" />
-      <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-sky-200/30 opacity-50 blur-[100px] dark:bg-cyan-300/5" />
-
       <div className="absolute right-4 top-5 z-30 flex items-center gap-2 md:right-6">
         <ThemeToggle />
         <Link
