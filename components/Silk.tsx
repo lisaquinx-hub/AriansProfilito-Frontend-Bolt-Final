@@ -82,12 +82,13 @@ void main() {
                                    0.02 * tOffset) +
                            sin(20.0 * (tex.x + tex.y - 0.1 * tOffset)));
 
-  // Preserve the Silk folds while keeping the entire light background bright
-  // enough for the site's dark light-theme typography.
-  vec3 base = mix(vec3(1.0), uColor, 0.78);
-  float brightness = 0.86 + 0.14 * pattern;
-  float grain = (rnd - 0.5) * 0.018 * uNoiseIntensity;
-  vec3 finalColor = clamp(base * brightness + grain, vec3(0.80), vec3(1.0));
+  // Build visible pale-blue folds without introducing dark areas that would
+  // reduce light-theme text contrast.
+  vec3 foldColor = mix(uColor, vec3(0.68, 0.80, 0.97), 0.34);
+  vec3 highlightColor = mix(vec3(1.0), uColor, 0.18);
+  float fold = smoothstep(0.12, 0.96, pattern);
+  float grain = (rnd - 0.5) * 0.016 * uNoiseIntensity;
+  vec3 finalColor = clamp(mix(foldColor, highlightColor, fold) + grain, vec3(0.74), vec3(1.0));
 
   gl_FragColor = vec4(finalColor, 1.0);
 }
