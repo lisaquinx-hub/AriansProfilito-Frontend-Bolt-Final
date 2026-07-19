@@ -140,7 +140,7 @@ export default function Silk({
         alpha: true,
         depth: false,
         antialias: false,
-        dpr: Math.min(window.devicePixelRatio || 1, 1.25),
+        dpr: 1,
         powerPreference: 'low-power',
       });
       const gl = renderer.gl;
@@ -163,13 +163,19 @@ export default function Silk({
         if (!active) return;
         const width = Math.max(container.clientWidth, 1);
         const height = Math.max(container.clientHeight, 1);
-        renderer.setSize(width, height);
+        const renderScale = width >= 900 ? 0.72 : 0.86;
+        renderer.setSize(
+          Math.max(1, Math.round(width * renderScale)),
+          Math.max(1, Math.round(height * renderScale))
+        );
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
         uniforms.uResolution.value.set(gl.drawingBufferWidth, gl.drawingBufferHeight);
         renderer.render({ scene: mesh });
       };
 
       const startedAt = performance.now();
-      const minimumFrameTime = 1000 / 30;
+      const minimumFrameTime = 1000 / 24;
       let lastRenderedAt = startedAt - minimumFrameTime;
 
       const renderFrame = (time: number) => {
