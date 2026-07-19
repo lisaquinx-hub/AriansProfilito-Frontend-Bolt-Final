@@ -11,6 +11,8 @@ import { GlobalSearch } from '@/components/shared';
 import { cn } from '@/lib/utils';
 import { useAuth, emitAuthChanged } from '@/hooks/useAuth';
 import { authService } from '@/services/AuthService';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { useFeatureSettings } from '@/components/FeatureSettingsProvider';
 
 const navLinks = [
   { href: '/products', label: 'خدمات' },
@@ -27,7 +29,11 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const { isReady, portfolioEnabled } = useFeatureSettings();
   const closeSearch = useCallback(() => setIsSearchOpen(false), []);
+  const visibleNavLinks = navLinks.filter(
+    (link) => link.href !== '/portfolio' || (isReady && portfolioEnabled)
+  );
 
   useEffect(() => {
     const handleScroll = () => {
@@ -81,7 +87,7 @@ export default function Navbar() {
           </Link>
 
           <div className="hidden md:flex items-center gap-6">
-            {navLinks.map((link) => (
+            {visibleNavLinks.map((link) => (
               link.href.startsWith('/#') ? (
                 <motion.a
                   key={link.href}
@@ -119,6 +125,7 @@ export default function Navbar() {
             >
               <Search className="w-5 h-5" />
             </motion.button>
+            <LanguageSwitcher />
             <ThemeToggle />
             {isAuthenticated ? (
               <>
@@ -174,6 +181,7 @@ export default function Navbar() {
             >
               <Search className="w-5 h-5" />
             </motion.button>
+            <LanguageSwitcher />
             <ThemeToggle />
             <motion.button
               className="p-2"
@@ -196,7 +204,7 @@ export default function Navbar() {
             className="container mx-auto mt-2 max-w-7xl overflow-hidden rounded-2xl border border-border/70 bg-background/90 shadow-2xl backdrop-blur-2xl md:hidden dark:border-white/10 dark:bg-black/75"
           >
             <div className="container mx-auto px-6 py-6 flex flex-col gap-4">
-              {navLinks.map((link) => (
+              {visibleNavLinks.map((link) => (
                 link.href.startsWith('/#') ? (
                   <a
                     key={link.href}

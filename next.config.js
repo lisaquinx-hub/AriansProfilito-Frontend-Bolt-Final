@@ -14,6 +14,9 @@ const apiOrigin = getApiOrigin(apiBaseUrl);
 const connectSources = [
   "'self'",
   ...(apiOrigin ? [apiOrigin] : []),
+  'https://translate.google.com',
+  'https://translate.googleapis.com',
+  'https://translate-pa.googleapis.com',
   ...(isDevelopment ? ['ws:', 'wss:'] : []),
 ];
 
@@ -23,12 +26,13 @@ const contentSecurityPolicy = [
   "form-action 'self'",
   "frame-ancestors 'none'",
   "object-src 'none'",
-  `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ''}`,
+  `script-src 'self' 'unsafe-inline' https://translate.google.com https://translate.googleapis.com${isDevelopment ? " 'unsafe-eval'" : ''}`,
   "script-src-attr 'none'",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://translate.googleapis.com",
   "font-src 'self' data: https://fonts.gstatic.com",
   "img-src 'self' data: blob: https:",
   "media-src 'self' https:",
+  "frame-src 'self' https://translate.google.com",
   "worker-src 'self' blob:",
   `connect-src ${connectSources.join(' ')}`,
 ].join('; ');

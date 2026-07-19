@@ -9,9 +9,11 @@ import { heroService } from '@/services/HeroService';
 import { HeroSection } from '@/types/api';
 import { getSafeNavigationHref } from '@/lib/utils';
 import GradientText from '@/components/effects/GradientText';
+import { useFeatureSettings } from '@/components/FeatureSettingsProvider';
 
 export default function Hero() {
   const [heroData, setHeroData] = useState<HeroSection | null>(null);
+  const { isReady, portfolioEnabled } = useFeatureSettings();
 
   useEffect(() => {
     const fetchHero = async () => {
@@ -35,8 +37,18 @@ export default function Hero() {
     configuredPrimaryButtonUrl === '/dashboard/projects/new'
       ? '/#contact-form'
       : configuredPrimaryButtonUrl;
-  const secondaryButtonText = heroData?.secondaryButtonText || 'نمونه‌کارها';
-  const secondaryButtonUrl = getSafeNavigationHref(heroData?.secondaryButtonUrl, '/portfolio');
+  const configuredSecondaryButtonUrl = getSafeNavigationHref(
+    heroData?.secondaryButtonUrl,
+    '/portfolio'
+  );
+  const secondaryTargetsPortfolio = configuredSecondaryButtonUrl.startsWith('/portfolio');
+  const hidePortfolioCta = isReady && !portfolioEnabled && secondaryTargetsPortfolio;
+  const secondaryButtonText = hidePortfolioCta
+    ? 'مشاهده خدمات'
+    : heroData?.secondaryButtonText || 'نمونه‌کارها';
+  const secondaryButtonUrl = hidePortfolioCta
+    ? '/products'
+    : configuredSecondaryButtonUrl;
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-transparent pt-20">

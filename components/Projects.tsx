@@ -7,6 +7,7 @@ import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { portfolioService } from '@/services/PortfolioService';
 import { PortfolioListItem } from '@/types/api';
+import { useFeatureSettings } from '@/components/FeatureSettingsProvider';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -23,19 +24,29 @@ const itemVariants = {
 
 export default function Projects() {
   const [items, setItems] = useState<PortfolioListItem[]>([]);
+  const { isReady, portfolioEnabled } = useFeatureSettings();
 
   useEffect(() => {
+    if (!isReady || !portfolioEnabled) return;
+
+    let cancelled = false;
     portfolioService.getItems({ pageSize: 3, isFeatured: true }).then((result) => {
+      if (cancelled) return;
       const data = result.items || [];
       if (data.length === 0) {
-        portfolioService.getItems({ pageSize: 3 }).then((r) => setItems(r.items || []));
+        portfolioService.getItems({ pageSize: 3 }).then((r) => {
+          if (!cancelled) setItems(r.items || []);
+        });
       } else {
         setItems(data);
       }
     });
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [isReady, portfolioEnabled]);
 
-  if (items.length === 0) return null;
+  if (!isReady || !portfolioEnabled || items.length === 0) return null;
 
   return (
     <section id="projects" className="py-24 relative">

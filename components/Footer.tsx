@@ -9,6 +9,7 @@ import { siteSettingsService } from '@/services/SettingsService';
 import { SocialMedia, SiteSettings } from '@/types/api';
 import { getSafeExternalUrl } from '@/lib/utils';
 import { getTelephoneHref, siteContact } from '@/lib/site-contact';
+import { useFeatureSettings } from '@/components/FeatureSettingsProvider';
 
 const iconMap: Record<string, React.ElementType> = {
   Instagram, Twitter, Linkedin, Facebook, Youtube, Github, Telegram: Send, Globe,
@@ -73,6 +74,7 @@ const normalizeBrandText = (value: string) =>
 export default function Footer() {
   const [socialLinks, setSocialLinks] = useState<SocialMedia[]>([]);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
+  const { isReady, portfolioEnabled } = useFeatureSettings();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -98,6 +100,9 @@ export default function Footer() {
     .filter((social) => social.isActive)
     .map((social) => ({ social, safeUrl: getSafeExternalUrl(social.url) }))
     .filter((item): item is { social: SocialMedia; safeUrl: string } => Boolean(item.safeUrl));
+  const visibleQuickLinks = quickLinks.filter(
+    (link) => link.href !== '/portfolio' || (isReady && portfolioEnabled)
+  );
 
   return (
     <footer data-site-footer className="relative pt-24 pb-8 border-t border-border">
@@ -131,7 +136,7 @@ export default function Footer() {
           <div className="md:col-span-1">
             <h4 className="font-semibold mb-4">لینک‌های سریع</h4>
             <ul className="space-y-3">
-              {quickLinks.map((link) => (
+              {visibleQuickLinks.map((link) => (
                 <li key={link.href}>
                   {link.href.startsWith('/#') ? (
                     <a

@@ -295,6 +295,34 @@ html.light [data-public-site] [class*='text-white'] {
   -webkit-text-fill-color: rgb(255 255 255 / 65%);
 }
 
+/* Google Translate is controlled by our language icon. Keep Google's native
+   toolbar out of the layout so it cannot push the fixed navbar downward. */
+.google-translate-host {
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.goog-te-banner-frame.skiptranslate,
+iframe.goog-te-banner-frame,
+.goog-te-balloon-frame,
+#goog-gt-tt {
+  display: none !important;
+}
+
+body {
+  top: 0 !important;
+}
+
+.goog-text-highlight {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Shared interactive surfaces                                                */
 /* -------------------------------------------------------------------------- */

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { PageHeader } from '@/components/shared';
@@ -12,23 +12,30 @@ import { Button } from '@/components/ui/button';
 import { portfolioService } from '@/services/PortfolioService';
 import { PortfolioDetail } from '@/types/api';
 import { getSafeExternalUrl } from '@/lib/utils';
+import { useFeatureSettings } from '@/components/FeatureSettingsProvider';
 
 export default function PortfolioDetailPage() {
+  const router = useRouter();
   const params = useParams<{ slug: string }>();
   const slug = (Array.isArray(params?.slug) ? params.slug[0] : params?.slug) as string;
 
   const [item, setItem] = useState<PortfolioDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const { isReady, portfolioEnabled } = useFeatureSettings();
 
   useEffect(() => {
-    if (!slug) return;
+    if (isReady && !portfolioEnabled) router.replace('/');
+  }, [isReady, portfolioEnabled, router]);
+
+  useEffect(() => {
+    if (!slug || !isReady || !portfolioEnabled) return;
     portfolioService.getBySlug(slug).then((data) => {
       if (data) setItem(data);
       else setNotFound(true);
       setIsLoading(false);
     });
-  }, [slug]);
+  }, [isReady, portfolioEnabled, slug]);
 
   if (isLoading) {
     return (

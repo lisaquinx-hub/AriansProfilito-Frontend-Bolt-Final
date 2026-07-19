@@ -9,8 +9,13 @@ import Footer from '@/components/Footer';
 import Link from 'next/link';
 import { portfolioService } from '@/services/PortfolioService';
 import { PortfolioListItem, PortfolioCategory } from '@/types/api';
+import { useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
+import { useFeatureSettings } from '@/components/FeatureSettingsProvider';
 
 export default function PortfolioPage() {
+  const router = useRouter();
+  const { isReady, portfolioEnabled } = useFeatureSettings();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -21,10 +26,16 @@ export default function PortfolioPage() {
   const itemsPerPage = 9;
 
   useEffect(() => {
-    portfolioService.getCategories().then((cats) => setCategories(cats));
-  }, []);
+    if (isReady && !portfolioEnabled) router.replace('/');
+  }, [isReady, portfolioEnabled, router]);
 
   useEffect(() => {
+    if (!isReady || !portfolioEnabled) return;
+    portfolioService.getCategories().then((cats) => setCategories(cats));
+  }, [isReady, portfolioEnabled]);
+
+  useEffect(() => {
+    if (!isReady || !portfolioEnabled) return;
     setIsLoading(true);
     portfolioService.getItems({
       pageNumber: currentPage,
@@ -36,7 +47,7 @@ export default function PortfolioPage() {
       setTotalCount(result.totalCount || 0);
       setIsLoading(false);
     });
-  }, [currentPage, selectedCategory, searchQuery]);
+  }, [currentPage, isReady, portfolioEnabled, selectedCategory, searchQuery]);
 
   useEffect(() => { setCurrentPage(1); }, [selectedCategory, searchQuery]);
 
@@ -45,6 +56,17 @@ export default function PortfolioPage() {
     { id: 'all', name: 'همه', count: totalCount },
     ...categories.map(c => ({ id: c.slug || c.id, name: c.name, count: c.portfolioCount || 0 })),
   ];
+
+  if (!isReady || !portfolioEnabled) {
+    return (
+      <main className="min-h-screen pt-24">
+        <Navbar />
+        <div className="flex min-h-[50vh] items-center justify-center">
+          <Loader2 className="h-7 w-7 animate-spin text-sky-500" />
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen pt-24 pb-16 relative overflow-x-hidden">

@@ -4,6 +4,7 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { Toaster } from '@/components/ui/sonner';
 import PublicSiteFrame from '@/components/PublicSiteFrame';
 import MagicBentoProvider from '@/components/effects/MagicBentoProvider';
+import { FeatureSettingsProvider } from '@/components/FeatureSettingsProvider';
 
 export const metadata: Metadata = {
   title: 'آریان پژوهش | استودیوی محصول دیجیتال',
@@ -37,9 +38,11 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange={false}
         >
-          <MagicBentoProvider />
-          <PublicSiteFrame>{children}</PublicSiteFrame>
-          <Toaster position="top-center" dir="rtl" />
+          <FeatureSettingsProvider>
+            <MagicBentoProvider />
+            <PublicSiteFrame>{children}</PublicSiteFrame>
+            <Toaster position="top-center" dir="rtl" />
+          </FeatureSettingsProvider>
         </ThemeProvider>
       </body>
     </html>

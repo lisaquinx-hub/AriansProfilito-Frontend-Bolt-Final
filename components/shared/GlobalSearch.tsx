@@ -10,6 +10,7 @@ import { portfolioService } from '@/services/PortfolioService';
 import { productService } from '@/services/ProductService';
 import { BlogPost, PortfolioListItem, Service } from '@/types/api';
 import { BlogCoverImage } from './BlogCoverImage';
+import { useFeatureSettings } from '@/components/FeatureSettingsProvider';
 
 interface GlobalSearchProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [projects, setProjects] = useState<PortfolioListItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const { isReady, portfolioEnabled } = useFeatureSettings();
 
   useEffect(() => {
     if (!isOpen) {
@@ -42,7 +44,15 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
     void Promise.all([
       productService.getProducts(),
       blogPostService.getAll({ pageNumber: 1, pageSize: 50 }),
-      portfolioService.getItems({ pageNumber: 1, pageSize: 50 }),
+      isReady && portfolioEnabled
+        ? portfolioService.getItems({ pageNumber: 1, pageSize: 50 })
+        : Promise.resolve({
+            items: [],
+            totalCount: 0,
+            pageNumber: 1,
+            pageSize: 50,
+            totalPages: 0,
+          }),
     ]).then(([services, posts, portfolio]) => {
       if (cancelled) return;
       setProducts(services);
@@ -62,7 +72,7 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
       document.body.style.overflow = previousOverflow;
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, isReady, onClose, portfolioEnabled]);
 
   const results = useMemo(() => {
     if (!query.trim()) return { products: [], blogPosts: [], projects: [] };
@@ -81,14 +91,14 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
           post.title.toLocaleLowerCase('fa-IR').includes(normalizedQuery) ||
           (post.excerpt || '').toLocaleLowerCase('fa-IR').includes(normalizedQuery)
       ).slice(0, 3),
-      projects: projects.filter(
+      projects: portfolioEnabled ? projects.filter(
         (project) =>
           project.title.toLocaleLowerCase('fa-IR').includes(normalizedQuery) ||
           (project.shortDescription || '').toLocaleLowerCase('fa-IR').includes(normalizedQuery) ||
           project.clientName.toLocaleLowerCase('fa-IR').includes(normalizedQuery)
-      ).slice(0, 3),
+      ).slice(0, 3) : [],
     };
-  }, [blogPosts, products, projects, query]);
+  }, [blogPosts, portfolioEnabled, products, projects, query]);
 
   const totalResults = results.products.length + results.blogPosts.length + results.projects.length;
 
@@ -116,7 +126,11 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="جست‌وجو در محصولات، مقالات و پروژه‌ها..."
+            placeholder={
+              portfolioEnabled
+                ? 'جست‌وجو در محصولات، مقالات و پروژه‌ها...'
+                : 'جست‌وجو در محصولات و مقالات...'
+            }
             className="fancy-search-input fancy-search-input--global"
             aria-label="عبارت جست‌وجو"
             autoFocus

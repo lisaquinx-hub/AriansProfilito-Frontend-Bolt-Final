@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Users, Briefcase, Receipt, CreditCard, HeadphonesIcon, FileText, MessageSquare, Activity } from 'lucide-react';
+import { Users, Briefcase, Receipt, CreditCard, HeadphonesIcon, FileText, MessageSquare, Activity, Images, Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import { adminUsersService } from '@/services/admin/index';
@@ -18,6 +18,9 @@ import { UserIdFilter } from '@/components/admin/UserIdFilter';
 import { isValidUuid } from '@/lib/identifiers';
 import { getApiErrorMessage } from '@/services/api';
 import { User } from '@/types/api';
+import { Switch } from '@/components/ui/switch';
+import { useFeatureSettings } from '@/components/FeatureSettingsProvider';
+import { toast } from 'sonner';
 
 interface StatCardProps {
   title: string;
@@ -51,6 +54,11 @@ function StatCard({ title, value, icon: Icon, href, color }: StatCardProps) {
 }
 
 export default function AdminDashboardPage() {
+  const {
+    isReady: featureSettingsReady,
+    portfolioEnabled,
+    setPortfolioEnabled,
+  } = useFeatureSettings();
   const [stats, setStats] = useState({
     users: 0,
     projects: 0,
@@ -96,6 +104,15 @@ export default function AdminDashboardPage() {
     setUserIdQuery('');
     setFoundUser(null);
     setUserSearchError(null);
+  };
+
+  const handlePortfolioVisibilityChange = (enabled: boolean) => {
+    setPortfolioEnabled(enabled);
+    toast.success(
+      enabled
+        ? 'بخش نمونه‌کارها در سایت نمایش داده می‌شود'
+        : 'بخش نمونه‌کارها و لینک‌های آن پنهان شد'
+    );
   };
 
   useEffect(() => {
@@ -169,6 +186,59 @@ export default function AdminDashboardPage() {
           </motion.div>
         ))}
       </div>
+
+      <Card className="glass">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Images className="h-5 w-5 text-sky-500 dark:text-cyan-400" />
+            نمایش نمونه‌کارها در سایت
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <div
+                className={cn(
+                  'mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl',
+                  portfolioEnabled
+                    ? 'bg-emerald-500/15 text-emerald-500'
+                    : 'bg-muted text-muted-foreground'
+                )}
+              >
+                {portfolioEnabled ? (
+                  <Eye className="h-5 w-5" />
+                ) : (
+                  <EyeOff className="h-5 w-5" />
+                )}
+              </div>
+              <div>
+                <p className="font-medium">
+                  {portfolioEnabled ? 'نمونه‌کارها فعال است' : 'نمونه‌کارها غیرفعال است'}
+                </p>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                  با خاموش‌کردن این گزینه، بخش نمونه‌کار صفحهٔ اصلی و لینک آن در ناوبار،
+                  فوتر و جست‌وجوی سایت پنهان می‌شود.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 self-end sm:self-auto">
+              <span className="text-sm text-muted-foreground">
+                {portfolioEnabled ? 'فعال' : 'غیرفعال'}
+              </span>
+              <Switch
+                checked={portfolioEnabled}
+                onCheckedChange={handlePortfolioVisibilityChange}
+                disabled={!featureSettingsReady}
+                aria-label="تغییر وضعیت نمایش نمونه‌کارها"
+              />
+            </div>
+          </div>
+          <p className="mt-4 border-t border-border/70 pt-4 text-xs leading-5 text-muted-foreground">
+            این کنترل فرانت‌اند در همین مرورگر ذخیره می‌شود. برای اعمال سراسری روی همهٔ
+            بازدیدکنندگان، بک‌اند باید یک Feature Flag عمومی ارائه کند.
+          </p>
+        </CardContent>
+      </Card>
 
       <Card className="glass">
         <CardHeader>
