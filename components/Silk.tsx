@@ -7,12 +7,14 @@ import { Color, Mesh, ShaderMaterial, type IUniform } from 'three';
 
 type NormalizedRGB = [number, number, number];
 
-const fallbackColor: NormalizedRGB = [234 / 255, 242 / 255, 1];
+const FALLBACK_COLOR: NormalizedRGB = [234 / 255, 242 / 255, 1];
 
 const hexToNormalizedRGB = (hex: string): NormalizedRGB => {
   const clean = hex.replace('#', '');
 
-  if (!/^[\da-f]{6}$/i.test(clean)) return fallbackColor;
+  if (!/^[\da-f]{6}$/i.test(clean)) {
+    return FALLBACK_COLOR;
+  }
 
   return [
     Number.parseInt(clean.slice(0, 2), 16) / 255,
@@ -80,14 +82,14 @@ void main() {
                                    0.02 * tOffset) +
                            sin(20.0 * (tex.x + tex.y - 0.1 * tOffset)));
 
-  // Keep every animated fold inside a light luminance range. This preserves
-  // Silk's movement while guaranteeing dark light-theme copy stays readable.
+  // Preserve the Silk folds while keeping the entire light background bright
+  // enough for the site's dark light-theme typography.
   vec3 base = mix(vec3(1.0), uColor, 0.78);
-  float foldShade = (1.0 - pattern) * 0.095;
+  float brightness = 0.86 + 0.14 * pattern;
   float grain = (rnd - 0.5) * 0.018 * uNoiseIntensity;
-  vec3 color = clamp(base - foldShade + grain, vec3(0.78), vec3(1.0));
+  vec3 finalColor = clamp(base * brightness + grain, vec3(0.80), vec3(1.0));
 
-  gl_FragColor = vec4(color, 1.0);
+  gl_FragColor = vec4(finalColor, 1.0);
 }
 `;
 
@@ -157,12 +159,12 @@ export default function Silk({
   );
 
   return (
-    <div className="absolute inset-0">
+    <div className="absolute inset-0 h-full w-full">
       <Canvas
         dpr={[1, 1.25]}
         frameloop="always"
         gl={{ antialias: false, alpha: false, powerPreference: 'low-power' }}
-        fallback={<div className="h-full w-full bg-[#f8fafc]" />}
+        fallback={<div className="h-full w-full bg-[#EAF2FF]" />}
       >
         <SilkPlane ref={meshRef} uniforms={uniforms} />
       </Canvas>
