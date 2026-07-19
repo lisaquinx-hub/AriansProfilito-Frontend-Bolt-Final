@@ -1,0 +1,69 @@
+.silk-root {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #eaf2ff;
+}
+
+.silk-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.silk-fallback-flow {
+  position: absolute;
+  inset: -22%;
+  z-index: 1;
+  background:
+    radial-gradient(ellipse at 15% 20%, rgba(96, 150, 229, 0.52) 0%, rgba(151, 189, 242, 0.3) 30%, transparent 62%),
+    radial-gradient(ellipse at 82% 28%, rgba(190, 216, 250, 0.72) 0%, rgba(126, 172, 235, 0.28) 36%, transparent 66%),
+    radial-gradient(ellipse at 50% 88%, rgba(113, 163, 234, 0.4) 0%, rgba(218, 233, 253, 0.55) 38%, transparent 70%),
+    linear-gradient(122deg, #f9fcff 5%, #d7e7fb 38%, #f4f9ff 61%, #c9ddf8 96%);
+  background-size: 125% 125%, 138% 132%, 145% 138%, 165% 165%;
+  filter: blur(24px) saturate(1.08);
+  transform: translate3d(-2%, -1%, 0) rotate(-2deg) scale(1.04);
+  animation: silk-fallback-drift 9s ease-in-out infinite alternate;
+}
+
+.silk-root::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0.2;
+  background-image: repeating-linear-gradient(
+    112deg,
+    rgba(255, 255, 255, 0.45) 0,
+    rgba(255, 255, 255, 0.45) 1px,
+    rgba(95, 145, 218, 0.12) 2px,
+    transparent 5px
+  );
+  mix-blend-mode: soft-light;
+}
+
+@keyframes silk-fallback-drift {
+  0% {
+    background-position: 8% 12%, 92% 18%, 48% 92%, 0% 50%;
+    transform: translate3d(-3%, -2%, 0) rotate(-2deg) scale(1.04);
+  }
+  50% {
+    background-position: 28% 38%, 68% 42%, 62% 68%, 55% 50%;
+  }
+  100% {
+    background-position: 48% 58%, 42% 66%, 32% 42%, 100% 50%;
+    transform: translate3d(3%, 2%, 0) rotate(2deg) scale(1.08);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .silk-fallback-flow {
+    animation: none;
+  }
+}

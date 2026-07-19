@@ -1,9 +1,8 @@
-/* eslint-disable react/no-unknown-property */
 'use client';
 
-import React, { forwardRef, useLayoutEffect, useMemo, useRef } from 'react';
-import { Canvas, useFrame, useThree, type RootState } from '@react-three/fiber';
-import { Color, Mesh, ShaderMaterial, type IUniform } from 'three';
+import { useEffect, useRef } from 'react';
+import { Mesh, Program, Renderer, Triangle, Vec2 } from 'ogl';
+import './Silk.css';
 
 type NormalizedRGB = [number, number, number];
 
@@ -23,34 +22,26 @@ const hexToNormalizedRGB = (hex: string): NormalizedRGB => {
   ];
 };
 
-interface UniformValue<T = number | Color> {
-  value: T;
-}
-
-interface SilkUniforms {
-  uSpeed: UniformValue<number>;
-  uScale: UniformValue<number>;
-  uNoiseIntensity: UniformValue<number>;
-  uColor: UniformValue<Color>;
-  uRotation: UniformValue<number>;
-  uTime: UniformValue<number>;
-  [uniform: string]: IUniform;
-}
-
-const vertexShader = `
+const vertex = `
+attribute vec2 position;
 varying vec2 vUv;
 
 void main() {
-  vUv = uv;
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  vUv = position * 0.5 + 0.5;
+  gl_Position = vec4(position, 0.0, 1.0);
 }
 `;
 
-const fragmentShader = `
+const fragment = `
+#ifdef GL_ES
+precision highp float;
+#endif
+
 varying vec2 vUv;
 
+uniform vec2 uResolution;
 uniform float uTime;
-uniform vec3  uColor;
+uniform vec3 uColor;
 uniform float uSpeed;
 uniform float uScale;
 uniform float uRotation;
@@ -70,11 +61,15 @@ vec2 rotateUvs(vec2 uv, float angle) {
 }
 
 void main() {
+  float aspect = uResolution.x / max(uResolution.y, 1.0);
+  vec2 centeredUv = vUv - 0.5;
+  centeredUv.x *= aspect;
+
   float rnd = noise(gl_FragCoord.xy);
-  vec2 tex = rotateUvs(vUv * uScale, uRotation) * uScale;
+  vec2 tex = rotateUvs(centeredUv * uScale, uRotation) * uScale;
   float tOffset = uSpeed * uTime;
 
-  tex.y += 0.03 * sin(8.0 * tex.x - tOffset);
+  tex.y += 0.04 * sin(8.0 * tex.x - tOffset);
 
   float pattern = 0.6 +
                   0.4 * sin(5.0 * (tex.x + tex.y +
@@ -82,53 +77,15 @@ void main() {
                                    0.02 * tOffset) +
                            sin(20.0 * (tex.x + tex.y - 0.1 * tOffset)));
 
-  // Build visible pale-blue folds without introducing dark areas that would
-  // reduce light-theme text contrast.
-  vec3 foldColor = mix(uColor, vec3(0.68, 0.80, 0.97), 0.34);
-  vec3 highlightColor = mix(vec3(1.0), uColor, 0.18);
-  float fold = smoothstep(0.12, 0.96, pattern);
+  vec3 foldColor = mix(uColor, vec3(0.64, 0.78, 0.97), 0.42);
+  vec3 highlightColor = mix(vec3(1.0), uColor, 0.22);
+  float fold = smoothstep(0.08, 0.94, pattern);
   float grain = (rnd - 0.5) * 0.016 * uNoiseIntensity;
-  vec3 finalColor = clamp(mix(foldColor, highlightColor, fold) + grain, vec3(0.74), vec3(1.0));
+  vec3 finalColor = clamp(mix(foldColor, highlightColor, fold) + grain, vec3(0.72), vec3(1.0));
 
-  gl_FragColor = vec4(finalColor, 1.0);
+  gl_FragColor = vec4(finalColor, 0.94);
 }
 `;
-
-interface SilkPlaneProps {
-  uniforms: SilkUniforms;
-}
-
-const SilkPlane = forwardRef<Mesh, SilkPlaneProps>(function SilkPlane({ uniforms }, ref) {
-  const { viewport } = useThree();
-
-  useLayoutEffect(() => {
-    const mesh = ref as React.MutableRefObject<Mesh | null>;
-    mesh.current?.scale.set(viewport.width, viewport.height, 1);
-  }, [ref, viewport.height, viewport.width]);
-
-  useFrame((_state: RootState, delta: number) => {
-    const mesh = (ref as React.MutableRefObject<Mesh | null>).current;
-    if (!mesh) return;
-
-    const material = mesh.material as ShaderMaterial & { uniforms: SilkUniforms };
-    material.uniforms.uTime.value += 0.1 * Math.min(delta, 0.1);
-  });
-
-  return (
-    <mesh ref={ref}>
-      <planeGeometry args={[1, 1, 1, 1]} />
-      <shaderMaterial
-        uniforms={uniforms}
-        vertexShader={vertexShader}
-        fragmentShader={fragmentShader}
-        depthTest={false}
-        depthWrite={false}
-      />
-    </mesh>
-  );
-});
-
-SilkPlane.displayName = 'SilkPlane';
 
 export interface SilkProps {
   speed?: number;
@@ -145,30 +102,121 @@ export default function Silk({
   noiseIntensity = 1.5,
   rotation = 0,
 }: SilkProps) {
-  const meshRef = useRef<Mesh>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const uniforms = useMemo<SilkUniforms>(
-    () => ({
-      uSpeed: { value: speed },
-      uScale: { value: scale },
-      uNoiseIntensity: { value: noiseIntensity },
-      uColor: { value: new Color(...hexToNormalizedRGB(color)) },
-      uRotation: { value: rotation },
-      uTime: { value: 0 },
-    }),
-    [color, noiseIntensity, rotation, scale, speed]
-  );
+  useEffect(() => {
+    const container = containerRef.current;
+    const canvas = canvasRef.current;
+
+    if (!container || !canvas) return;
+
+    let active = true;
+    let frame = 0;
+    let resizeObserver: ResizeObserver | null = null;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    container.dataset.silkStatus = 'loading';
+
+    const stop = () => {
+      active = false;
+      if (frame) {
+        cancelAnimationFrame(frame);
+        frame = 0;
+      }
+    };
+
+    try {
+      if (typeof window.WebGLRenderingContext === 'undefined') {
+        container.dataset.silkStatus = 'css-fallback';
+        return;
+      }
+
+      // OGL falls back from WebGL2 to WebGL1, matching the working DarkVeil
+      // renderer and avoiding Three.js/WebGL2-only failures in Firefox.
+      const renderer = new Renderer({
+        canvas,
+        webgl: 1,
+        alpha: true,
+        depth: false,
+        antialias: false,
+        dpr: Math.min(window.devicePixelRatio || 1, 1.25),
+        powerPreference: 'low-power',
+      });
+      const gl = renderer.gl;
+      gl.clearColor(0, 0, 0, 0);
+
+      const geometry = new Triangle(gl);
+      const uniforms = {
+        uResolution: { value: new Vec2(1, 1) },
+        uTime: { value: 0 },
+        uColor: { value: new Float32Array(hexToNormalizedRGB(color)) },
+        uSpeed: { value: speed },
+        uScale: { value: scale },
+        uRotation: { value: rotation },
+        uNoiseIntensity: { value: noiseIntensity },
+      };
+      const program = new Program(gl, { vertex, fragment, uniforms, transparent: true });
+      const mesh = new Mesh(gl, { geometry, program });
+
+      const resize = () => {
+        if (!active) return;
+        const width = Math.max(container.clientWidth, 1);
+        const height = Math.max(container.clientHeight, 1);
+        renderer.setSize(width, height);
+        uniforms.uResolution.value.set(gl.drawingBufferWidth, gl.drawingBufferHeight);
+        renderer.render({ scene: mesh });
+      };
+
+      const startedAt = performance.now();
+      const minimumFrameTime = 1000 / 30;
+      let lastRenderedAt = startedAt - minimumFrameTime;
+
+      const renderFrame = (time: number) => {
+        if (!active) return;
+
+        if (!document.hidden && time - lastRenderedAt >= minimumFrameTime) {
+          lastRenderedAt = time;
+          uniforms.uTime.value = (time - startedAt) * 0.001;
+          renderer.render({ scene: mesh });
+          container.dataset.silkStatus = 'ready';
+        }
+
+        frame = requestAnimationFrame(renderFrame);
+      };
+
+      const handleContextLost = (event: Event) => {
+        event.preventDefault();
+        container.dataset.silkStatus = 'css-fallback';
+        stop();
+      };
+
+      resizeObserver = new ResizeObserver(resize);
+      resizeObserver.observe(container);
+      canvas.addEventListener('webglcontextlost', handleContextLost);
+      resize();
+
+      if (reducedMotion) {
+        container.dataset.silkStatus = 'ready';
+      } else {
+        frame = requestAnimationFrame(renderFrame);
+      }
+
+      return () => {
+        stop();
+        resizeObserver?.disconnect();
+        canvas.removeEventListener('webglcontextlost', handleContextLost);
+      };
+    } catch {
+      container.dataset.silkStatus = 'css-fallback';
+      stop();
+    }
+  }, [color, noiseIntensity, rotation, scale, speed]);
 
   return (
-    <div className="absolute inset-0 h-full w-full">
-      <Canvas
-        dpr={[1, 1.25]}
-        frameloop="always"
-        gl={{ antialias: false, alpha: false, powerPreference: 'low-power' }}
-        fallback={<div className="h-full w-full bg-[#EAF2FF]" />}
-      >
-        <SilkPlane ref={meshRef} uniforms={uniforms} />
-      </Canvas>
+    <div ref={containerRef} className="silk-root">
+      <div className="silk-fallback-flow" aria-hidden="true" />
+      <canvas ref={canvasRef} className="silk-canvas" />
     </div>
   );
 }

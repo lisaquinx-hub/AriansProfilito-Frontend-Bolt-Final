@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
+import './Silk.css';
 
 const DarkVeil = dynamic(
   async () => {
@@ -24,7 +25,11 @@ const Silk = dynamic(
       return (await import('@/components/Silk')).default;
     } catch {
       return function SilkFallback() {
-        return <div className="absolute inset-0 bg-[#EAF2FF]" />;
+        return (
+          <div className="silk-root">
+            <div className="silk-fallback-flow" />
+          </div>
+        );
       };
     }
   },
