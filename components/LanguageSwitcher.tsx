@@ -13,6 +13,8 @@ import { cn } from '@/lib/utils';
 const TRANSLATE_SCRIPT_ID = 'arian-pazhoohesh-google-translate';
 const TRANSLATE_ELEMENT_ID = 'arian-pazhoohesh-google-translate-element';
 const LANGUAGE_STORAGE_KEY = 'arian-pazhoohesh:language';
+const TRANSLATE_RELOAD_KEY = 'arian-pazhoohesh:translate-reload-attempted';
+const LANGUAGE_CHANGE_EVENT = 'arian-pazhoohesh:language-changed';
 
 type SupportedLanguage = 'fa' | 'en';
 
@@ -41,6 +43,8 @@ declare global {
 }
 
 let translateLoader: Promise<void> | null = null;
+let translationRequest: Promise<void> | null = null;
+let translateElementInitialized = false;
 
 function ensureTranslateHost() {
   if (document.getElementById(TRANSLATE_ELEMENT_ID)) return;
@@ -51,9 +55,29 @@ function ensureTranslateHost() {
   document.body.appendChild(host);
 }
 
+function initializeTranslateElement(Constructor: TranslateElementConstructor) {
+  ensureTranslateHost();
+  const host = document.getElementById(TRANSLATE_ELEMENT_ID);
+  if (!host || translateElementInitialized || host.hasChildNodes()) return;
+
+  translateElementInitialized = true;
+  new Constructor(
+    {
+      pageLanguage: 'fa',
+      includedLanguages: 'fa,en',
+      autoDisplay: false,
+      layout: Constructor.InlineLayout?.SIMPLE,
+    },
+    TRANSLATE_ELEMENT_ID
+  );
+}
+
 function loadGoogleTranslate(): Promise<void> {
   const TranslateElement = window.google?.translate?.TranslateElement;
-  if (TranslateElement) return Promise.resolve();
+  if (TranslateElement) {
+    initializeTranslateElement(TranslateElement);
+    return Promise.resolve();
+  }
   if (translateLoader) return translateLoader;
 
   translateLoader = new Promise<void>((resolve, reject) => {
@@ -62,7 +86,7 @@ function loadGoogleTranslate(): Promise<void> {
     const timeoutId = window.setTimeout(() => {
       translateLoader = null;
       reject(new Error('Google Translate timed out.'));
-    }, 12000);
+    }, 20000);
 
     window.arianPazhooheshGoogleTranslateInit = () => {
       const Constructor = window.google?.translate?.TranslateElement;
@@ -73,18 +97,7 @@ function loadGoogleTranslate(): Promise<void> {
         return;
       }
 
-      const host = document.getElementById(TRANSLATE_ELEMENT_ID);
-      if (host && !host.hasChildNodes()) {
-        new Constructor(
-          {
-            pageLanguage: 'fa',
-            includedLanguages: 'fa,en',
-            autoDisplay: false,
-            layout: Constructor.InlineLayout?.SIMPLE,
-          },
-          TRANSLATE_ELEMENT_ID
-        );
-      }
+      initializeTranslateElement(Constructor);
 
       window.clearTimeout(timeoutId);
       resolve();
@@ -124,13 +137,24 @@ function getTranslateSelect(): HTMLSelectElement | null {
   return document.querySelector<HTMLSelectElement>('.goog-te-combo');
 }
 
-async function waitForTranslateSelect(): Promise<HTMLSelectElement> {
+async function waitForTranslateSelect(): Promise<HTMLSelectElement | null> {
   for (let attempt = 0; attempt < 50; attempt += 1) {
     const select = getTranslateSelect();
     if (select) return select;
+    if (document.documentElement.classList.contains('translated-ltr')) return null;
     await new Promise<void>((resolve) => window.setTimeout(resolve, 100));
   }
-  throw new Error('Google Translate language selector was not created.');
+  return null;
+}
+
+async function waitForEnglishTranslation(): Promise<boolean> {
+  for (let attempt = 0; attempt < 80; attempt += 1) {
+    if (document.documentElement.classList.contains('translated-ltr')) {
+      return true;
+    }
+    await new Promise<void>((resolve) => window.setTimeout(resolve, 100));
+  }
+  return false;
 }
 
 function setTranslateCookie(language: SupportedLanguage) {
@@ -153,14 +177,51 @@ function clearTranslateCookie() {
   }
 }
 
-async function translateToEnglish() {
-  setTranslateCookie('en');
-  await loadGoogleTranslate();
-  const select = await waitForTranslateSelect();
-  select.value = 'en';
-  select.dispatchEvent(new Event('change', { bubbles: true }));
-  document.documentElement.lang = 'en';
-  document.documentElement.dir = 'ltr';
+function storeActiveLanguage(language: SupportedLanguage) {
+  window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+  window.dispatchEvent(
+    new CustomEvent<SupportedLanguage>(LANGUAGE_CHANGE_EVENT, {
+      detail: language,
+    })
+  );
+}
+
+function translateToEnglish(): Promise<void> {
+  if (document.documentElement.classList.contains('translated-ltr')) {
+    return Promise.resolve();
+  }
+  if (translationRequest) return translationRequest;
+
+  translationRequest = (async () => {
+    setTranslateCookie('en');
+    await loadGoogleTranslate();
+
+    const select = await waitForTranslateSelect();
+    if (select && select.value !== 'en') {
+      select.value = 'en';
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    const translated = await waitForEnglishTranslation();
+    if (translated) {
+      window.sessionStorage.removeItem(TRANSLATE_RELOAD_KEY);
+      document.documentElement.lang = 'en';
+      document.documentElement.dir = 'ltr';
+      return;
+    }
+
+    if (!window.sessionStorage.getItem(TRANSLATE_RELOAD_KEY)) {
+      window.sessionStorage.setItem(TRANSLATE_RELOAD_KEY, 'true');
+      window.location.reload();
+      return;
+    }
+
+    throw new Error('Google Translate did not apply the selected language.');
+  })().finally(() => {
+    translationRequest = null;
+  });
+
+  return translationRequest;
 }
 
 interface LanguageSwitcherProps {
@@ -173,12 +234,19 @@ export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
 
   const activateEnglish = useCallback(async (showError = true) => {
     setIsLoading(true);
+    storeActiveLanguage('en');
+    setActiveLanguage('en');
     try {
       await translateToEnglish();
-      window.localStorage.setItem(LANGUAGE_STORAGE_KEY, 'en');
-      setActiveLanguage('en');
     } catch {
-      if (showError) {
+      const translationApplied =
+        document.documentElement.classList.contains('translated-ltr');
+      if (!translationApplied) {
+        storeActiveLanguage('fa');
+        clearTranslateCookie();
+        setActiveLanguage('fa');
+      }
+      if (showError && !translationApplied) {
         toast.error(
           'سرویس ترجمه در دسترس نیست؛ اتصال اینترنت یا مسدودکننده مرورگر را بررسی کنید.'
         );
@@ -189,18 +257,30 @@ export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
   }, []);
 
   useEffect(() => {
+    const handleLanguageChange = (event: Event) => {
+      setActiveLanguage(
+        (event as CustomEvent<SupportedLanguage>).detail
+      );
+    };
+    window.addEventListener(LANGUAGE_CHANGE_EVENT, handleLanguageChange);
+
     const savedLanguage = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
     if (savedLanguage === 'en') {
       setActiveLanguage('en');
       void activateEnglish(false);
     }
+
+    return () => {
+      window.removeEventListener(LANGUAGE_CHANGE_EVENT, handleLanguageChange);
+    };
   }, [activateEnglish]);
 
   const selectLanguage = (language: SupportedLanguage) => {
     if (language === activeLanguage && language === 'fa') return;
 
     if (language === 'fa') {
-      window.localStorage.setItem(LANGUAGE_STORAGE_KEY, 'fa');
+      storeActiveLanguage('fa');
+      window.sessionStorage.removeItem(TRANSLATE_RELOAD_KEY);
       clearTranslateCookie();
       document.documentElement.lang = 'fa';
       document.documentElement.dir = 'rtl';

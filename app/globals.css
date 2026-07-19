@@ -309,13 +309,40 @@ html.light [data-public-site] [class*='text-white'] {
 
 .goog-te-banner-frame.skiptranslate,
 iframe.goog-te-banner-frame,
+.VIpgJd-ZVi9od-ORHb-OEVmcd,
+iframe.VIpgJd-ZVi9od-ORHb-OEVmcd,
 .goog-te-balloon-frame,
 #goog-gt-tt {
   display: none !important;
+  height: 0 !important;
+  visibility: hidden !important;
 }
 
-body {
+body > .skiptranslate:not(.google-translate-host) {
+  display: none !important;
+  height: 0 !important;
+  visibility: hidden !important;
+}
+
+html body,
+html.translated-ltr body,
+html.translated-rtl body {
   top: 0 !important;
+  margin-top: 0 !important;
+}
+
+html.translated-ltr,
+html.translated-ltr body {
+  direction: ltr !important;
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+}
+
+html.translated-rtl,
+html.translated-rtl body {
+  direction: rtl !important;
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
 }
 
 .goog-text-highlight {
