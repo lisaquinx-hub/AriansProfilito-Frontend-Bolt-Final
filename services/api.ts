@@ -42,7 +42,10 @@ let refreshRequest: Promise<void> | null = null;
 function isApiOrigin(url?: string): boolean {
   try {
     const apiUrl = new URL(API_BASE_URL);
-    const requestUrl = new URL(url || '', `${API_BASE_URL.replace(/\/?$/, '/')}`);
+   const requestUrl = new URL(
+  (url || '').replace(/^\/+/, ''),
+  `${API_BASE_URL.replace(/\/+$/, '')}/`
+);
     return requestUrl.origin === apiUrl.origin;
   } catch {
     return false;
