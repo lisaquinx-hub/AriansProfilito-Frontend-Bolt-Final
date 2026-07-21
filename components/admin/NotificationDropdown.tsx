@@ -89,7 +89,7 @@ export function NotificationDropdown({ isAdmin = false }: NotificationDropdownPr
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute left-0 z-50 mt-2 w-[min(24rem,calc(100vw-2rem))]"
+            className="fixed inset-x-4 top-16 z-50 mt-2 w-auto sm:absolute sm:inset-x-auto sm:left-0 sm:top-auto sm:w-[min(24rem,calc(100vw-2rem))]"
           >
             <div className="overflow-hidden rounded-2xl border border-border bg-popover text-popover-foreground shadow-2xl dark:border-white/10 dark:bg-[#0f1115]">
               <div className="flex items-center justify-between p-4 border-b border-border dark:border-white/5">
@@ -104,7 +104,7 @@ export function NotificationDropdown({ isAdmin = false }: NotificationDropdownPr
                 </div>
               </div>
 
-              <div className="max-h-[400px] overflow-y-auto">
+              <div className="max-h-[min(400px,calc(100dvh-10rem))] overflow-y-auto">
                 {isLoading && (
                   <div className="p-4 space-y-3">
                     {Array.from({ length: 3 }).map((_, i) => (
@@ -149,7 +149,7 @@ export function NotificationDropdown({ isAdmin = false }: NotificationDropdownPr
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2">
-                            <span className={cn('text-sm truncate', !notification.isRead ? 'font-semibold' : 'font-medium')}>
+                            <span className={cn('min-w-0 break-words text-sm', !notification.isRead ? 'font-semibold' : 'font-medium')}>
                               {notification.title || '-'}
                             </span>
                             {!notification.isRead && (
@@ -157,7 +157,7 @@ export function NotificationDropdown({ isAdmin = false }: NotificationDropdownPr
                             )}
                           </div>
                           {notification.message && (
-                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{notification.message}</p>
+                            <p className="mt-1 line-clamp-2 break-words text-xs text-muted-foreground">{notification.message}</p>
                           )}
                           {notification.createdAt && (
                             <p className="text-xs text-muted-foreground/60 mt-1">

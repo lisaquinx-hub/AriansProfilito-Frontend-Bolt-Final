@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Users, Image, Briefcase, DollarSign, HelpCircle,
   Settings, Share2, FolderOpen, FileText, MessageSquare, Code,
   Mail, Activity, ClipboardList, Receipt, CreditCard, HeadphonesIcon,
-  Bell, Menu, X, Home, LogOut, Files, Paperclip, User,
+  Bell, Menu, X, Home, LogOut, Files, Paperclip, User, Images,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { authService } from '@/services/AuthService';
@@ -20,6 +20,7 @@ const adminLinks = [
   { href: '/dashboard/admin', icon: LayoutDashboard, label: 'داشبورد' },
   { href: '/dashboard/admin/users', icon: Users, label: 'کاربران' },
   { href: '/dashboard/admin/hero-sections', icon: Image, label: 'هیرو سکشن‌ها' },
+  { href: '/dashboard/admin/portfolio', icon: Images, label: 'نمونه‌کارها' },
   { href: '/dashboard/admin/services', icon: Briefcase, label: 'خدمات' },
   { href: '/dashboard/admin/pricing', icon: DollarSign, label: 'قیمت‌گذاری' },
   { href: '/dashboard/admin/faqs', icon: HelpCircle, label: 'سؤالات متداول' },

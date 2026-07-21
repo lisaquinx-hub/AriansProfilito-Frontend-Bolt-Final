@@ -446,6 +446,8 @@ export interface PortfolioDetail {
   categorySlug: string;
   images?: PortfolioImage[];
   technologies?: PortfolioTechnology[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface PortfolioImage {

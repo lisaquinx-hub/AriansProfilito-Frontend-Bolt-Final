@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { toDateTimeLocalValue } from '@/lib/api-utils';
 
 export interface FormField {
   key: string;
@@ -51,8 +52,8 @@ export function EntityFormModal({
           let val = initialValues[f.key];
           if (f.type === 'date' && typeof val === 'string' && val.includes('T')) {
             val = val.split('T')[0];
-          } else if (f.type === 'datetime-local' && typeof val === 'string' && val.includes('T')) {
-            val = val.replace('Z', '').slice(0, 16);
+          } else if (f.type === 'datetime-local' && typeof val === 'string') {
+            val = toDateTimeLocalValue(val);
           }
           initial[f.key] = val;
         } else {

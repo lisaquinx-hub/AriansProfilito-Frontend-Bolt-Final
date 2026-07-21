@@ -151,11 +151,10 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="relative my-8">
-            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-4 text-muted-foreground">یا</span>
-            </div>
+          <div className="my-8 flex items-center gap-4 text-xs uppercase text-muted-foreground">
+            <div className="h-px flex-1 bg-border" />
+            <span>یا</span>
+            <div className="h-px flex-1 bg-border" />
           </div>
 
           <p className="text-center text-muted-foreground">

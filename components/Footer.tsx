@@ -40,13 +40,13 @@ function SocialIcon({ social }: { social: SocialMedia }) {
         loading="lazy"
         decoding="async"
         referrerPolicy="no-referrer"
-        className="w-5 h-5 object-contain grayscale contrast-200 dark:invert"
+        className="h-5 w-5 object-contain opacity-100 brightness-0 dark:invert"
         onError={() => setImageFailed(true)}
       />
     );
   }
 
-  return <Icon className="w-5 h-5" />;
+  return <Icon className="h-5 w-5 opacity-100" strokeWidth={2} />;
 }
 
 const quickLinks = [
