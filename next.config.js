@@ -1,16 +1,39 @@
 /** @type {import('next').NextConfig} */
 const isDevelopment = process.env.NODE_ENV === 'development';
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://localhost:7297/api';
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || (
+  isDevelopment
+    ? 'https://localhost:7297/api'
+    : 'https://arianslab-api.onrender.com/api'
+);
 
-function getApiOrigin(value) {
+function getApiUrl(value) {
   try {
-    return new URL(value).origin;
+    const parsed = new URL(value);
+    const localHttp =
+      isDevelopment &&
+      parsed.protocol === 'http:' &&
+      ['localhost', '127.0.0.1', '[::1]'].includes(parsed.hostname);
+    const normalizedPath = parsed.pathname.replace(/\/+$/, '');
+    if (
+      (parsed.protocol !== 'https:' && !localHttp) ||
+      parsed.username ||
+      parsed.password ||
+      !normalizedPath.endsWith('/api')
+    ) {
+      return null;
+    }
+    return parsed;
   } catch {
     return null;
   }
 }
 
-const apiOrigin = getApiOrigin(apiBaseUrl);
+const parsedApiUrl = getApiUrl(apiBaseUrl);
+if (!parsedApiUrl) {
+  throw new Error('NEXT_PUBLIC_API_BASE_URL must be an HTTPS URL ending in /api and must not contain credentials.');
+}
+
+const apiOrigin = parsedApiUrl?.origin || null;
 const connectSources = [
   "'self'",
   ...(apiOrigin ? [apiOrigin] : []),
@@ -30,11 +53,12 @@ const contentSecurityPolicy = [
   "script-src-attr 'none'",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://translate.googleapis.com https://www.gstatic.com",
   "font-src 'self' data: https://fonts.gstatic.com",
-  "img-src 'self' data: blob: https: http://translate.google.com",
+  "img-src 'self' data: blob: https:",
   "media-src 'self' https:",
   "frame-src 'self' https://translate.google.com",
   "worker-src 'self' blob:",
   `connect-src ${connectSources.join(' ')}`,
+  ...(!isDevelopment ? ['upgrade-insecure-requests'] : []),
 ].join('; ');
 
 const nextConfig = {
@@ -78,6 +102,14 @@ const nextConfig = {
             value: 'camera=(), microphone=(), geolocation=()',
           },
         ],
+      },
+    ];
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${parsedApiUrl.href.replace(/\/+$/, '')}/:path*`,
       },
     ];
   },

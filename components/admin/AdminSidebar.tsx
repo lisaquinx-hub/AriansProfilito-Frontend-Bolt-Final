@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Users, Image, Briefcase, DollarSign, HelpCircle,
   Settings, Share2, FolderOpen, FileText, MessageSquare, Code,
   Mail, Activity, ClipboardList, Receipt, CreditCard, HeadphonesIcon,
-  Bell, Menu, X, Home, LogOut, Files, Paperclip, User, Images,
+  Bell, Menu, X, Home, LogOut, Files, Paperclip, User, Images, BarChart3,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { authService } from '@/services/AuthService';
@@ -18,6 +18,7 @@ import { NotificationDropdown } from '@/components/admin/NotificationDropdown';
 
 const adminLinks = [
   { href: '/dashboard/admin', icon: LayoutDashboard, label: 'داشبورد' },
+  { href: '/dashboard/admin/analytics', icon: BarChart3, label: 'آمار و تحلیل سایت' },
   { href: '/dashboard/admin/users', icon: Users, label: 'کاربران' },
   { href: '/dashboard/admin/hero-sections', icon: Image, label: 'هیرو سکشن‌ها' },
   { href: '/dashboard/admin/portfolio', icon: Images, label: 'نمونه‌کارها' },
@@ -94,7 +95,9 @@ function AdminLayoutContent({ children }: AdminLayoutContentProps) {
         <nav className="px-2 space-y-1 flex-1 overflow-y-auto">
           {adminLinks.map((link) => {
             const Icon = link.icon;
-            const isActive = pathname === link.href || pathname.startsWith(link.href + '/');
+            const isActive = link.href === '/dashboard/admin'
+              ? pathname === link.href
+              : pathname === link.href || pathname.startsWith(link.href + '/');
             return (
               <Link key={link.href} href={link.href}
                 className={cn('flex items-center gap-3 px-4 py-2.5 rounded-xl transition-colors group',
@@ -144,7 +147,9 @@ function AdminLayoutContent({ children }: AdminLayoutContentProps) {
               <nav className="p-4 space-y-1">
                 {adminLinks.map((link) => {
                   const Icon = link.icon;
-                  const isActive = pathname === link.href;
+                  const isActive = link.href === '/dashboard/admin'
+                    ? pathname === link.href
+                    : pathname === link.href || pathname.startsWith(link.href + '/');
                   return (
                     <Link key={link.href} href={link.href} onClick={() => setIsMobileMenuOpen(false)}
                       className={cn('flex items-center gap-3 px-4 py-2.5 rounded-xl transition-colors', isActive ? 'bg-sky-500/10 text-sky-500' : 'hover:bg-muted')}>

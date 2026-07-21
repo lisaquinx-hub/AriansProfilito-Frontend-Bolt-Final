@@ -6,7 +6,8 @@ import axios, {
 } from 'axios';
 import { clearAuthSession } from '@/lib/auth';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://localhost:7297/api';
+const UPSTREAM_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://localhost:7297/api';
+const API_BASE_URL = process.env.NODE_ENV === 'production' ? '/api' : UPSTREAM_API_BASE_URL;
 const CSRF_HEADER_NAME = 'X-CSRF-TOKEN';
 
 export interface ApiError {
@@ -41,11 +42,12 @@ let refreshRequest: Promise<void> | null = null;
 
 function isApiOrigin(url?: string): boolean {
   try {
-    const apiUrl = new URL(API_BASE_URL);
-   const requestUrl = new URL(
-  (url || '').replace(/^\/+/, ''),
-  `${API_BASE_URL.replace(/\/+$/, '')}/`
-);
+    const currentOrigin = window.location.origin;
+    const apiUrl = new URL(API_BASE_URL, currentOrigin);
+    const requestUrl = new URL(
+      (url || '').replace(/^\/+/, ''),
+      `${apiUrl.href.replace(/\/+$/, '')}/`
+    );
     return requestUrl.origin === apiUrl.origin;
   } catch {
     return false;

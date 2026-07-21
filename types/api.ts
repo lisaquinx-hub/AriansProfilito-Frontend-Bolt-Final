@@ -1,5 +1,53 @@
 // Backend-aligned types based on DTOs
 
+export interface AnalyticsOverview {
+  totalPageViews: number;
+  periodPageViews: number;
+  uniqueVisitors: number;
+  totalUsers: number;
+  newRegistrations: number;
+  totalProjects: number;
+  paidRevenue: number;
+  unreadMessages: number;
+  openTickets: number;
+  pageViewsChangePercent: number;
+  uniqueVisitorsChangePercent: number;
+  registrationsChangePercent: number;
+  revenueChangePercent: number;
+}
+
+export interface AnalyticsDailyPoint {
+  date: string;
+  pageViews: number;
+  uniqueVisitors: number;
+  registrations: number;
+  paidRevenue: number;
+}
+
+export interface AnalyticsPage {
+  path: string;
+  pageViews: number;
+  uniqueVisitors: number;
+}
+
+export interface AnalyticsBreakdown {
+  name: string;
+  count: number;
+  percentage: number;
+}
+
+export interface AnalyticsDashboard {
+  days: number;
+  from: string;
+  to: string;
+  overview: AnalyticsOverview;
+  daily: AnalyticsDailyPoint[];
+  topPages: AnalyticsPage[];
+  trafficSources: AnalyticsBreakdown[];
+  devices: AnalyticsBreakdown[];
+  browsers: AnalyticsBreakdown[];
+}
+
 export interface HeroSection {
   id: string;
   title: string;

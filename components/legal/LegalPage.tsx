@@ -27,7 +27,7 @@ export default function LegalPage({ title, description, sections }: LegalPagePro
             <span className="text-gradient">{title}</span>
           </h1>
           <p className="text-muted-foreground leading-8">{description}</p>
-          <p className="text-xs text-muted-foreground mt-4">آخرین به‌روزرسانی: ۲۵ تیر ۱۴۰۵</p>
+          <p className="text-xs text-muted-foreground mt-4">آخرین به‌روزرسانی: ۳۰ تیر ۱۴۰۵</p>
         </header>
 
         <div className="max-w-4xl mx-auto grid lg:grid-cols-[220px_minmax(0,1fr)] gap-6 items-start">

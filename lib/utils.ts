@@ -49,7 +49,7 @@ const SECTION_ROUTE_ALIASES: Record<string, string> = {
   '/faq': '/#faq',
 };
 
-/** Accept safe app-relative paths and http(s) URLs for CMS-controlled links. */
+/** Accept safe app-relative paths and secure URLs for CMS-controlled links. */
 export function getSafeNavigationHref(
   value: string | null | undefined,
   fallback: string
@@ -69,13 +69,21 @@ export function getSafeNavigationHref(
   return getSafeExternalUrl(aliased) || fallback;
 }
 
-/** Return only absolute http(s) URLs without embedded credentials. */
+/** Return only HTTPS URLs (plus local HTTP in development) without embedded credentials. */
 export function getSafeExternalUrl(value: string | null | undefined): string | null {
   if (!value) return null;
 
   try {
     const parsed = new URL(value.trim());
-    if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password) {
+    const isLocalDevelopmentUrl =
+      process.env.NODE_ENV === 'development' &&
+      parsed.protocol === 'http:' &&
+      ['localhost', '127.0.0.1', '[::1]'].includes(parsed.hostname);
+    if (
+      (parsed.protocol !== 'https:' && !isLocalDevelopmentUrl) ||
+      parsed.username ||
+      parsed.password
+    ) {
       return null;
     }
     return parsed.href;

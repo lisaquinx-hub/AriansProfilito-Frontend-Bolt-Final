@@ -1,3 +1,5 @@
+import { getSafeExternalUrl } from '@/lib/utils';
+
 export interface ApiResponse<T = unknown> {
   success: boolean;
   message?: string | null;
@@ -24,7 +26,11 @@ export interface PaginatedResponse<T> {
   hasMore?: boolean;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://localhost:7297/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || (
+  process.env.NODE_ENV === 'production'
+    ? 'https://arianslab-api.onrender.com/api'
+    : 'https://localhost:7297/api'
+);
 
 export function getAssetBaseUrl(): string {
   return API_BASE_URL.replace(/\/api\/?$/, '');
@@ -35,7 +41,7 @@ export function resolveAssetUrl(path?: string | null): string | null {
     return null;
   }
   if (path.startsWith('http://') || path.startsWith('https://')) {
-    return path;
+    return getSafeExternalUrl(path);
   }
   const assetBase = getAssetBaseUrl();
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
