@@ -12,6 +12,10 @@ export interface InvoiceListItem {
   finalAmount: number;
   status: number;
   isPaid: boolean;
+  isFinalized: boolean;
+  hasPendingPayment: boolean;
+  paidAmount: number;
+  remainingAmount: number;
   paidAt?: string;
   dueDate: string;
   createdAt: string;
@@ -35,8 +39,7 @@ class InvoiceService {
       const response = await api.get<ApiResponse<InvoiceListItem[]>>(`${this.endpoint}/my`);
       return Array.isArray(response.data.data) ? response.data.data : [];
     } catch (error) {
-      console.warn('Failed to fetch invoices:', getApiErrorMessage(error));
-      return [];
+      throw new Error(getApiErrorMessage(error));
     }
   }
 

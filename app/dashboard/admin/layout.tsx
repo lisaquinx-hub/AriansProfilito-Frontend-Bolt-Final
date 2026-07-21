@@ -1,6 +1,5 @@
 'use client';
 
-import { AuthGuard } from '@/components/auth/AuthGuard';
 import AdminLayout from '@/components/admin/AdminSidebar';
 
 export default function AdminRootLayout({
@@ -8,9 +7,5 @@ export default function AdminRootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <AuthGuard requireAdmin>
-      <AdminLayout>{children}</AdminLayout>
-    </AuthGuard>
-  );
+  return <AdminLayout>{children}</AdminLayout>;
 }

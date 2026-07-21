@@ -72,7 +72,7 @@ function DashboardContent({ children }: DashboardLayoutProps) {
         <div className={cn('flex h-16 flex-shrink-0 items-center px-4', isSidebarOpen ? 'justify-between' : 'justify-center')}>
           {isSidebarOpen && (
             <Link href="/">
-              <span className="text-xl font-bold text-gradient">آریان پژوهش</span>
+              <span className="text-xl font-bold text-gradient">آرین پژوهش</span>
             </Link>
           )}
           <button
@@ -153,7 +153,7 @@ function DashboardContent({ children }: DashboardLayoutProps) {
             >
               <div className="p-6 flex items-center justify-between border-b border-border">
                 <Link href="/">
-                  <span className="text-xl font-bold text-gradient">آریان پژوهش</span>
+                  <span className="text-xl font-bold text-gradient">آرین پژوهش</span>
                 </Link>
                 <button
                   type="button"

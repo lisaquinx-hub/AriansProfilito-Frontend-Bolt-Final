@@ -17,6 +17,11 @@ export interface CreateProjectDto {
   endDate?: string | null;
   adminNote?: string | null;
   customerComment?: string | null;
+  createInitialInvoice: boolean;
+  invoiceDueDate?: string | null;
+  invoiceDiscountAmount: number;
+  invoiceTaxAmount: number;
+  invoiceDescription?: string | null;
 }
 
 export interface UpdateProjectDto {

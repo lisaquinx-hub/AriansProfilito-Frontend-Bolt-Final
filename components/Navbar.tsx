@@ -82,7 +82,7 @@ export default function Navbar() {
               whileTap={{ scale: 0.95 }}
               className="text-2xl font-bold text-gradient"
             >
-              آریان پژوهش
+              آرین پژوهش
             </motion.div>
           </Link>
 

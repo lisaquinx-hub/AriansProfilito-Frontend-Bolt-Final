@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100;200;300;400;500;600;700;800;900&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -80,7 +78,7 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Vazirmatn', sans-serif;
+    font-family: 'Vazirmatn Variable', 'Vazirmatn', sans-serif;
     transition: background-color 300ms, color 300ms;
     overflow-x: hidden;
     max-width: 100vw;
@@ -847,5 +845,11 @@ html:not(.dark) .specular-button:active {
   .fancy-search-shell:hover,
   .fancy-search-shell:focus-within {
     width: 100%;
+  }
+}
+@supports (content-visibility: auto) {
+  .deferred-home-content {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 4200px;
   }
 }

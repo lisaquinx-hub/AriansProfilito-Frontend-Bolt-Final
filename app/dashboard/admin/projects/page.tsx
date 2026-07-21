@@ -19,7 +19,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { X } from 'lucide-react';
 
 const PROJECT_STATUS_OPTIONS = [
-  { value: 1, label: 'در انتظار' },
+  { value: 1, label: 'در انتظار تأیید ادمین' },
   { value: 2, label: 'در حال انجام' },
   { value: 3, label: 'تکمیل شده' },
   { value: 4, label: 'لغو شده' },
@@ -36,7 +36,13 @@ function statusClass(s: number) {
 }
 function toIsoOrNull(val: string): string | null {
   const s = val.trim();
-  return s ? s : null;
+  return s ? new Date(`${s}T00:00:00.000Z`).toISOString() : null;
+}
+
+function dateAfterDays(days: number): string {
+  const date = new Date();
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
 }
 
 interface ProjectFormState {
@@ -54,6 +60,11 @@ interface ProjectFormState {
   endDate: string;
   adminNote: string;
   customerComment: string;
+  createInitialInvoice: boolean;
+  invoiceDueDate: string;
+  invoiceDiscountAmount: number;
+  invoiceTaxAmount: number;
+  invoiceDescription: string;
 }
 
 const EMPTY_FORM: ProjectFormState = {
@@ -71,6 +82,11 @@ const EMPTY_FORM: ProjectFormState = {
   endDate: '',
   adminNote: '',
   customerComment: '',
+  createInitialInvoice: true,
+  invoiceDueDate: dateAfterDays(7),
+  invoiceDiscountAmount: 0,
+  invoiceTaxAmount: 0,
+  invoiceDescription: '',
 };
 
 function projectToForm(item: Project): ProjectFormState {
@@ -89,6 +105,11 @@ function projectToForm(item: Project): ProjectFormState {
     endDate: item.endDate ? item.endDate.split('T')[0] : '',
     adminNote: item.adminNote || '',
     customerComment: item.customerComment || '',
+    createInitialInvoice: false,
+    invoiceDueDate: '',
+    invoiceDiscountAmount: 0,
+    invoiceTaxAmount: 0,
+    invoiceDescription: '',
   };
 }
 
@@ -170,6 +191,11 @@ export default function AdminProjectsPage() {
     if (!form.userId) { setFormError('انتخاب کاربر الزامی است'); return; }
     if (!form.pricingPlanId) { setFormError('انتخاب پلن قیمت‌گذاری الزامی است'); return; }
     if (!form.title.trim()) { setFormError('عنوان پروژه الزامی است'); return; }
+    if (!form.description.trim()) { setFormError('توضیحات پروژه الزامی است'); return; }
+    if (!editingItem && form.createInitialInvoice && Number(form.price) <= 0) {
+      setFormError('برای صدور پیش‌فاکتور، قیمت پروژه باید بیشتر از صفر باشد');
+      return;
+    }
 
     const progress = Math.min(100, Math.max(0, Number(form.progress) || 0));
 
@@ -211,10 +237,17 @@ export default function AdminProjectsPage() {
           endDate: toIsoOrNull(form.endDate),
           adminNote: form.adminNote.trim() || null,
           customerComment: form.customerComment.trim() || null,
+          createInitialInvoice: form.createInitialInvoice,
+          invoiceDueDate: toIsoOrNull(form.invoiceDueDate),
+          invoiceDiscountAmount: Number(form.invoiceDiscountAmount) || 0,
+          invoiceTaxAmount: Number(form.invoiceTaxAmount) || 0,
+          invoiceDescription: form.invoiceDescription.trim() || null,
         };
         const created = await adminProjectsService.create(payload);
         if (created) setItems(prev => [...(Array.isArray(prev) ? prev : []), created]);
-        toast.success('پروژه با موفقیت ایجاد شد');
+        toast.success(form.createInitialInvoice
+          ? 'پروژه و پیش‌فاکتور با موفقیت ایجاد شدند'
+          : 'پروژه با موفقیت ایجاد شد');
         setIsFormOpen(false);
       }
     } catch (error) {
@@ -407,24 +440,32 @@ export default function AdminProjectsPage() {
                   </div>
 
                   <div className="space-y-1.5 md:col-span-2">
-                    <Label>توضیحات</Label>
+                    <Label>توضیحات *</Label>
                     <Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                       rows={3} className="bg-muted/50 border-border resize-none" placeholder="توضیحات پروژه" />
                   </div>
 
-                  <div className="space-y-1.5">
-                    <Label>وضعیت</Label>
-                    <select value={form.status} onChange={e => setForm(f => ({ ...f, status: Number(e.target.value) }))} className={selectCls}>
-                      {PROJECT_STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                    </select>
-                  </div>
+                  {editingItem ? (
+                    <>
+                      <div className="space-y-1.5">
+                        <Label>وضعیت</Label>
+                        <select value={form.status} onChange={e => setForm(f => ({ ...f, status: Number(e.target.value) }))} className={selectCls}>
+                          {PROJECT_STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                        </select>
+                      </div>
 
-                  <div className="space-y-1.5">
-                    <Label>پیشرفت (۰-۱۰۰)</Label>
-                    <Input type="number" min={0} max={100} value={form.progress}
-                      onChange={e => setForm(f => ({ ...f, progress: Number(e.target.value) }))}
-                      className="bg-muted/50 border-border" />
-                  </div>
+                      <div className="space-y-1.5">
+                        <Label>پیشرفت (۰-۱۰۰)</Label>
+                        <Input type="number" min={0} max={100} value={form.progress}
+                          onChange={e => setForm(f => ({ ...f, progress: Number(e.target.value) }))}
+                          className="bg-muted/50 border-border" />
+                      </div>
+                    </>
+                  ) : (
+                    <div className="md:col-span-2 rounded-xl border border-sky-500/20 bg-sky-500/5 p-3 text-sm text-muted-foreground">
+                      پروژه با وضعیت «در انتظار تأیید ادمین» و پیشرفت صفر ساخته می‌شود؛ پس از تأیید پرداخت، خودکار وارد وضعیت «در حال انجام» خواهد شد.
+                    </div>
+                  )}
 
                   <div className="space-y-1.5">
                     <Label>قیمت (تومان)</Label>
@@ -433,12 +474,51 @@ export default function AdminProjectsPage() {
                       className="bg-muted/50 border-border" />
                   </div>
 
-                  <div className="space-y-1.5">
-                    <Label>مبلغ پرداخت‌شده</Label>
-                    <Input type="number" min={0} value={form.paidAmount}
-                      onChange={e => setForm(f => ({ ...f, paidAmount: Number(e.target.value) }))}
-                      className="bg-muted/50 border-border" />
-                  </div>
+                  {!editingItem && (
+                    <div className="md:col-span-2 space-y-4 rounded-xl border border-border bg-muted/20 p-4">
+                      <label className="flex cursor-pointer items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={form.createInitialInvoice}
+                          onChange={event => setForm(current => ({ ...current, createInitialInvoice: event.target.checked }))}
+                          className="h-4 w-4 rounded border-border text-sky-500 focus:ring-sky-500"
+                        />
+                        <span>
+                          <span className="block font-medium text-foreground">صدور پیش‌فاکتور برای مشتری</span>
+                          <span className="text-xs text-muted-foreground">مبلغ پرداخت‌شده فقط پس از تأیید رسید توسط مدیر ثبت می‌شود.</span>
+                        </span>
+                      </label>
+
+                      {form.createInitialInvoice && (
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                          <div className="space-y-1.5">
+                            <Label>سررسید پیش‌فاکتور *</Label>
+                            <Input type="date" value={form.invoiceDueDate}
+                              onChange={event => setForm(current => ({ ...current, invoiceDueDate: event.target.value }))}
+                              className="bg-muted/50 border-border" required />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label>تخفیف (تومان)</Label>
+                            <Input type="number" min={0} value={form.invoiceDiscountAmount}
+                              onChange={event => setForm(current => ({ ...current, invoiceDiscountAmount: Number(event.target.value) }))}
+                              className="bg-muted/50 border-border" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label>مالیات (تومان)</Label>
+                            <Input type="number" min={0} value={form.invoiceTaxAmount}
+                              onChange={event => setForm(current => ({ ...current, invoiceTaxAmount: Number(event.target.value) }))}
+                              className="bg-muted/50 border-border" />
+                          </div>
+                          <div className="space-y-1.5 md:col-span-3">
+                            <Label>توضیحات پیش‌فاکتور</Label>
+                            <Textarea value={form.invoiceDescription}
+                              onChange={event => setForm(current => ({ ...current, invoiceDescription: event.target.value }))}
+                              rows={2} className="bg-muted/50 border-border resize-none" placeholder="اختیاری" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div className="space-y-1.5">
                     <Label>تاریخ تحویل تخمینی</Label>
@@ -447,19 +527,23 @@ export default function AdminProjectsPage() {
                       className="bg-muted/50 border-border" />
                   </div>
 
-                  <div className="space-y-1.5">
-                    <Label>تاریخ شروع</Label>
-                    <Input type="date" value={form.startDate}
-                      onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))}
-                      className="bg-muted/50 border-border" />
-                  </div>
+                  {editingItem && (
+                    <>
+                      <div className="space-y-1.5">
+                        <Label>تاریخ شروع</Label>
+                        <Input type="date" value={form.startDate}
+                          onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))}
+                          className="bg-muted/50 border-border" />
+                      </div>
 
-                  <div className="space-y-1.5">
-                    <Label>تاریخ پایان</Label>
-                    <Input type="date" value={form.endDate}
-                      onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))}
-                      className="bg-muted/50 border-border" />
-                  </div>
+                      <div className="space-y-1.5">
+                        <Label>تاریخ پایان</Label>
+                        <Input type="date" value={form.endDate}
+                          onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))}
+                          className="bg-muted/50 border-border" />
+                      </div>
+                    </>
+                  )}
 
                   <div className="space-y-1.5 md:col-span-2">
                     <Label>یادداشت مدیر</Label>

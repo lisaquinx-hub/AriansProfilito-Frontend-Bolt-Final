@@ -1,4 +1,5 @@
 import './globals.css';
+import '@fontsource-variable/vazirmatn';
 import type { Metadata } from 'next';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { Toaster } from '@/components/ui/sonner';
@@ -8,19 +9,19 @@ import { FeatureSettingsProvider } from '@/components/FeatureSettingsProvider';
 import AnalyticsTracker from '@/components/AnalyticsTracker';
 
 export const metadata: Metadata = {
-  title: 'آریان پژوهش | استودیوی محصول دیجیتال',
+  title: 'آرین پژوهش | استودیوی محصول دیجیتال',
   description: 'نسل جدید توسعه نرم‌افزار - طراحی مدرن، سرعت بالا و تجربه‌ای متفاوت',
   keywords: ['طراحی محصول', 'توسعه نرم‌افزار', 'UX', 'UI', 'دیجیتال', 'فارسی'],
-  authors: [{ name: 'آریان پژوهش' }],
+  authors: [{ name: 'آرین پژوهش' }],
   openGraph: {
-    title: 'آریان پژوهش | استودیوی محصول دیجیتال',
+    title: 'آرین پژوهش | استودیوی محصول دیجیتال',
     description: 'نسل جدید توسعه نرم‌افزار - طراحی مدرن، سرعت بالا و تجربه‌ای متفاوت',
     type: 'website',
     locale: 'fa_IR',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'آریان پژوهش | استودیوی محصول دیجیتال',
+    title: 'آرین پژوهش | استودیوی محصول دیجیتال',
     description: 'نسل جدید توسعه نرم‌افزار - طراحی مدرن، سرعت بالا و تجربه‌ای متفاوت',
   },
 };

@@ -103,7 +103,7 @@ export default function DashboardPage() {
                         p.status === 3 ? 'bg-green-500/10 text-green-500' :
                         'bg-gray-500/10 text-gray-400'
                       }`}>
-                        {p.status === 1 ? 'در انتظار' : p.status === 2 ? 'در حال انجام' : p.status === 3 ? 'تکمیل' : 'لغو'}
+                        {p.status === 1 ? 'در انتظار تأیید ادمین' : p.status === 2 ? 'در حال انجام' : p.status === 3 ? 'تکمیل' : 'لغو'}
                       </span>
                     </div>
                   ))}

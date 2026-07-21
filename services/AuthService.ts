@@ -1,4 +1,10 @@
-import { api, getApiErrorMessage, getApiStatus, resetCsrfToken } from './api';
+import {
+  api,
+  ensureFreshSession,
+  getApiErrorMessage,
+  getApiStatus,
+  resetCsrfToken,
+} from './api';
 import { ApiResponse, normalizeObject } from '@/lib/api-utils';
 import {
   clearAuthSession,
@@ -38,6 +44,8 @@ export interface AuthResponse {
   user: AuthUser;
 }
 
+let getMeRequest: Promise<AuthUser> | null = null;
+
 class AuthService {
   private endpoint = '/Auth';
 
@@ -57,7 +65,11 @@ class AuthService {
       );
       const responseData = this.parseAuthResponse(response.data);
       resetCsrfToken();
-      setAuthSession(responseData.user, persistent);
+      setAuthSession(
+        responseData.user,
+        persistent,
+        responseData.accessTokenExpiresAt
+      );
       return responseData;
     } catch (error) {
       throw new Error(getApiErrorMessage(error));
@@ -69,7 +81,11 @@ class AuthService {
       const response = await api.post<ApiResponse<AuthResponse>>(`${this.endpoint}/register`, data);
       const responseData = this.parseAuthResponse(response.data);
       resetCsrfToken();
-      setAuthSession(responseData.user, false);
+      setAuthSession(
+        responseData.user,
+        false,
+        responseData.accessTokenExpiresAt
+      );
       return responseData;
     } catch (error) {
       if (getApiStatus(error) === 409) {
@@ -92,15 +108,24 @@ class AuthService {
   }
 
   async getMe(): Promise<AuthUser> {
-    try {
-      const response = await api.get<ApiResponse<AuthUser>>(`${this.endpoint}/me`);
-      const user = normalizeObject<AuthUser>(response.data);
-      if (!user?.id) throw new Error('پاسخ اطلاعات کاربر نامعتبر است');
-      setStoredUser(user);
-      return user;
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error));
+    if (!getMeRequest) {
+      getMeRequest = (async () => {
+        try {
+          await ensureFreshSession();
+          const response = await api.get<ApiResponse<AuthUser>>(`${this.endpoint}/me`);
+          const user = normalizeObject<AuthUser>(response.data);
+          if (!user?.id) throw new Error('پاسخ اطلاعات کاربر نامعتبر است');
+          setStoredUser(user);
+          return user;
+        } catch (error) {
+          throw new Error(getApiErrorMessage(error));
+        }
+      })().finally(() => {
+        getMeRequest = null;
+      });
     }
+
+    return getMeRequest;
   }
 
   checkAuth(): boolean {

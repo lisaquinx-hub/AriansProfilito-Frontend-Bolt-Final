@@ -159,8 +159,8 @@ async function mockApi(page: Page, context: BrowserContext) {
       await json(route, {
         success: true,
         data: {
-          accessTokenExpiresAt: '2026-07-16T12:15:00Z',
-          refreshTokenExpiresAt: '2026-08-15T12:00:00Z',
+          accessTokenExpiresAt: '2099-07-16T12:15:00Z',
+          refreshTokenExpiresAt: '2099-08-15T12:00:00Z',
           user,
         },
       });
@@ -199,8 +199,8 @@ async function mockApi(page: Page, context: BrowserContext) {
       await json(route, {
         success: true,
         data: {
-          accessTokenExpiresAt: '2026-07-16T12:15:00Z',
-          refreshTokenExpiresAt: '2026-08-15T12:00:00Z',
+          accessTokenExpiresAt: '2099-07-16T12:15:00Z',
+          refreshTokenExpiresAt: '2099-08-15T12:00:00Z',
           user: authenticatedUser,
         },
       });

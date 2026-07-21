@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 
 const CARD_SELECTOR = '[data-magic-bento], .magic-bento-card, .glass';
 const PARTICLE_COUNT = 5;
@@ -65,9 +66,14 @@ function addRipple(layer: HTMLElement, card: HTMLElement, clientX: number, clien
  * cards without replacing their markup, data or glass treatment.
  */
 export default function MagicBentoProvider() {
+  const pathname = usePathname();
+
   useEffect(() => {
+    const isDashboard = pathname === '/dashboard' || pathname.startsWith('/dashboard/');
     const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (isDashboard || !finePointer.matches || reducedMotion.matches) return;
+
     const layer = document.createElement('div');
     layer.className = 'magic-bento-fx-layer';
     layer.setAttribute('aria-hidden', 'true');
@@ -143,7 +149,7 @@ export default function MagicBentoProvider() {
       document.removeEventListener('click', handleClick);
       layer.remove();
     };
-  }, []);
+  }, [pathname]);
 
   return null;
 }

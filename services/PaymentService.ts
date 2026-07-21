@@ -26,6 +26,12 @@ export interface PaymentDetail extends PaymentListItem {
   updatedAt?: string;
 }
 
+export interface SubmitPaymentDto {
+  invoiceId: string;
+  trackingCode: string;
+  cardLastFour?: string;
+}
+
 class PaymentService {
   private endpoint = '/payments';
 
@@ -34,14 +40,25 @@ class PaymentService {
       const response = await api.get<ApiResponse<PaymentListItem[]>>(`${this.endpoint}/my`);
       return Array.isArray(response.data.data) ? response.data.data : [];
     } catch (error) {
-      console.warn('Failed to fetch payments:', getApiErrorMessage(error));
-      return [];
+      throw new Error(getApiErrorMessage(error));
     }
   }
 
   async getMyPaymentById(id: string): Promise<PaymentDetail | null> {
     try {
       const response = await api.get<ApiResponse<PaymentDetail>>(`${this.endpoint}/my/${id}`);
+      return response.data.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
+  }
+
+  async submitPayment(data: SubmitPaymentDto): Promise<PaymentDetail | null> {
+    try {
+      const response = await api.post<ApiResponse<PaymentDetail>>(
+        `${this.endpoint}/my`,
+        data
+      );
       return response.data.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error));

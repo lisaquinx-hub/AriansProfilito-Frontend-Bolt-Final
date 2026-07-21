@@ -4,7 +4,11 @@ import axios, {
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from 'axios';
-import { clearAuthSession } from '@/lib/auth';
+import {
+  clearAuthSession,
+  setAccessTokenExpiresAt,
+  shouldRefreshAccessToken,
+} from '@/lib/auth';
 
 const UPSTREAM_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://localhost:7297/api';
 const API_BASE_URL = process.env.NODE_ENV === 'production' ? '/api' : UPSTREAM_API_BASE_URL;
@@ -23,6 +27,10 @@ interface RetryableRequestConfig extends InternalAxiosRequestConfig {
 
 interface CsrfResponse {
   data?: { token?: string };
+}
+
+interface RefreshSessionResponse {
+  data?: { accessTokenExpiresAt?: string };
 }
 
 const isBrowser = () => typeof window !== 'undefined';
@@ -95,12 +103,13 @@ async function refreshSession(): Promise<void> {
   if (!refreshRequest) {
     resetCsrfToken();
     refreshRequest = fetchCsrfToken()
-      .then((token) => sessionApi.post(
+      .then((token) => sessionApi.post<RefreshSessionResponse>(
         '/Auth/refresh-token',
         null,
         { headers: { [CSRF_HEADER_NAME]: token } }
       ))
-      .then(() => {
+      .then((response) => {
+        setAccessTokenExpiresAt(response.data?.data?.accessTokenExpiresAt);
         resetCsrfToken();
       })
       .finally(() => {
@@ -108,6 +117,20 @@ async function refreshSession(): Promise<void> {
       });
   }
   return refreshRequest;
+}
+
+export async function ensureFreshSession(): Promise<void> {
+  if (isBrowser() && shouldRefreshAccessToken()) {
+    try {
+      await refreshSession();
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        clearAuthSession();
+        window.dispatchEvent(new Event('auth-changed'));
+      }
+      throw error;
+    }
+  }
 }
 
 export function resetCsrfToken(): void {

@@ -316,8 +316,13 @@ export interface InvoiceDetailDto {
   amount: number;
   discountAmount?: number;
   taxAmount?: number;
-  totalAmount?: number;
+  finalAmount?: number;
   status: number;
+  isPaid?: boolean;
+  isFinalized?: boolean;
+  hasPendingPayment?: boolean;
+  paidAmount?: number;
+  remainingAmount?: number;
   description?: string;
   dueDate?: string;
   paidAt?: string;
@@ -331,6 +336,11 @@ export interface PaymentDetailDto {
   id: string;
   invoiceId?: string;
   invoiceNumber?: string;
+  userId?: string;
+  customerFullName?: string;
+  customerEmail?: string;
+  projectId?: string;
+  projectTitle?: string;
   amount: number;
   gateway?: string;
   authority?: string;

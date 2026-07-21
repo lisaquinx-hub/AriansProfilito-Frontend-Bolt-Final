@@ -1,65 +1,90 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Receipt, RefreshCw, Plus, ToggleLeft } from 'lucide-react';
+import { Plus, Receipt, RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
 import { Card, CardContent } from '@/components/ui/card';
+import { ConfirmDialog, DataTable } from '@/components/admin/DataTable';
 import { EntityFormModal, FormField } from '@/components/admin/EntityFormModal';
 import { ViewDetailModal } from '@/components/admin/ViewDetailModal';
-import { adminInvoicesService, CreateInvoiceDto, UpdateInvoiceDto } from '@/services/admin/InvoicesService';
-import { Invoice } from '@/types/api';
-import { toast } from 'sonner';
+import {
+  adminInvoicesService,
+  CreateInvoiceDto,
+  UpdateInvoiceDto,
+} from '@/services/admin/InvoicesService';
+import { adminProjectsService } from '@/services/admin/ProjectsService';
 import { getApiErrorMessage } from '@/services/api';
-import { AnimatePresence, motion } from 'framer-motion';
+import { Invoice, Project } from '@/types/api';
 
-// PaymentStatus: Pending=1, Paid=2, Failed=3, Refunded=4
-const PAYMENT_STATUS_OPTIONS = [
-  { value: '1', label: 'در انتظار' },
-  { value: '2', label: 'پرداخت‌شده' },
-  { value: '3', label: 'ناموفق' },
-  { value: '4', label: 'بازپرداخت' },
-];
+const PAYMENT_STATUS_LABELS: Record<number, string> = {
+  1: 'در انتظار پرداخت',
+  2: 'پرداخت‌شده',
+  3: 'ناموفق',
+  4: 'بازپرداخت',
+};
+
+function toUtcDate(value: unknown): string {
+  const date = String(value || '').trim();
+  return date ? new Date(`${date}T00:00:00.000Z`).toISOString() : '';
+}
+
+function documentLabel(invoice: Invoice): string {
+  return invoice.isFinalized || invoice.status === 2 ? 'فاکتور نهایی' : 'پیش‌فاکتور';
+}
+
+function paymentLabel(invoice: Invoice): string {
+  if (invoice.status === 1 && invoice.hasPendingPayment) {
+    return 'پرداخت ثبت شده؛ در انتظار تأیید مدیر';
+  }
+  return PAYMENT_STATUS_LABELS[invoice.status] || String(invoice.status);
+}
 
 export default function AdminInvoicesPage() {
   const [items, setItems] = useState<Invoice[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Invoice | null>(null);
-
   const [viewItem, setViewItem] = useState<Invoice | null>(null);
   const [viewLoading, setViewLoading] = useState(false);
   const [viewError, setViewError] = useState<string | null>(null);
 
-  // Status change modal state
-  const [statusItem, setStatusItem] = useState<Invoice | null>(null);
-  const [statusValue, setStatusValue] = useState(1);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [updateError, setUpdateError] = useState<string | null>(null);
-
   const fetchData = async () => {
     setIsLoading(true);
-    const data = await adminInvoicesService.getAll();
-    setItems(data);
-    setIsLoading(false);
+    try {
+      const [invoiceItems, projectItems] = await Promise.all([
+        adminInvoicesService.getAll(),
+        adminProjectsService.getAll(),
+      ]);
+      setItems(invoiceItems);
+      setProjects(projectItems);
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => {
+    void fetchData();
+  }, []);
 
   const handleDelete = async () => {
     if (!deleteId) return;
     setIsDeleting(true);
     try {
       await adminInvoicesService.delete(deleteId);
-      setItems(prev => prev.filter(i => i.id !== deleteId));
+      setItems(current => current.filter(item => item.id !== deleteId));
       setDeleteId(null);
       toast.success('فاکتور با موفقیت حذف شد');
     } catch (error) {
       toast.error(getApiErrorMessage(error));
+    } finally {
+      setIsDeleting(false);
     }
-    setIsDeleting(false);
   };
 
   const handleView = async (item: Invoice) => {
@@ -69,194 +94,174 @@ export default function AdminInvoicesPage() {
     try {
       const detail = await adminInvoicesService.getById(item.id);
       if (detail) setViewItem(detail);
-    } catch (err) {
-      setViewError(getApiErrorMessage(err));
+    } catch (error) {
+      setViewError(getApiErrorMessage(error));
     } finally {
       setViewLoading(false);
     }
   };
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    const toNullableDate = (v: unknown) => { const s = String(v || '').trim(); return s || null; };
+    const projectId = String(data.projectId || '');
+    const project = projects.find(item => item.id === projectId);
+    if (!project) throw new Error('پروژه انتخاب‌شده معتبر نیست');
+
+    const amount = Number(data.amount) || 0;
+    if (amount <= 0) throw new Error('مبلغ فاکتور باید بیشتر از صفر باشد');
+
+    const common = {
+      userId: project.userId,
+      projectId: project.id,
+      amount,
+      discountAmount: Number(data.discountAmount) || 0,
+      taxAmount: Number(data.taxAmount) || 0,
+      description: String(data.description || '').trim() || undefined,
+      dueDate: toUtcDate(data.dueDate),
+    };
+
     if (editingItem) {
       const payload: UpdateInvoiceDto = {
-        userId: String(data.userId || ''),
-        projectId: String(data.projectId || ''),
-        amount: Number(data.amount) || 0,
-        discountAmount: Number(data.discountAmount) || 0,
-        taxAmount: Number(data.taxAmount) || 0,
-        status: Number(data.status) || 1,
-        description: String(data.description || '') || undefined,
-        dueDate: String(data.dueDate || ''),
-        paidAt: toNullableDate(data.paidAt),
+        ...common,
+        status: editingItem.status,
+        paidAt: editingItem.paidAt || null,
       };
       await adminInvoicesService.update(editingItem.id, payload);
-      toast.success('فاکتور با موفقیت ویرایش شد');
+      toast.success('پیش‌فاکتور با موفقیت ویرایش شد');
     } else {
-      const payload: CreateInvoiceDto = {
-        userId: String(data.userId || ''),
-        projectId: String(data.projectId || ''),
-        amount: Number(data.amount) || 0,
-        discountAmount: Number(data.discountAmount) || 0,
-        taxAmount: Number(data.taxAmount) || 0,
-        status: Number(data.status) || 1,
-        description: String(data.description || '') || undefined,
-        dueDate: String(data.dueDate || ''),
-      };
+      const payload: CreateInvoiceDto = { ...common, status: 1 };
       await adminInvoicesService.create(payload);
-      toast.success('فاکتور با موفقیت ایجاد شد');
+      toast.success('پیش‌فاکتور با موفقیت ایجاد شد');
     }
-    fetchData();
-  };
 
-  const handleStatusUpdate = async () => {
-    if (!statusItem) return;
-    setIsUpdating(true);
-    setUpdateError(null);
-    try {
-      await adminInvoicesService.updateStatus(statusItem.id, statusValue);
-      setStatusItem(null);
-      toast.success('وضعیت فاکتور با موفقیت به‌روز شد');
-      fetchData();
-    } catch (err) {
-      setUpdateError(getApiErrorMessage(err));
-    } finally {
-      setIsUpdating(false);
-    }
+    await fetchData();
   };
 
   const fields: FormField[] = [
-    { key: 'userId', label: 'شناسه کاربر (UUID)', type: 'text', required: true },
-    { key: 'projectId', label: 'شناسه پروژه (UUID)', type: 'text', required: true },
-    { key: 'amount', label: 'مبلغ', type: 'number', required: true },
+    {
+      key: 'projectId',
+      label: 'پروژه و مشتری',
+      type: 'select',
+      required: true,
+      options: projects.map(project => ({
+        value: project.id,
+        label: `${project.title} — ${project.customerFullName || project.customerEmail || 'بدون نام'} — ${project.price.toLocaleString('fa-IR')} تومان`,
+      })),
+    },
+    { key: 'amount', label: 'مبلغ (تومان)', type: 'number', required: true },
     { key: 'discountAmount', label: 'تخفیف', type: 'number' },
     { key: 'taxAmount', label: 'مالیات', type: 'number' },
-    { key: 'status', label: 'وضعیت', type: 'select', required: true, options: PAYMENT_STATUS_OPTIONS },
     { key: 'dueDate', label: 'تاریخ سررسید', type: 'date', required: true },
-    { key: 'paidAt', label: 'تاریخ پرداخت', type: 'date' },
     { key: 'description', label: 'توضیحات', type: 'textarea', fullWidth: true },
   ];
 
   const columns = [
-    { key: 'invoiceNumber', label: 'شماره فاکتور', render: (i: Invoice) => i.invoiceNumber || '-' },
-    { key: 'customerFullName', label: 'مشتری', render: (i: Invoice) => i.customerFullName || '-' },
-    { key: 'amount', label: 'مبلغ', render: (i: Invoice) => i.amount?.toLocaleString() || '-' },
-    { key: 'status', label: 'وضعیت', render: (i: Invoice) => PAYMENT_STATUS_OPTIONS.find(o => o.value === String(i.status))?.label || String(i.status) },
-    { key: 'dueDate', label: 'سررسید', render: (i: Invoice) => i.dueDate ? new Date(i.dueDate).toLocaleDateString('fa-IR') : '-' },
-    { key: 'createdAt', label: 'تاریخ', render: (i: Invoice) => i.createdAt ? new Date(i.createdAt).toLocaleDateString('fa-IR') : '-' },
-  ];
-
-  const extraActions = [
-    {
-      label: 'تغییر وضعیت',
-      icon: <ToggleLeft className="w-4 h-4" />,
-      onClick: (item: Invoice) => {
-        setStatusValue(item.status ?? 1);
-        setUpdateError(null);
-        setStatusItem(item);
-      },
-      className: 'text-amber-500 hover:text-amber-400',
-    },
+    { key: 'invoiceNumber', label: 'شماره', render: (item: Invoice) => item.invoiceNumber || '-' },
+    { key: 'document', label: 'نوع سند', render: (item: Invoice) => documentLabel(item) },
+    { key: 'customerFullName', label: 'مشتری', render: (item: Invoice) => item.customerFullName || '-' },
+    { key: 'projectTitle', label: 'پروژه', render: (item: Invoice) => item.projectTitle || '-' },
+    { key: 'finalAmount', label: 'مبلغ نهایی', render: (item: Invoice) => (item.finalAmount ?? item.amount).toLocaleString('fa-IR') },
+    { key: 'status', label: 'وضعیت', render: (item: Invoice) => paymentLabel(item) },
+    { key: 'dueDate', label: 'سررسید', render: (item: Invoice) => item.dueDate ? new Date(item.dueDate).toLocaleDateString('fa-IR') : '-' },
   ];
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2"><Receipt className="w-6 h-6" />مدیریت فاکتورها</h1>
-          <p className="text-muted-foreground text-sm mt-1">{items.length} فاکتور</p>
+          <h1 className="flex items-center gap-2 text-2xl font-bold"><Receipt className="h-6 w-6" />مدیریت فاکتورها</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{items.length.toLocaleString('fa-IR')} سند</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={fetchData}><RefreshCw className={`w-4 h-4 ml-1 ${isLoading ? 'animate-spin' : ''}`} />به‌روزرسانی</Button>
-          <Button size="sm" className="btn-primary" onClick={() => { setEditingItem(null); setIsFormOpen(true); }}><Plus className="w-4 h-4 ml-1" />فاکتور جدید</Button>
+          <Button variant="outline" size="sm" onClick={() => void fetchData()} disabled={isLoading}>
+            <RefreshCw className={`ml-1 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />به‌روزرسانی
+          </Button>
+          <Button size="sm" className="btn-primary" onClick={() => { setEditingItem(null); setIsFormOpen(true); }} disabled={projects.length === 0}>
+            <Plus className="ml-1 h-4 w-4" />پیش‌فاکتور جدید
+          </Button>
         </div>
       </div>
+
+      {projects.length === 0 && !isLoading && (
+        <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm text-amber-700 dark:text-amber-300">
+          برای صدور پیش‌فاکتور ابتدا یک پروژه بسازید؛ مالک فاکتور خودکار از پروژه انتخاب می‌شود.
+        </div>
+      )}
+
       <Card className="glass"><CardContent className="p-6">
         <DataTable
           data={items}
           columns={columns}
           loading={isLoading}
           onView={handleView}
-          onEdit={(i) => { setEditingItem(i); setIsFormOpen(true); }}
-          onDelete={(i) => setDeleteId(i.id)}
-          extraActions={extraActions}
-          idLookup={{
-            entityLabel: 'فاکتور',
-            getById: (id) => adminInvoicesService.getById(id),
+          onEdit={item => {
+            if (item.isFinalized || item.status === 2) {
+              toast.error('فاکتور نهایی قابل ویرایش نیست');
+              return;
+            }
+            setEditingItem(item);
+            setIsFormOpen(true);
           }}
+          onDelete={item => {
+            if (item.isFinalized || item.status === 2) {
+              toast.error('فاکتور نهایی قابل حذف نیست');
+              return;
+            }
+            setDeleteId(item.id);
+          }}
+          idLookup={{ entityLabel: 'فاکتور', getById: id => adminInvoicesService.getById(id) }}
           emptyMessage="فاکتوری یافت نشد"
         />
       </CardContent></Card>
-      <ConfirmDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)} title="حذف فاکتور" description="آیا از حذف این فاکتور اطمینان دارید؟" onConfirm={handleDelete} loading={isDeleting} />
-      <EntityFormModal open={isFormOpen} onOpenChange={setIsFormOpen} title={editingItem ? 'ویرایش فاکتور' : 'فاکتور جدید'} fields={fields}
-        initialValues={editingItem ? { userId: editingItem.userId || '', projectId: editingItem.projectId || '', amount: editingItem.amount, discountAmount: editingItem.discountAmount || 0, taxAmount: editingItem.taxAmount || 0, status: String(editingItem.status), dueDate: editingItem.dueDate?.split('T')[0] || '', paidAt: editingItem.paidAt?.split('T')[0] || '', description: editingItem.description || '' } : undefined}
-        onSubmit={handleSubmit} />
+
+      <ConfirmDialog
+        open={Boolean(deleteId)}
+        onOpenChange={open => { if (!open) setDeleteId(null); }}
+        title="حذف فاکتور"
+        description="آیا از حذف این فاکتور اطمینان دارید؟"
+        onConfirm={handleDelete}
+        loading={isDeleting}
+      />
+
+      <EntityFormModal
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        title={editingItem ? 'ویرایش پیش‌فاکتور' : 'پیش‌فاکتور جدید'}
+        fields={fields}
+        initialValues={editingItem ? {
+          projectId: editingItem.projectId || '',
+          amount: editingItem.amount,
+          discountAmount: editingItem.discountAmount || 0,
+          taxAmount: editingItem.taxAmount || 0,
+          dueDate: editingItem.dueDate?.split('T')[0] || '',
+          description: editingItem.description || '',
+        } : undefined}
+        onSubmit={handleSubmit}
+      />
+
       <ViewDetailModal
-        open={!!viewItem || viewLoading}
+        open={Boolean(viewItem) || viewLoading}
         onClose={() => { setViewItem(null); setViewError(null); setViewLoading(false); }}
         title="جزئیات فاکتور"
         loading={viewLoading}
         error={viewError}
         fields={viewItem ? [
-          { label: 'شناسه', value: viewItem.id },
-          { label: 'شماره فاکتور', value: viewItem.invoiceNumber || '-' },
+          { label: 'نوع سند', value: documentLabel(viewItem) },
+          { label: 'شماره', value: viewItem.invoiceNumber || '-' },
           { label: 'مشتری', value: viewItem.customerFullName || '-' },
           { label: 'ایمیل مشتری', value: viewItem.customerEmail || '-' },
           { label: 'پروژه', value: viewItem.projectTitle || '-' },
-          { label: 'مبلغ', value: viewItem.amount?.toLocaleString() || '-' },
-          { label: 'تخفیف', value: viewItem.discountAmount?.toLocaleString() || '-' },
-          { label: 'مالیات', value: viewItem.taxAmount?.toLocaleString() || '-' },
-          { label: 'مبلغ کل', value: viewItem.totalAmount?.toLocaleString() || '-' },
-          { label: 'وضعیت', value: PAYMENT_STATUS_OPTIONS.find(o => o.value === String(viewItem.status))?.label || String(viewItem.status) },
+          { label: 'مبلغ اصلی', value: viewItem.amount.toLocaleString('fa-IR') },
+          { label: 'تخفیف', value: (viewItem.discountAmount || 0).toLocaleString('fa-IR') },
+          { label: 'مالیات', value: (viewItem.taxAmount || 0).toLocaleString('fa-IR') },
+          { label: 'مبلغ نهایی', value: (viewItem.finalAmount ?? viewItem.amount).toLocaleString('fa-IR') },
+          { label: 'پرداخت تأییدشده', value: (viewItem.paidAmount || 0).toLocaleString('fa-IR') },
+          { label: 'مانده', value: (viewItem.remainingAmount ?? viewItem.finalAmount ?? viewItem.amount).toLocaleString('fa-IR') },
+          { label: 'وضعیت', value: paymentLabel(viewItem) },
           { label: 'توضیحات', value: viewItem.description || '-', fullWidth: true },
           { label: 'سررسید', value: viewItem.dueDate ? new Date(viewItem.dueDate).toLocaleDateString('fa-IR') : '-' },
-          { label: 'تاریخ پرداخت', value: viewItem.paidAt ? new Date(viewItem.paidAt).toLocaleString('fa-IR') : '-' },
-          { label: 'تاریخ ایجاد', value: viewItem.createdAt ? new Date(viewItem.createdAt).toLocaleString('fa-IR') : '-' },
+          { label: 'تاریخ ایجاد', value: new Date(viewItem.createdAt).toLocaleString('fa-IR') },
         ] : []}
       />
-
-      {/* Status Change Modal */}
-      <AnimatePresence>
-        {statusItem && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50"
-              onClick={() => { if (!isUpdating) setStatusItem(null); }}
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-              className="relative glass rounded-2xl p-6 max-w-sm w-full"
-            >
-              <h3 className="text-lg font-semibold mb-4">تغییر وضعیت فاکتور</h3>
-              <p className="text-sm text-muted-foreground mb-4">فاکتور: {statusItem.invoiceNumber || statusItem.id}</p>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">وضعیت</label>
-                  <select
-                    value={statusValue}
-                    onChange={e => setStatusValue(Number(e.target.value))}
-                    className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
-                  >
-                    {PAYMENT_STATUS_OPTIONS.map(o => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
-                    ))}
-                  </select>
-                </div>
-                {updateError && (
-                  <p className="text-sm text-red-400">{updateError}</p>
-                )}
-                <div className="flex gap-2 justify-end">
-                  <Button variant="outline" size="sm" onClick={() => setStatusItem(null)} disabled={isUpdating}>انصراف</Button>
-                  <Button size="sm" className="btn-primary" onClick={handleStatusUpdate} disabled={isUpdating}>
-                    {isUpdating ? 'در حال ذخیره...' : 'ذخیره'}
-                  </Button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

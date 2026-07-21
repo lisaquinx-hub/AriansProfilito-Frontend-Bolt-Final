@@ -1,5 +1,6 @@
 const AUTH_SESSION_KEY = 'authSession';
 const USER_KEY = 'user';
+const ACCESS_EXPIRES_AT_KEY = 'accessTokenExpiresAt';
 const LEGACY_TOKEN_KEYS = ['accessToken', 'refreshToken'];
 
 const isBrowser = () => typeof window !== 'undefined';
@@ -7,6 +8,7 @@ const isBrowser = () => typeof window !== 'undefined';
 function clearStorage(storage: Storage): void {
   storage.removeItem(AUTH_SESSION_KEY);
   storage.removeItem(USER_KEY);
+  storage.removeItem(ACCESS_EXPIRES_AT_KEY);
   LEGACY_TOKEN_KEYS.forEach((key) => storage.removeItem(key));
 }
 
@@ -17,13 +19,20 @@ function getAuthStorage(): Storage | null {
   return null;
 }
 
-export function setAuthSession<T>(user: T, persistent = false): void {
+export function setAuthSession<T>(
+  user: T,
+  persistent = false,
+  accessTokenExpiresAt?: string
+): void {
   if (!isBrowser()) return;
   clearStorage(sessionStorage);
   clearStorage(localStorage);
   const storage = persistent ? localStorage : sessionStorage;
   storage.setItem(AUTH_SESSION_KEY, '1');
   storage.setItem(USER_KEY, JSON.stringify(user));
+  if (accessTokenExpiresAt) {
+    storage.setItem(ACCESS_EXPIRES_AT_KEY, accessTokenExpiresAt);
+  }
 }
 
 export function clearAuthSession(): void {
@@ -55,6 +64,25 @@ export function setStoredUser<T>(user: T): void {
   const storage = getAuthStorage() || sessionStorage;
   storage.setItem(AUTH_SESSION_KEY, '1');
   storage.setItem(USER_KEY, JSON.stringify(user));
+}
+
+export function setAccessTokenExpiresAt(value?: string): void {
+  if (!isBrowser() || !value) return;
+  const expiresAt = Date.parse(value);
+  if (!Number.isFinite(expiresAt)) return;
+  const storage = getAuthStorage();
+  if (storage) storage.setItem(ACCESS_EXPIRES_AT_KEY, new Date(expiresAt).toISOString());
+}
+
+export function shouldRefreshAccessToken(bufferSeconds = 30): boolean {
+  const storage = getAuthStorage();
+  if (!storage) return false;
+  const value = storage.getItem(ACCESS_EXPIRES_AT_KEY);
+  // Sessions created before expiry tracking was introduced should refresh
+  // before /Auth/me instead of producing an avoidable 401 first.
+  if (!value) return true;
+  const expiresAt = Date.parse(value);
+  return !Number.isFinite(expiresAt) || expiresAt <= Date.now() + bufferSeconds * 1000;
 }
 
 export interface StoredUser {

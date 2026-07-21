@@ -14,14 +14,16 @@ export default function Home() {
     <main className="min-h-screen">
       <Navbar />
       <Hero />
-      <Services />
-      <ProcessTimelineSection />
-      <Projects />
-      <About />
-      <Testimonials />
-      <FAQ />
-      <Contact />
-      <Footer />
+      <div className="deferred-home-content">
+        <Services />
+        <ProcessTimelineSection />
+        <Projects />
+        <About />
+        <Testimonials />
+        <FAQ />
+        <Contact />
+        <Footer />
+      </div>
     </main>
   );
 }

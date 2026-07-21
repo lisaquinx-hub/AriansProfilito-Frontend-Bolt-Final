@@ -136,7 +136,7 @@ export default function RegisterPage() {
                   transition={{ delay: 0.2 }}
                   className="mt-3 text-2xl font-bold"
                 >
-                  ایجاد حساب آریان پژوهش
+                  ایجاد حساب آرین پژوهش
                 </motion.h1>
                 <motion.p
                   initial={{ opacity: 0 }}

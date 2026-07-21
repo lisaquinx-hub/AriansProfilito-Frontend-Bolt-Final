@@ -68,7 +68,8 @@ const helpLinks = [
 
 const normalizeBrandText = (value: string) =>
   value
-    .replace(/آریان[‌ ]?لب/g, 'آریان پژوهش')
+    .replace(/آریان[‌ ]?پژوهش/g, 'آرین پژوهش')
+    .replace(/آریان[‌ ]?لب/g, 'آرین پژوهش')
     .replace(/Arians?Lab/gi, 'ArianPazhoohesh');
 
 export default function Footer() {
@@ -88,7 +89,7 @@ export default function Footer() {
     fetchData();
   }, []);
 
-  const siteName = normalizeBrandText(settings?.siteName || 'آریان پژوهش');
+  const siteName = normalizeBrandText(settings?.siteName || 'آرین پژوهش');
   const footerDescription = normalizeBrandText(
     settings?.footerText || 'استودیوی محصول دیجیتال ممتاز - طراحی مدرن، سرعت بالا و تجربه‌ای متفاوت'
   );

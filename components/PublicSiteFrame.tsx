@@ -44,12 +44,32 @@ export default function PublicSiteFrame({ children }: PublicSiteFrameProps) {
   const pathname = usePathname();
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [animateBackdrop, setAnimateBackdrop] = useState(false);
   const isDashboard = pathname === '/dashboard' || pathname.startsWith('/dashboard/');
   const isLight = resolvedTheme === 'light';
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    if (isDashboard) {
+      setAnimateBackdrop(false);
+      return;
+    }
+
+    const media = window.matchMedia(
+      '(min-width: 768px) and (prefers-reduced-motion: no-preference)'
+    );
+    const connection = (navigator as Navigator & {
+      connection?: { saveData?: boolean };
+    }).connection;
+    const updateAnimation = () => {
+      const capableDevice = (navigator.hardwareConcurrency || 4) >= 4;
+      setAnimateBackdrop(media.matches && capableDevice && !connection?.saveData);
+    };
+
+    updateAnimation();
+    media.addEventListener('change', updateAnimation);
+    return () => media.removeEventListener('change', updateAnimation);
+  }, [isDashboard]);
 
   return (
     <div
@@ -60,9 +80,15 @@ export default function PublicSiteFrame({ children }: PublicSiteFrameProps) {
       <div
         className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-[#EAF2FF] dark:bg-[#030008]"
         aria-hidden="true"
-        data-public-backdrop={mounted ? (isLight ? 'silk' : 'darkveil') : 'pending'}
+        data-public-backdrop={!mounted
+          ? 'pending'
+          : isDashboard || !animateBackdrop
+            ? 'static'
+            : isLight ? 'silk' : 'darkveil'}
       >
-        {!mounted ? null : isLight ? (
+        {!mounted ? null : isDashboard || !animateBackdrop ? (
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_15%,rgba(56,189,248,0.10),transparent_55%)] dark:bg-[radial-gradient(circle_at_50%_15%,rgba(34,211,238,0.08),transparent_55%)]" />
+        ) : isLight ? (
           <div className="absolute inset-0" data-light-backdrop="silk">
             <Silk
               speed={5}

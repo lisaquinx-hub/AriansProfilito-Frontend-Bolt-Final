@@ -12,7 +12,7 @@ import { Project } from '@/types/api';
 import { getApiErrorMessage } from '@/services/api';
 
 const PROJECT_STATUS: Record<number, { label: string; color: string }> = {
-  1: { label: 'در انتظار', color: 'bg-yellow-500/20 text-yellow-500' },
+  1: { label: 'در انتظار تأیید ادمین', color: 'bg-yellow-500/20 text-yellow-500' },
   2: { label: 'در حال اجرا', color: 'bg-sky-500/20 text-sky-500 dark:bg-blue-500/20 dark:text-blue-400' },
   3: { label: 'تکمیل شده', color: 'bg-green-500/20 text-green-500' },
   4: { label: 'لغو شده', color: 'bg-red-500/20 text-red-500' },

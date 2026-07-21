@@ -91,14 +91,14 @@ export default function Services() {
           >
             <BlogCoverImage
               src={servicesBannerImage}
-              alt="مشاهده خدمات آریان پژوهش"
+              alt="مشاهده خدمات آرین پژوهش"
               className="h-full w-full"
               imageClassName="transition-transform duration-700 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
             <div className="absolute inset-x-0 bottom-0 p-6 text-white md:p-8">
               <div>
-                <h4 className="mb-2 text-2xl font-bold md:text-3xl">خدمات آریان پژوهش</h4>
+                <h4 className="mb-2 text-2xl font-bold md:text-3xl">خدمات آرین پژوهش</h4>
                 <p className="text-sm text-white/85 md:text-base">
                   طراحی و توسعه راهکارهای حرفه‌ای متناسب با کسب‌وکار شما
                 </p>

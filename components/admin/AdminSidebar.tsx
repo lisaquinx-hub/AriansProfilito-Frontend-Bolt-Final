@@ -99,7 +99,7 @@ function AdminLayoutContent({ children }: AdminLayoutContentProps) {
               ? pathname === link.href
               : pathname === link.href || pathname.startsWith(link.href + '/');
             return (
-              <Link key={link.href} href={link.href}
+              <Link key={link.href} href={link.href} prefetch={false}
                 className={cn('flex items-center gap-3 px-4 py-2.5 rounded-xl transition-colors group',
                   isActive ? 'bg-sky-500/10 dark:bg-cyan-500/10 text-sky-500 dark:text-cyan-400' : 'hover:bg-muted'
                 )}>
@@ -151,7 +151,7 @@ function AdminLayoutContent({ children }: AdminLayoutContentProps) {
                     ? pathname === link.href
                     : pathname === link.href || pathname.startsWith(link.href + '/');
                   return (
-                    <Link key={link.href} href={link.href} onClick={() => setIsMobileMenuOpen(false)}
+                    <Link key={link.href} href={link.href} prefetch={false} onClick={() => setIsMobileMenuOpen(false)}
                       className={cn('flex items-center gap-3 px-4 py-2.5 rounded-xl transition-colors', isActive ? 'bg-sky-500/10 text-sky-500' : 'hover:bg-muted')}>
                       <Icon className="w-5 h-5" /><span className="text-sm">{link.label}</span>
                     </Link>

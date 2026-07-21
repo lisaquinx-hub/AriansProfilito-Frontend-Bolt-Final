@@ -66,7 +66,7 @@ export default function LoginPage() {
       >
         <div className="text-center mb-8">
           <Link href="/">
-            <span className="text-3xl font-bold text-gradient">آریان پژوهش</span>
+            <span className="text-3xl font-bold text-gradient">آرین پژوهش</span>
           </Link>
         </div>
 

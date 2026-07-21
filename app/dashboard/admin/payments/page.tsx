@@ -8,20 +8,28 @@ import { Card, CardContent } from '@/components/ui/card';
 import { EntityFormModal, FormField } from '@/components/admin/EntityFormModal';
 import { ViewDetailModal } from '@/components/admin/ViewDetailModal';
 import { adminPaymentsService, CreatePaymentDto, UpdatePaymentDto } from '@/services/admin/PaymentsService';
-import { Payment } from '@/types/api';
+import { adminInvoicesService } from '@/services/admin/InvoicesService';
+import { Invoice, Payment } from '@/types/api';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/services/api';
 import { AnimatePresence, motion } from 'framer-motion';
 
 const PAYMENT_STATUS_OPTIONS = [
-  { value: '1', label: 'در انتظار' },
-  { value: '2', label: 'پرداخت‌شده' },
+  { value: '1', label: 'در انتظار تأیید ادمین' },
+  { value: '2', label: 'تأیید پرداخت' },
   { value: '3', label: 'ناموفق' },
   { value: '4', label: 'بازپرداخت' },
 ];
 
+function allowedStatusOptions(currentStatus: number) {
+  if (currentStatus === 2) return PAYMENT_STATUS_OPTIONS.filter(option => ['2', '4'].includes(option.value));
+  if (currentStatus === 4) return PAYMENT_STATUS_OPTIONS.filter(option => option.value === '4');
+  return PAYMENT_STATUS_OPTIONS.filter(option => option.value !== '4');
+}
+
 export default function AdminPaymentsPage() {
   const [items, setItems] = useState<Payment[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -40,9 +48,16 @@ export default function AdminPaymentsPage() {
 
   const fetchData = async () => {
     setIsLoading(true);
-    const data = await adminPaymentsService.getAll();
-    setItems(data);
-    setIsLoading(false);
+    try {
+      const [paymentItems, invoiceItems] = await Promise.all([
+        adminPaymentsService.getAll(),
+        adminInvoicesService.getAll(),
+      ]);
+      setItems(paymentItems);
+      setInvoices(invoiceItems);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => { fetchData(); }, []);
@@ -116,7 +131,9 @@ export default function AdminPaymentsPage() {
     try {
       await adminPaymentsService.updateStatus(statusItem.id, statusValue);
       setStatusItem(null);
-      toast.success('وضعیت پرداخت با موفقیت به‌روز شد');
+      toast.success(statusValue === 2
+        ? 'پرداخت تأیید، فاکتور نهایی و پروژه فعال شد'
+        : 'وضعیت پرداخت با موفقیت به‌روز شد');
       fetchData();
     } catch (err) {
       setUpdateError(getApiErrorMessage(err));
@@ -126,7 +143,16 @@ export default function AdminPaymentsPage() {
   };
 
   const fields: FormField[] = [
-    { key: 'invoiceId', label: 'شناسه فاکتور (UUID)', type: 'text', required: true },
+    {
+      key: 'invoiceId',
+      label: 'فاکتور و مشتری',
+      type: 'select',
+      required: true,
+      options: invoices.map(invoice => ({
+        value: invoice.id,
+        label: `${invoice.invoiceNumber || invoice.id} — ${invoice.customerFullName || 'بدون نام'} — ${(invoice.finalAmount ?? invoice.amount).toLocaleString('fa-IR')} تومان`,
+      })),
+    },
     { key: 'amount', label: 'مبلغ', type: 'number', required: true },
     { key: 'gateway', label: 'درگاه پرداخت', type: 'text', required: true },
     { key: 'status', label: 'وضعیت', type: 'select', required: true, options: PAYMENT_STATUS_OPTIONS },
@@ -148,7 +174,7 @@ export default function AdminPaymentsPage() {
 
   const extraActions = [
     {
-      label: 'تغییر وضعیت',
+      label: 'بررسی و تأیید',
       icon: <ToggleLeft className="w-4 h-4" />,
       onClick: (item: Payment) => {
         setStatusValue(item.status ?? 1);
@@ -177,8 +203,21 @@ export default function AdminPaymentsPage() {
           columns={columns}
           loading={isLoading}
           onView={handleView}
-          onEdit={(i) => { setEditingItem(i); setIsFormOpen(true); }}
-          onDelete={(i) => setDeleteId(i.id)}
+          onEdit={(i) => {
+            if (i.status === 2 || i.status === 4) {
+              toast.error('پرداخت تأییدشده یا بازپرداخت‌شده فقط از بخش بررسی وضعیت قابل تغییر است');
+              return;
+            }
+            setEditingItem(i);
+            setIsFormOpen(true);
+          }}
+          onDelete={(i) => {
+            if (i.status === 2 || i.status === 4) {
+              toast.error('سابقه پرداخت تأییدشده یا بازپرداخت‌شده قابل حذف نیست');
+              return;
+            }
+            setDeleteId(i.id);
+          }}
           extraActions={extraActions}
           idLookup={{
             entityLabel: 'پرداخت',
@@ -225,7 +264,7 @@ export default function AdminPaymentsPage() {
               initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
               className="relative glass rounded-2xl p-6 max-w-md w-full"
             >
-              <h3 className="text-lg font-semibold mb-4">تغییر وضعیت پرداخت</h3>
+              <h3 className="text-lg font-semibold mb-4">بررسی پرداخت مشتری</h3>
               <p className="text-sm text-muted-foreground mb-4">پرداخت: {statusItem.invoiceNumber || statusItem.id}</p>
               <div className="space-y-4">
                 <div>
@@ -235,7 +274,7 @@ export default function AdminPaymentsPage() {
                     onChange={e => setStatusValue(Number(e.target.value))}
                     className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                   >
-                    {PAYMENT_STATUS_OPTIONS.map(o => (
+                    {allowedStatusOptions(statusItem.status).map(o => (
                       <option key={o.value} value={o.value}>{o.label}</option>
                     ))}
                   </select>
