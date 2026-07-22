@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { MessageCircle, RefreshCw, CheckCheck, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable, ConfirmDialog } from '@/components/admin/DataTable';
@@ -11,8 +11,10 @@ import { ContactMessage } from '@/types/api';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/services/api';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useContactMessagesStatus } from '@/components/admin/ContactMessagesStatusProvider';
 
 export default function AdminContactMessagesPage() {
+  const { refresh: refreshContactStatus } = useContactMessagesStatus();
   const [items, setItems] = useState<ContactMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -28,16 +30,22 @@ export default function AdminContactMessagesPage() {
   const [isReplying, setIsReplying] = useState(false);
   const [replyError, setReplyError] = useState<string | null>(null);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setIsLoading(true);
-    const data = await adminContactMessagesService.getAll();
-    setItems(data);
-    setIsLoading(false);
-  };
+    try {
+      const data = await adminContactMessagesService.getAll();
+      setItems(data);
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
+    } finally {
+      setIsLoading(false);
+      void refreshContactStatus();
+    }
+  }, [refreshContactStatus]);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    void fetchData();
+  }, [fetchData]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -46,6 +54,7 @@ export default function AdminContactMessagesPage() {
       await adminContactMessagesService.delete(deleteId);
       setItems(prev => prev.filter(i => i.id !== deleteId));
       setDeleteId(null);
+      await refreshContactStatus();
       toast.success('پیام با موفقیت حذف شد');
     } catch (error) {
       toast.error(getApiErrorMessage(error));
@@ -58,8 +67,16 @@ export default function AdminContactMessagesPage() {
     setViewError(null);
     setViewLoading(true);
     try {
-      const detail = await adminContactMessagesService.getById(item.id);
-      if (detail) setViewItem(detail);
+      const detail = item.isRead
+        ? await adminContactMessagesService.getById(item.id)
+        : await adminContactMessagesService.markAsRead(item.id);
+      if (detail) {
+        setViewItem(detail);
+        setItems(prev => prev.map(i => i.id === item.id ? detail : i));
+      }
+      if (!item.isRead) {
+        await refreshContactStatus();
+      }
     } catch (err) {
       setViewError(getApiErrorMessage(err));
     } finally {
@@ -69,8 +86,9 @@ export default function AdminContactMessagesPage() {
 
   const handleMarkAsRead = async (item: ContactMessage) => {
     try {
-      await adminContactMessagesService.markAsRead(item.id);
-      setItems(prev => prev.map(i => i.id === item.id ? { ...i, isRead: true } : i));
+      const updatedMessage = await adminContactMessagesService.markAsRead(item.id);
+      setItems(prev => prev.map(i => i.id === item.id ? updatedMessage : i));
+      await refreshContactStatus();
       toast.success('پیام به عنوان خوانده‌شده علامت‌گذاری شد');
     } catch (error) {
       toast.error(getApiErrorMessage(error));
@@ -86,7 +104,7 @@ export default function AdminContactMessagesPage() {
       setReplyItem(null);
       setReplyMessage('');
       toast.success('پاسخ با موفقیت ارسال شد');
-      fetchData();
+      await fetchData();
     } catch (err) {
       setReplyError(getApiErrorMessage(err));
     } finally {

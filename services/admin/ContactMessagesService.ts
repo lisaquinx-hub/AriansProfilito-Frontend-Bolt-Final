@@ -1,41 +1,37 @@
 import { api, getApiErrorMessage } from '../api';
-import { ApiResponse } from '@/lib/api-utils';
+import { ApiResponse, normalizeArray, normalizeObject } from '@/lib/api-utils';
 import { ContactMessage } from '@/types/api';
 
 class AdminContactMessagesService {
   private endpoint = '/admin/contact-messages';
 
   async getAll(): Promise<ContactMessage[]> {
-    try {
-      const response = await api.get<ApiResponse<ContactMessage[]>>(this.endpoint);
-      return response.data.data || [];
-    } catch (error) {
-      console.warn('Failed to fetch contact messages:', getApiErrorMessage(error));
-      return [];
-    }
+    const response = await api.get<ApiResponse<ContactMessage[]>>(this.endpoint);
+    return normalizeArray<ContactMessage>(response.data);
   }
 
   async getUnread(): Promise<ContactMessage[]> {
-    try {
-      const response = await api.get<ApiResponse<ContactMessage[]>>(`${this.endpoint}/unread`);
-      return response.data.data || [];
-    } catch (error) {
-      return [];
-    }
+    const response = await api.get<ApiResponse<ContactMessage[]>>(`${this.endpoint}/unread`);
+    return normalizeArray<ContactMessage>(response.data);
   }
 
   async getById(id: string): Promise<ContactMessage | null> {
     try {
       const response = await api.get<ApiResponse<ContactMessage>>(`${this.endpoint}/${id}`);
-      return response.data.data;
+      return normalizeObject<ContactMessage>(response.data);
     } catch (error) {
       throw new Error(getApiErrorMessage(error));
     }
   }
 
-  async markAsRead(id: string): Promise<void> {
+  async markAsRead(id: string): Promise<ContactMessage> {
     try {
-      await api.patch(`${this.endpoint}/${id}/read`);
+      const response = await api.patch<ApiResponse<ContactMessage>>(`${this.endpoint}/${id}/read`);
+      const message = normalizeObject<ContactMessage>(response.data);
+      if (!message) {
+        throw new Error('پاسخ پیام تماس معتبر نیست');
+      }
+      return message;
     } catch (error) {
       throw new Error(getApiErrorMessage(error));
     }

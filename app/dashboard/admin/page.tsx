@@ -2,7 +2,23 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Users, Briefcase, Receipt, CreditCard, HeadphonesIcon, FileText, MessageSquare, Activity, Images, Eye, EyeOff } from 'lucide-react';
+import {
+  Users,
+  Briefcase,
+  Receipt,
+  CreditCard,
+  HeadphonesIcon,
+  FileText,
+  MessageSquare,
+  Activity,
+  Images,
+  Eye,
+  EyeOff,
+  Inbox,
+  ArrowLeft,
+  LoaderCircle,
+  TriangleAlert,
+} from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import { adminUsersService } from '@/services/admin/index';
@@ -21,6 +37,7 @@ import { User } from '@/types/api';
 import { Switch } from '@/components/ui/switch';
 import { useFeatureSettings } from '@/components/FeatureSettingsProvider';
 import { toast } from 'sonner';
+import { useContactMessagesStatus } from '@/components/admin/ContactMessagesStatusProvider';
 
 interface StatCardProps {
   title: string;
@@ -53,12 +70,112 @@ function StatCard({ title, value, icon: Icon, href, color }: StatCardProps) {
   );
 }
 
+interface ContactRequestStatusCardProps {
+  unreadCount: number;
+  isLoading: boolean;
+  hasError: boolean;
+}
+
+function ContactRequestStatusCard({
+  unreadCount,
+  isLoading,
+  hasError,
+}: ContactRequestStatusCardProps) {
+  const status = isLoading
+    ? 'loading'
+    : hasError
+      ? 'error'
+      : unreadCount > 0
+        ? 'new'
+        : 'empty';
+  const title = status === 'new'
+    ? 'درخواست جدید فرم تماس دارید'
+    : status === 'empty'
+      ? 'درخواست جدیدی ندارید'
+      : status === 'error'
+        ? 'وضعیت درخواست‌ها در دسترس نیست'
+        : 'در حال بررسی درخواست‌ها';
+  const description = status === 'new'
+    ? `${unreadCount.toLocaleString('fa-IR')} درخواست خوانده‌نشده برای بررسی دارید.`
+    : status === 'empty'
+      ? 'در حال حاضر هیچ درخواست خوانده‌نشده‌ای ثبت نشده است.'
+      : status === 'error'
+        ? 'برای مشاهده و بررسی مستقیم پیام‌ها وارد این بخش شوید.'
+        : 'آخرین درخواست‌های ثبت‌شده در حال دریافت است.';
+
+  return (
+    <Link href="/dashboard/admin/contact-messages" aria-label="مشاهده درخواست‌های فرم تماس">
+      <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.99 }}>
+        <Card
+          data-contact-request-status={status}
+          className={cn(
+            'glass overflow-hidden border transition-all hover:shadow-lg',
+            status === 'new' && 'border-emerald-500/45 hover:shadow-emerald-500/10',
+            status === 'empty' && 'border-red-500/35 hover:shadow-red-500/10',
+            status === 'error' && 'border-amber-500/40 hover:shadow-amber-500/10'
+          )}
+        >
+          <CardContent className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:p-6">
+            <div
+              className={cn(
+                'relative flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full text-white shadow-lg',
+                status === 'new' && 'bg-emerald-500 shadow-emerald-500/30',
+                status === 'empty' && 'bg-red-500 shadow-red-500/25',
+                status === 'loading' && 'bg-slate-500 shadow-slate-500/20',
+                status === 'error' && 'bg-amber-500 shadow-amber-500/25'
+              )}
+              aria-hidden="true"
+            >
+              {status === 'new' && (
+                <span className="absolute inset-0 animate-ping rounded-full bg-emerald-400/35" />
+              )}
+              {status === 'loading' ? (
+                <LoaderCircle className="h-7 w-7 animate-spin" />
+              ) : status === 'error' ? (
+                <TriangleAlert className="h-7 w-7" />
+              ) : (
+                <Inbox className="relative h-7 w-7" />
+              )}
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-lg font-bold">{title}</h2>
+                {!isLoading && !hasError && (
+                  <span
+                    className={cn(
+                      'rounded-full px-2.5 py-1 text-xs font-semibold text-white',
+                      status === 'new' ? 'bg-emerald-500' : 'bg-red-500'
+                    )}
+                  >
+                    {unreadCount.toLocaleString('fa-IR')}
+                  </span>
+                )}
+              </div>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
+              <span className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-sky-600 dark:text-cyan-400">
+                مشاهده پیام‌های تماس
+                <ArrowLeft className="h-4 w-4" />
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    </Link>
+  );
+}
+
 export default function AdminDashboardPage() {
   const {
     isReady: featureSettingsReady,
     portfolioEnabled,
     setPortfolioEnabled,
   } = useFeatureSettings();
+  const {
+    unreadCount: unreadContactMessages,
+    isLoading: isContactStatusLoading,
+    hasError: hasContactStatusError,
+  } = useContactMessagesStatus();
   const [stats, setStats] = useState({
     users: 0,
     projects: 0,
@@ -172,6 +289,12 @@ export default function AdminDashboardPage() {
         <h1 className="text-3xl font-bold mb-2">داشبورد مدیریت</h1>
         <p className="text-muted-foreground">نمای کلی از وضعیت سیستم</p>
       </div>
+
+      <ContactRequestStatusCard
+        unreadCount={unreadContactMessages}
+        isLoading={isContactStatusLoading}
+        hasError={hasContactStatusError}
+      />
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
