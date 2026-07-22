@@ -43,26 +43,8 @@ function addParticle(layer: HTMLElement, card: HTMLElement, index: number) {
   particle.addEventListener('animationend', () => particle.remove(), { once: true });
 }
 
-function addRipple(layer: HTMLElement, card: HTMLElement, clientX: number, clientY: number) {
-  const rect = card.getBoundingClientRect();
-  const radius = Math.max(
-    Math.hypot(clientX - rect.left, clientY - rect.top),
-    Math.hypot(clientX - rect.right, clientY - rect.top),
-    Math.hypot(clientX - rect.left, clientY - rect.bottom),
-    Math.hypot(clientX - rect.right, clientY - rect.bottom)
-  );
-  const ripple = document.createElement('i');
-
-  ripple.className = 'magic-bento-ripple';
-  ripple.style.left = `${clientX}px`;
-  ripple.style.top = `${clientY}px`;
-  ripple.style.setProperty('--ripple-size', `${Math.max(radius * 2, 72)}px`);
-  layer.appendChild(ripple);
-  ripple.addEventListener('animationend', () => ripple.remove(), { once: true });
-}
-
 /**
- * Adds the supplied Magic Bento spotlight, star and click feedback to existing
+ * Adds the supplied Magic Bento spotlight and subtle hover particles to existing
  * cards without replacing their markup, data or glass treatment.
  */
 export default function MagicBentoProvider() {
@@ -130,23 +112,15 @@ export default function MagicBentoProvider() {
       if (activeCard === card) activeCard = null;
     };
 
-    const handleClick = (event: MouseEvent) => {
-      const card = getCard(event.target);
-      if (!card || reducedMotion.matches) return;
-      addRipple(layer, card, event.clientX, event.clientY);
-    };
-
     document.addEventListener('pointerover', handlePointerOver);
     document.addEventListener('pointermove', handlePointerMove, { passive: true });
     document.addEventListener('pointerout', handlePointerOut);
-    document.addEventListener('click', handleClick);
 
     return () => {
       if (animationFrame) window.cancelAnimationFrame(animationFrame);
       document.removeEventListener('pointerover', handlePointerOver);
       document.removeEventListener('pointermove', handlePointerMove);
       document.removeEventListener('pointerout', handlePointerOut);
-      document.removeEventListener('click', handleClick);
       layer.remove();
     };
   }, [pathname]);

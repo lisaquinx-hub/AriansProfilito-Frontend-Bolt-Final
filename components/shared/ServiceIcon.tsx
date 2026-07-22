@@ -5,7 +5,9 @@ import {
   Globe2,
   LayoutDashboard,
   Palette,
+  SearchCheck,
   Server,
+  ShieldCheck,
   ShoppingCart,
   Smartphone,
   Store,
@@ -39,6 +41,10 @@ const iconMap: Record<string, LucideIcon> = {
   server: Server,
   backend: Server,
   wrench: Wrench,
+  search: SearchCheck,
+  seo: SearchCheck,
+  security: ShieldCheck,
+  shield: ShieldCheck,
 };
 
 function normalizeIconName(value?: string | null): string {
@@ -53,6 +59,8 @@ function inferIconFromTitle(title: string): LucideIcon {
   if (/داشبورد|dashboard/i.test(title)) return LayoutDashboard;
   if (/طراح|design/i.test(title)) return Palette;
   if (/سرور|بک.?اند|backend|server/i.test(title)) return Server;
+  if (/سئو|بهینه|seo|search/i.test(title)) return SearchCheck;
+  if (/امن|security|ssl/i.test(title)) return ShieldCheck;
   if (/وب|سایت|website|web/i.test(title)) return Globe2;
   return BriefcaseBusiness;
 }

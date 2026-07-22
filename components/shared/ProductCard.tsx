@@ -2,9 +2,9 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Clock, ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Check, Clock3 } from 'lucide-react';
 import { Service } from '@/types/api';
-import { BlogCoverImage } from './BlogCoverImage';
+import { ServiceIcon } from './ServiceIcon';
 
 interface ProductCardProps {
   product: Service;
@@ -16,73 +16,66 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
-      className="group relative"
+      transition={{ delay: Math.min(index * 0.07, 0.28) }}
+      className="group relative h-full"
     >
-      <div className="relative overflow-hidden rounded-2xl glass transition-all duration-300 hover:shadow-glow">
-        {/* Image */}
-        <div className="relative h-48 overflow-hidden">
-          <BlogCoverImage
-            src={product.thumbnail || product.coverImage}
-            alt={product.title}
-            className="absolute inset-0 h-full w-full"
-            fallbackClassName="text-6xl"
-          />
-          {/* Category Badge */}
-          <div className="absolute top-4 right-4">
-            <span className="px-3 py-1 rounded-full text-xs font-medium bg-sky-500/20 dark:bg-cyan-500/20 text-sky-500 dark:text-cyan-400">
-              {product.isFeatured ? 'ویژه' : 'خدمت'}
+      <Link
+        href={`/products/${encodeURIComponent(product.slug)}`}
+        aria-label={`مشاهده جزئیات ${product.title}`}
+        className="block h-full"
+      >
+        <article className="glass relative flex h-full min-h-[330px] flex-col overflow-hidden rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-glow">
+          <div className="pointer-events-none absolute -left-16 -top-16 h-40 w-40 rounded-full bg-sky-500/10 blur-3xl dark:bg-cyan-400/10" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-sky-500/[0.045] to-transparent dark:from-cyan-400/[0.045]" />
+
+          <div className="relative flex items-start justify-between gap-4">
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-border/80 bg-background/80 text-sky-600 shadow-sm dark:border-white/10 dark:bg-white/[0.06] dark:text-cyan-300">
+              <ServiceIcon icon={product.icon} title={product.title} className="h-6 w-6" />
+            </span>
+            <span className="rounded-full border border-sky-500/15 bg-sky-500/10 px-3 py-1 text-xs font-semibold text-sky-700 dark:border-cyan-400/15 dark:bg-cyan-400/10 dark:text-cyan-300">
+              {product.isFeatured ? 'خدمت ویژه' : 'خدمت تخصصی'}
             </span>
           </div>
-        </div>
 
-        {/* Content */}
-        <div className="p-6">
-          <h3 className="text-lg font-semibold mb-2 group-hover:text-gradient transition-all">
-            {product.title}
-          </h3>
-          <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-            {product.shortDescription || product.description || 'برای دریافت جزئیات این خدمت با ما تماس بگیرید.'}
-          </p>
+          <div className="relative mt-6 flex-1">
+            <h3 className="text-xl font-bold transition-colors group-hover:text-sky-700 dark:group-hover:text-cyan-300">
+              {product.title}
+            </h3>
+            <p className="mt-3 line-clamp-3 text-sm leading-7 text-muted-foreground">
+              {product.shortDescription || product.description || 'برای دریافت جزئیات این خدمت با ما تماس بگیرید.'}
+            </p>
 
-          {product.features && product.features.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-4">
-              {product.features.slice(0, 3).map((feature, featureIndex) => (
-                <span
-                  key={feature.id || `${product.id}-${featureIndex}`}
-                  className="px-2 py-1 rounded text-xs bg-muted text-muted-foreground"
-                >
-                  {feature.title}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* CTA Button */}
-          <Link href={`/products/${encodeURIComponent(product.slug)}`}>
-            <motion.span
-              whileHover={{ x: -4 }}
-              className="inline-flex items-center text-sm text-sky-500 dark:text-cyan-400 group-hover:text-gradient transition-all mb-4"
-            >
-              مشاهده
-              <ArrowLeft className="mr-1 h-4 w-4" />
-            </motion.span>
-          </Link>
-
-          {/* Footer */}
-          <div className="flex items-center justify-between pt-4 border-t border-border">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock className="w-4 h-4" />
-              <span>
-                {product.estimatedDeliveryDays
-                  ? `${product.estimatedDeliveryDays} روز`
-                  : 'زمان توافقی'}
-              </span>
-            </div>
-            <span className="text-sm font-semibold text-gradient">استعلام قیمت</span>
+            {product.features && product.features.length > 0 && (
+              <ul className="mt-5 space-y-2">
+                {product.features.slice(0, 3).map((feature, featureIndex) => (
+                  <li
+                    key={feature.id || `${product.id}-${featureIndex}`}
+                    className="flex items-center gap-2 text-xs text-foreground/75"
+                  >
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                      <Check className="h-3 w-3" />
+                    </span>
+                    <span className="line-clamp-1">{feature.title}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
-        </div>
-      </div>
+
+          <footer className="relative mt-6 flex items-center justify-between border-t border-border/80 pt-4 dark:border-white/10">
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Clock3 className="h-4 w-4" />
+              {product.estimatedDeliveryDays
+                ? `حدود ${product.estimatedDeliveryDays} روز`
+                : 'زمان‌بندی توافقی'}
+            </span>
+            <span className="inline-flex items-center text-sm font-bold text-sky-700 dark:text-cyan-300">
+              مشاهده جزئیات
+              <ArrowLeft className="mr-1.5 h-4 w-4 transition-transform group-hover:-translate-x-1" />
+            </span>
+          </footer>
+        </article>
+      </Link>
     </motion.div>
   );
 }

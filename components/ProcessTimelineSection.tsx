@@ -64,7 +64,7 @@ const processSteps: TimelineItem[] = [
 
 export default function ProcessTimelineSection() {
   return (
-    <section className="relative overflow-hidden border-y bg-background/30 py-20 backdrop-blur-[2px] dark:bg-black/10">
+    <section id="process" className="relative scroll-mt-28 overflow-hidden border-y bg-background/30 py-20 backdrop-blur-[2px] dark:bg-black/10">
       <div className="pointer-events-none absolute inset-0 bg-gradient-hero opacity-70" />
       <div className="container relative mx-auto px-6">
         <motion.div
