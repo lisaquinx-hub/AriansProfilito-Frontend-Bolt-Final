@@ -130,6 +130,28 @@ async function mockPublicApi(page: Page) {
 }
 
 test.describe('public navigation and service presentation', () => {
+  test('mobile keeps both theme backdrops visible on reduced-power devices', async ({ page }) => {
+    await mockPublicApi(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'hardwareConcurrency', {
+        configurable: true,
+        get: () => 2,
+      });
+    });
+    await page.goto('/');
+
+    const backdrop = page.locator('[data-public-backdrop]');
+    await expect(backdrop).toHaveAttribute('data-public-backdrop', 'darkveil');
+    await expect(backdrop).toHaveAttribute('data-public-backdrop-motion', 'still');
+    await expect(page.locator('[data-dark-backdrop="darkveil"] .darkveil-root')).toHaveCount(1);
+
+    await page.getByRole('switch', { name: 'تغییر به حالت روشن' }).first().click();
+    await expect(backdrop).toHaveAttribute('data-public-backdrop', 'silk');
+    await expect(page.locator('[data-light-backdrop="silk"] .silk-root')).toHaveCount(1);
+  });
+
   test('desktop blog item opens a keyword-based mega menu without click ripple', async ({ page }) => {
     await mockPublicApi(page);
     await page.setViewportSize({ width: 1440, height: 960 });

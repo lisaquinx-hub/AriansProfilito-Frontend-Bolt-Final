@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
+import './DarkVeil.css';
 import './Silk.css';
 
 const DarkVeil = dynamic(
@@ -11,8 +12,15 @@ const DarkVeil = dynamic(
     try {
       return (await import('@/components/DarkVeil')).default;
     } catch {
-      return function DarkVeilFallback() {
-        return null;
+      return function DarkVeilFallback({ animate = true }: { animate?: boolean }) {
+        return (
+          <div
+            className="darkveil-root"
+            data-darkveil-motion={animate ? 'animated' : 'still'}
+          >
+            <div className="darkveil-fallback-flow" />
+          </div>
+        );
       };
     }
   },
@@ -24,9 +32,12 @@ const Silk = dynamic(
     try {
       return (await import('@/components/Silk')).default;
     } catch {
-      return function SilkFallback() {
+      return function SilkFallback({ animate = true }: { animate?: boolean }) {
         return (
-          <div className="silk-root">
+          <div
+            className="silk-root"
+            data-silk-motion={animate ? 'animated' : 'still'}
+          >
             <div className="silk-fallback-flow" />
           </div>
         );
@@ -55,9 +66,7 @@ export default function PublicSiteFrame({ children }: PublicSiteFrameProps) {
       return;
     }
 
-    const media = window.matchMedia(
-      '(min-width: 768px) and (prefers-reduced-motion: no-preference)'
-    );
+    const media = window.matchMedia('(prefers-reduced-motion: no-preference)');
     const connection = (navigator as Navigator & {
       connection?: { saveData?: boolean };
     }).connection;
@@ -82,15 +91,23 @@ export default function PublicSiteFrame({ children }: PublicSiteFrameProps) {
         aria-hidden="true"
         data-public-backdrop={!mounted
           ? 'pending'
-          : isDashboard || !animateBackdrop
+          : isDashboard
             ? 'static'
             : isLight ? 'silk' : 'darkveil'}
+        data-public-backdrop-motion={
+          !mounted || isDashboard
+            ? undefined
+            : animateBackdrop
+              ? 'animated'
+              : 'still'
+        }
       >
-        {!mounted ? null : isDashboard || !animateBackdrop ? (
+        {!mounted ? null : isDashboard ? (
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_15%,rgba(56,189,248,0.10),transparent_55%)] dark:bg-[radial-gradient(circle_at_50%_15%,rgba(34,211,238,0.08),transparent_55%)]" />
         ) : isLight ? (
           <div className="absolute inset-0" data-light-backdrop="silk">
             <Silk
+              animate={animateBackdrop}
               speed={5}
               scale={1}
               color="#EAF2FF"
@@ -101,7 +118,7 @@ export default function PublicSiteFrame({ children }: PublicSiteFrameProps) {
           </div>
         ) : (
           <div className="absolute inset-0" data-dark-backdrop="darkveil">
-            <DarkVeil />
+            <DarkVeil animate={animateBackdrop} />
             <div className="absolute inset-0 bg-black/10" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,transparent_0%,rgba(0,0,0,0.12)_58%,rgba(0,0,0,0.55)_100%)]" />
           </div>

@@ -78,6 +78,7 @@ void main(){
 `;
 
 interface DarkVeilProps {
+  animate?: boolean;
   hueShift?: number;
   noiseIntensity?: number;
   scanlineIntensity?: number;
@@ -88,6 +89,7 @@ interface DarkVeilProps {
 }
 
 export default function DarkVeil({
+  animate = true,
   hueShift = 0,
   noiseIntensity = 0,
   scanlineIntensity = 0,
@@ -106,6 +108,7 @@ export default function DarkVeil({
 
     let active = true;
     let frame: number | null = null;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     canvas.dataset.darkveilStatus = 'loading';
 
     const stop = () => {
@@ -152,8 +155,14 @@ export default function DarkVeil({
         try {
           const width = Math.max(parent.clientWidth, 1);
           const height = Math.max(parent.clientHeight, 1);
-          renderer.setSize(width * resolutionScale, height * resolutionScale);
-          program.uniforms.uResolution.value.set(width, height);
+          const responsiveScale = width < 768
+            ? Math.min(resolutionScale, 0.65)
+            : resolutionScale;
+          renderer.setSize(width * responsiveScale, height * responsiveScale);
+          program.uniforms.uResolution.value.set(
+            gl.drawingBufferWidth,
+            gl.drawingBufferHeight
+          );
         } catch {
           stop();
         }
@@ -165,23 +174,9 @@ export default function DarkVeil({
       };
 
       const start = performance.now();
-      const minimumFrameTime = 1000 / 30;
+      const minimumFrameTime = 1000 / (parent.clientWidth < 768 ? 20 : 30);
       let lastRenderedAt = start - minimumFrameTime;
-      const loop = (time: number) => {
-        if (!active) return;
-
-        if (document.hidden) {
-          frame = requestAnimationFrame(loop);
-          return;
-        }
-
-        if (time - lastRenderedAt < minimumFrameTime) {
-          frame = requestAnimationFrame(loop);
-          return;
-        }
-
-        lastRenderedAt = time;
-
+      const renderScene = (time: number) => {
         try {
           program.uniforms.uTime.value = ((time - start) / 1000) * speed;
           program.uniforms.uHueShift.value = hueShift;
@@ -191,9 +186,24 @@ export default function DarkVeil({
           program.uniforms.uWarp.value = warpAmount;
           renderer.render({ scene: mesh });
           canvas.dataset.darkveilStatus = 'ready';
-          frame = requestAnimationFrame(loop);
+          return true;
         } catch {
           stop();
+          return false;
+        }
+      };
+
+      const loop = (time: number) => {
+        if (!active) return;
+
+        if (document.hidden || time - lastRenderedAt < minimumFrameTime) {
+          frame = requestAnimationFrame(loop);
+          return;
+        }
+
+        lastRenderedAt = time;
+        if (renderScene(time)) {
+          frame = requestAnimationFrame(loop);
         }
       };
 
@@ -201,7 +211,7 @@ export default function DarkVeil({
       canvas.addEventListener('webglcontextlost', handleContextLost);
       resize();
 
-      if (active) {
+      if (active && renderScene(start) && animate && !reducedMotion) {
         frame = requestAnimationFrame(loop);
       }
 
@@ -213,7 +223,15 @@ export default function DarkVeil({
     } catch {
       stop();
     }
-  }, [hueShift, noiseIntensity, resolutionScale, scanlineFrequency, scanlineIntensity, speed, warpAmount]);
+  }, [animate, hueShift, noiseIntensity, resolutionScale, scanlineFrequency, scanlineIntensity, speed, warpAmount]);
 
-  return <canvas ref={ref} className="darkveil-canvas" />;
+  return (
+    <div
+      className="darkveil-root"
+      data-darkveil-motion={animate ? 'animated' : 'still'}
+    >
+      <div className="darkveil-fallback-flow" aria-hidden="true" />
+      <canvas ref={ref} className="darkveil-canvas" />
+    </div>
+  );
 }

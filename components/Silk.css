@@ -77,3 +77,7 @@
     animation: none;
   }
 }
+
+.silk-root[data-silk-motion='still'] .silk-fallback-flow {
+  animation: none;
+}

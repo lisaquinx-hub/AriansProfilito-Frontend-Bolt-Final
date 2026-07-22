@@ -88,6 +88,7 @@ void main() {
 `;
 
 export interface SilkProps {
+  animate?: boolean;
   speed?: number;
   scale?: number;
   color?: string;
@@ -96,6 +97,7 @@ export interface SilkProps {
 }
 
 export default function Silk({
+  animate = true,
   speed = 5,
   scale = 1,
   color = '#EAF2FF',
@@ -202,7 +204,7 @@ export default function Silk({
       canvas.addEventListener('webglcontextlost', handleContextLost);
       resize();
 
-      if (reducedMotion) {
+      if (!animate || reducedMotion) {
         container.dataset.silkStatus = 'ready';
       } else {
         frame = requestAnimationFrame(renderFrame);
@@ -217,10 +219,14 @@ export default function Silk({
       container.dataset.silkStatus = 'css-fallback';
       stop();
     }
-  }, [color, noiseIntensity, rotation, scale, speed]);
+  }, [animate, color, noiseIntensity, rotation, scale, speed]);
 
   return (
-    <div ref={containerRef} className="silk-root">
+    <div
+      ref={containerRef}
+      className="silk-root"
+      data-silk-motion={animate ? 'animated' : 'still'}
+    >
       <div className="silk-fallback-flow" aria-hidden="true" />
       <canvas ref={canvasRef} className="silk-canvas" />
     </div>
