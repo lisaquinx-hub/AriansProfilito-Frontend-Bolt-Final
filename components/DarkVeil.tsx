@@ -159,6 +159,11 @@ export default function DarkVeil({
             ? Math.min(resolutionScale, 0.65)
             : resolutionScale;
           renderer.setSize(width * responsiveScale, height * responsiveScale);
+          // OGL writes the scaled render size to the canvas inline styles. Keep
+          // that smaller drawing buffer for mobile performance, but stretch the
+          // visible canvas back to its full viewport-sized parent.
+          canvas.style.width = '100%';
+          canvas.style.height = '100%';
           program.uniforms.uResolution.value.set(
             gl.drawingBufferWidth,
             gl.drawingBufferHeight

@@ -145,7 +145,35 @@ test.describe('public navigation and service presentation', () => {
     const backdrop = page.locator('[data-public-backdrop]');
     await expect(backdrop).toHaveAttribute('data-public-backdrop', 'darkveil');
     await expect(backdrop).toHaveAttribute('data-public-backdrop-motion', 'still');
-    await expect(page.locator('[data-dark-backdrop="darkveil"] .darkveil-root')).toHaveCount(1);
+    const darkVeilRoot = page.locator('[data-dark-backdrop="darkveil"] .darkveil-root');
+    const darkVeilCanvas = darkVeilRoot.locator('canvas.darkveil-canvas');
+    await expect(darkVeilRoot).toHaveCount(1);
+    await expect(darkVeilCanvas).toHaveCount(1);
+
+    await expect
+      .poll(async () => darkVeilCanvas.getAttribute('data-darkveil-status'))
+      .toMatch(/^(ready|fallback)$/);
+
+    const darkVeilLayout = await darkVeilRoot.evaluate((root) => {
+      const canvas = root.querySelector<HTMLCanvasElement>('canvas.darkveil-canvas');
+      const rootRect = root.getBoundingClientRect();
+      const canvasRect = canvas?.getBoundingClientRect();
+      const canvasIsVisible = canvas ? getComputedStyle(canvas).display !== 'none' : false;
+
+      return {
+        rootWidth: Math.round(rootRect.width),
+        rootHeight: Math.round(rootRect.height),
+        canvasWidth: canvasIsVisible && canvasRect ? Math.round(canvasRect.width) : null,
+        canvasHeight: canvasIsVisible && canvasRect ? Math.round(canvasRect.height) : null,
+      };
+    });
+
+    expect(darkVeilLayout.rootWidth).toBe(390);
+    expect(darkVeilLayout.rootHeight).toBe(844);
+    if (darkVeilLayout.canvasWidth !== null && darkVeilLayout.canvasHeight !== null) {
+      expect(darkVeilLayout.canvasWidth).toBe(darkVeilLayout.rootWidth);
+      expect(darkVeilLayout.canvasHeight).toBe(darkVeilLayout.rootHeight);
+    }
 
     await page.getByRole('switch', { name: 'تغییر به حالت روشن' }).first().click();
     await expect(backdrop).toHaveAttribute('data-public-backdrop', 'silk');
