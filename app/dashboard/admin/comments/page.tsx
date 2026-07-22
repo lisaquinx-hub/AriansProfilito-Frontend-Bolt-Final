@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 export default function AdminCommentsPage() {
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleteItem, setDeleteItem] = useState<Comment | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const [viewItem, setViewItem] = useState<Comment | null>(null);
@@ -38,12 +38,14 @@ export default function AdminCommentsPage() {
   }, []);
 
   const handleDelete = async () => {
-    if (!deleteId) return;
+    if (!deleteItem) return;
     setIsDeleting(true);
     try {
-      await adminCommentsService.delete(deleteId);
-      setComments(prev => prev.filter(c => c.id !== deleteId));
-      setDeleteId(null);
+      await adminCommentsService.delete(deleteItem);
+      setComments(prev => prev.filter(c =>
+        c.id !== deleteItem.id || c.source !== deleteItem.source
+      ));
+      setDeleteItem(null);
       toast.success('نظر با موفقیت حذف شد');
     } catch (error) {
       toast.error(getApiErrorMessage(error));
@@ -53,9 +55,11 @@ export default function AdminCommentsPage() {
 
   const handleApproval = async (comment: Comment) => {
     try {
-      await adminCommentsService.updateApproval(comment.id, !comment.isApproved);
+      await adminCommentsService.updateApproval(comment, !comment.isApproved);
       setComments(prev => prev.map(c =>
-        c.id === comment.id ? { ...c, isApproved: !c.isApproved } : c
+        c.id === comment.id && c.source === comment.source
+          ? { ...c, isApproved: !c.isApproved }
+          : c
       ));
       toast.success(!comment.isApproved ? 'نظر تأیید شد' : 'نظر رد شد');
     } catch (error) {
@@ -68,7 +72,7 @@ export default function AdminCommentsPage() {
     setViewError(null);
     setViewLoading(true);
     try {
-      const detail = await adminCommentsService.getById(item.id);
+      const detail = await adminCommentsService.getById(item.id, item.source);
       if (detail) setViewItem(detail);
     } catch (err) {
       setViewError(getApiErrorMessage(err));
@@ -96,9 +100,23 @@ export default function AdminCommentsPage() {
       ),
     },
     {
-      key: 'blogPostTitle',
-      label: 'مقاله',
-      render: (comment: Comment) => comment.blogPostTitle || '-',
+      key: 'source',
+      label: 'مربوط به',
+      render: (comment: Comment) => (
+        <div>
+          <div className="font-medium">
+            {comment.source === 'project' ? 'پروژه' : 'مقاله'}
+          </div>
+          <div className="max-w-52 truncate text-xs text-muted-foreground">
+            {comment.source === 'project'
+              ? comment.projectTitle || '-'
+              : comment.blogPostTitle || '-'}
+          </div>
+          {comment.source === 'project' && comment.projectCode && (
+            <div className="text-xs text-muted-foreground">#{comment.projectCode}</div>
+          )}
+        </div>
+      ),
     },
     {
       key: 'isApproved',
@@ -155,7 +173,7 @@ export default function AdminCommentsPage() {
             columns={columns}
             loading={isLoading}
             onView={handleView}
-            onDelete={(comment) => setDeleteId(comment.id)}
+            onDelete={setDeleteItem}
             extraActions={extraActions}
             idLookup={{
               entityLabel: 'نظر',
@@ -167,8 +185,8 @@ export default function AdminCommentsPage() {
       </Card>
 
       <ConfirmDialog
-        open={!!deleteId}
-        onOpenChange={(open) => !open && setDeleteId(null)}
+        open={!!deleteItem}
+        onOpenChange={(open) => !open && setDeleteItem(null)}
         title="حذف نظر"
         description="آیا از حذف این نظر اطمینان دارید؟"
         onConfirm={handleDelete}
@@ -185,7 +203,16 @@ export default function AdminCommentsPage() {
           { label: 'شناسه', value: viewItem.id },
           { label: 'نام', value: viewItem.fullName },
           { label: 'ایمیل', value: viewItem.email },
-          { label: 'مقاله', value: viewItem.blogPostTitle || '-' },
+          { label: 'نوع نظر', value: viewItem.source === 'project' ? 'نظر پروژه' : 'نظر مقاله' },
+          {
+            label: viewItem.source === 'project' ? 'پروژه' : 'مقاله',
+            value: viewItem.source === 'project'
+              ? viewItem.projectTitle || '-'
+              : viewItem.blogPostTitle || '-',
+          },
+          ...(viewItem.source === 'project' && viewItem.projectCode
+            ? [{ label: 'کد پروژه', value: viewItem.projectCode }]
+            : []),
           { label: 'وضعیت', value: viewItem.isApproved ? 'تأییدشده' : 'در انتظار تأیید' },
           { label: 'پیام', value: viewItem.message, fullWidth: true },
           { label: 'تاریخ ایجاد', value: viewItem.createdAt ? new Date(viewItem.createdAt).toLocaleString('fa-IR') : '-' },

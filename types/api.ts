@@ -201,7 +201,7 @@ export interface BlogPost {
 
 export interface PublicComment {
   id: string;
-  blogPostId: string;
+  blogPostId?: string;
   parentCommentId?: string;
   fullName: string;
   message: string;
@@ -210,7 +210,11 @@ export interface PublicComment {
 }
 
 export interface Comment extends PublicComment {
+  source?: 'blog' | 'project';
   blogPostTitle?: string;
+  projectId?: string;
+  projectTitle?: string;
+  projectCode?: string;
   userId?: string;
   userFullName?: string;
   userEmail?: string;
@@ -247,6 +251,7 @@ export interface ProjectDetailDto {
   endDate?: string;
   adminNote?: string;
   customerComment?: string;
+  isCustomerCommentApproved?: boolean;
   createdAt: string;
   updatedAt?: string;
 }

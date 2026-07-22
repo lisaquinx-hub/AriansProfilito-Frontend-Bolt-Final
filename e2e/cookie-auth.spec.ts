@@ -48,6 +48,7 @@ async function mockApi(page: Page, context: BrowserContext) {
   let authenticatedUser: typeof customer | typeof admin | null = null;
   let logoutSeen = false;
   let commentSeen = false;
+  let projectCommentApprovalSeen = false;
   let blogUpdateSeen = false;
   let registerSeen = false;
   let commentsRequestUrl = '';
@@ -55,6 +56,7 @@ async function mockApi(page: Page, context: BrowserContext) {
   const adminBlogPostId = '6de067c7-4f8f-4604-b495-127843afc970';
   const blogCategoryId = 'f6a793ab-1e5a-4a86-bf5e-317b4a4fdf54';
   const publicServiceId = 'd77a41de-da4e-41d1-8d33-565aef9f670f';
+  const projectCommentId = '69738931-4e94-4355-a5b6-16c0a6f040db';
   const publicServiceSlug = 'api-web-design';
   const serviceImage = 'https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg';
   const unsplashCoverImage = 'https://images.unsplash.com/photo-1504805572947-34fad45aed93?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
@@ -90,6 +92,25 @@ async function mockApi(page: Page, context: BrowserContext) {
     company: 'شرکت تست',
     isRead: false,
     createdAt: '2026-07-22T08:00:00Z',
+  };
+  const adminProjectWithComment = {
+    id: projectCommentId,
+    userId: customer.id,
+    customerFullName: customer.fullName,
+    customerEmail: customer.email,
+    pricingPlanId: '0b19fcbd-b3d0-44b0-8d66-29c4f101d43a',
+    pricingPlanTitle: 'پلن تست پروژه',
+    projectCode: 'PRJ-E2E-COMMENT',
+    title: 'پروژه تست نظر مشتری',
+    description: 'پروژه‌ای برای تست نمایش نظر مشتری در پنل ادمین.',
+    status: 2,
+    progress: 50,
+    price: 1000000,
+    paidAmount: 500000,
+    customerComment: 'این نظر پروژه باید در پنل مدیریت دیده شود.',
+    isCustomerCommentApproved: false,
+    createdAt: '2026-07-22T08:30:00Z',
+    updatedAt: '2026-07-22T09:00:00Z',
   };
 
   await page.route('https://fonts.googleapis.com/**', async (route) => {
@@ -304,6 +325,25 @@ async function mockApi(page: Page, context: BrowserContext) {
       return;
     }
 
+    if (pathname === '/api/admin/projects' && request.method() === 'GET') {
+      await json(route, { success: true, data: [adminProjectWithComment] });
+      return;
+    }
+
+    if (
+      pathname === `/api/admin/projects/${projectCommentId}/customer-comment/approval` &&
+      request.method() === 'PATCH'
+    ) {
+      expect(request.headers()['x-csrf-token']).toBe('csrf-e2e-5');
+      expect(request.postDataJSON()).toEqual({ isApproved: true });
+      projectCommentApprovalSeen = true;
+      await json(route, {
+        success: true,
+        data: { ...adminProjectWithComment, isCustomerCommentApproved: true },
+      });
+      return;
+    }
+
     if (pathname === '/api/admin/contact-messages/unread' && request.method() === 'GET') {
       await json(route, { success: true, data: [adminContactMessage] });
       return;
@@ -370,7 +410,7 @@ async function mockApi(page: Page, context: BrowserContext) {
 
     if (pathname === `/api/admin/blog/posts/${adminBlogPostId}` && request.method() === 'PUT') {
       const payload = request.postDataJSON();
-      expect(request.headers()['x-csrf-token']).toBe('csrf-e2e-5');
+      expect(request.headers()['x-csrf-token']).toBe('csrf-e2e-6');
       expect(payload).toMatchObject({
         content: adminBlogPostDetail.content,
         categoryId: blogCategoryId,
@@ -529,6 +569,7 @@ async function mockApi(page: Page, context: BrowserContext) {
   return {
     wasLoggedOut: () => logoutSeen,
     wasCommentSubmitted: () => commentSeen,
+    wasProjectCommentApproved: () => projectCommentApprovalSeen,
     wasBlogUpdated: () => blogUpdateSeen,
     wasRegistered: () => registerSeen,
     adminCommentsRequestUrl: () => commentsRequestUrl,
@@ -648,12 +689,22 @@ test('ورود، خدمات واقعی، ثبت نظر، نمایش ادمین �
   await expect(page.getByRole('heading', { name: 'مدیریت نظرات' })).toBeVisible();
   await expect(page.getByText('نظر جدید تست ادمین')).toBeVisible();
   await expect(page.getByText('new-comment@example.com')).toBeVisible();
+  await expect(page.getByText('این نظر پروژه باید در پنل مدیریت دیده شود.')).toBeVisible();
+  await expect(page.getByText('پروژه تست نظر مشتری')).toBeVisible();
+
+  const projectCommentRow = page.getByRole('row').filter({
+    hasText: 'این نظر پروژه باید در پنل مدیریت دیده شود.',
+  });
+  await projectCommentRow.getByRole('button', { name: 'نمایش عملیات' }).click();
+  await page.getByRole('menuitem', { name: 'تغییر تأیید' }).click();
+  await expect(page.getByText('نظر تأیید شد')).toBeVisible();
+  expect(apiState.wasProjectCommentApproved()).toBe(true);
 
   const commentsUrl = new URL(apiState.adminCommentsRequestUrl());
   expect(commentsUrl.searchParams.get('skip')).toBe('0');
   expect(commentsUrl.searchParams.get('take')).toBe('500');
   expect(commentsUrl.searchParams.get('cacheBuster')).toBeTruthy();
-  expect(apiState.csrfCalls()).toBe(4);
+  expect(apiState.csrfCalls()).toBe(5);
 
   await page.goto('/dashboard/admin/blog-posts', { waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('heading', { name: 'مدیریت پست‌های وبلاگ' })).toBeVisible();
@@ -669,7 +720,7 @@ test('ورود، خدمات واقعی، ثبت نظر، نمایش ادمین �
 
   await expect(page.getByText('پست با موفقیت ویرایش شد')).toBeVisible();
   expect(apiState.wasBlogUpdated()).toBe(true);
-  expect(apiState.csrfCalls()).toBe(5);
+  expect(apiState.csrfCalls()).toBe(6);
 
   await page.goto('/products', { waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('heading', { name: 'محصولات', level: 1 })).toBeVisible();
